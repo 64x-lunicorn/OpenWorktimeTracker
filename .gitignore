@@ -1,0 +1,45 @@
+# Xcode
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.moved-aside
+xcuserdata/
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+.swiftpm/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# App Distribution
+*.dmg
+*.app
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.appcast.xml
+
+# IDE
+.vscode/.history/
+*.swp
+*~
+
+# Secrets (never commit)
+*.p12
+*.mobileprovision
+*.provisionprofile
+sparkle_private_key

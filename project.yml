@@ -1,0 +1,49 @@
+name: OpenWorktimeTracker
+options:
+  bundleIdPrefix: com.openworktimetracker
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
+
+targets:
+  OpenWorktimeTracker:
+    type: application
+    platform: macOS
+    sources:
+      - path: OpenWorktimeTracker
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.openworktimetracker.app
+        PRODUCT_NAME: OpenWorktimeTracker
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        INFOPLIST_FILE: OpenWorktimeTracker/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: OpenWorktimeTracker/Resources/OpenWorktimeTracker.entitlements
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: false
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_HARDENED_RUNTIME: true
+    dependencies:
+      - package: Sparkle
+        product: Sparkle
+
+  OpenWorktimeTrackerTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: OpenWorktimeTrackerTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.openworktimetracker.tests
+        SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: true
+    dependencies:
+      - target: OpenWorktimeTracker

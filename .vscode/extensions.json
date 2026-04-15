@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "sswg.swift-lang",
+    "vknabel.vscode-swiftlint",
+    "nicklason.plistyaml",
+    "redhat.vscode-yaml",
+    "davidanson.vscode-markdownlint",
+    "bierner.markdown-mermaid",
+    "github.copilot",
+    "github.copilot-chat"
+  ]
+}

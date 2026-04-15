@@ -1,0 +1,173 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: OpenWorktimeTracker
+  SCHEME: OpenWorktimeTracker
+  XCODE_VERSION: "16.0"
+
+jobs:
+  release:
+    name: Build, Sign, Notarize & Release
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+      - name: Install tools
+        run: |
+          brew install xcodegen create-dmg
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      # --- Code Signing ---
+      - name: Install Certificate
+        env:
+          CERTIFICATE_P12: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+        run: |
+          # Create temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Import certificate
+          CERT_PATH=$RUNNER_TEMP/certificate.p12
+          echo "$CERTIFICATE_P12" | base64 --decode > "$CERT_PATH"
+          security import "$CERT_PATH" \
+            -P "$CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          # Set keychain search list
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+      # --- Build ---
+      - name: Build Release
+        run: |
+          xcodebuild build \
+            -project ${{ env.APP_NAME }}.xcodeproj \
+            -scheme ${{ env.SCHEME }} \
+            -configuration Release \
+            -derivedDataPath build \
+            -destination 'platform=macOS' \
+            MARKETING_VERSION=${{ steps.version.outputs.VERSION }} \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
+
+      # --- Notarize ---
+      - name: Notarize
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          NOTARIZATION_PASSWORD: ${{ secrets.NOTARIZATION_PASSWORD }}
+        run: |
+          APP_PATH="build/Build/Products/Release/${{ env.APP_NAME }}.app"
+
+          # Create ZIP for notarization
+          ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/${{ env.APP_NAME }}.zip"
+
+          # Submit for notarization
+          xcrun notarytool submit "$RUNNER_TEMP/${{ env.APP_NAME }}.zip" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$NOTARIZATION_PASSWORD" \
+            --wait
+
+          # Staple the ticket
+          xcrun stapler staple "$APP_PATH"
+
+      # --- DMG ---
+      - name: Create DMG
+        run: |
+          APP_PATH="build/Build/Products/Release/${{ env.APP_NAME }}.app"
+          DMG_PATH="build/${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}.dmg"
+
+          create-dmg \
+            --volname "${{ env.APP_NAME }}" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "${{ env.APP_NAME }}.app" 175 190 \
+            --app-drop-link 425 190 \
+            --hide-extension "${{ env.APP_NAME }}.app" \
+            "$DMG_PATH" \
+            "$APP_PATH" || true
+
+          # Fallback if create-dmg fails
+          if [ ! -f "$DMG_PATH" ]; then
+            hdiutil create -volname "${{ env.APP_NAME }}" \
+              -srcfolder "$APP_PATH" \
+              -ov -format UDZO \
+              "$DMG_PATH"
+          fi
+
+          echo "DMG_PATH=$DMG_PATH" >> "$GITHUB_ENV"
+
+      # --- Sparkle Appcast ---
+      - name: Generate Sparkle Signature
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          # Download Sparkle tools
+          SPARKLE_VERSION="2.6.0"
+          curl -sL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz" \
+            | tar xJ -C "$RUNNER_TEMP" --include='*/bin/*'
+
+          # Sign the DMG with Sparkle EdDSA key
+          echo "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_key"
+          SIGNATURE=$("$RUNNER_TEMP/bin/sign_update" "$DMG_PATH" --ed-key-file "$RUNNER_TEMP/sparkle_key")
+          echo "SPARKLE_SIGNATURE=$SIGNATURE" >> "$GITHUB_ENV"
+          rm "$RUNNER_TEMP/sparkle_key"
+
+      # --- Release ---
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## OpenWorktimeTracker v${{ steps.version.outputs.VERSION }}
+
+            ### Installation
+            1. Download `${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}.dmg`
+            2. Open the DMG and drag to Applications
+            3. Launch from Applications
+
+            The app will auto-update to future versions via Sparkle.
+
+            ---
+            Sparkle EdDSA Signature: `${{ env.SPARKLE_SIGNATURE }}`
+          files: |
+            ${{ env.DMG_PATH }}
+          draft: false
+          prerelease: false
+
+      # --- Cleanup ---
+      - name: Cleanup Keychain
+        if: always()
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH"
+          fi
