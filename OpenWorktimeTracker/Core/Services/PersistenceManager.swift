@@ -71,6 +71,7 @@ final class PersistenceManager {
         let fileURL = logDirectory.appendingPathComponent("\(entry.date).json")
         if let data = try? encoder.encode(entry) {
             try? data.write(to: fileURL, options: .atomic)
+            CloudSyncManager.shared.uploadEntry(at: fileURL)
         }
     }
 
@@ -131,7 +132,34 @@ final class PersistenceManager {
             }
     }
 
+    func loadLastDays(_ count: Int) -> [TimeEntry] {
+        ensureDirectoryExists()
+        let dir = logDirectory
+        guard
+            let files = try? fileManager.contentsOfDirectory(
+                at: dir,
+                includingPropertiesForKeys: nil,
+                options: .skipsHiddenFiles
+            )
+        else { return [] }
+
+        let sorted =
+            files
+            .filter { $0.pathExtension == "json" }
+            .sorted { $0.lastPathComponent > $1.lastPathComponent }
+            .prefix(count)
+
+        return sorted.compactMap { file in
+            guard let data = try? Data(contentsOf: file) else { return nil }
+            return try? decoder.decode(TimeEntry.self, from: data)
+        }
+    }
+
     // MARK: - Export
+
+    func syncWithCloud() {
+        CloudSyncManager.shared.syncIfEnabled(localDirectory: logDirectory)
+    }
 
     func exportCSV() -> URL? {
         let entries = loadAll()

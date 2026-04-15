@@ -6,6 +6,10 @@ options:
   xcodeVersion: "16.0"
   generateEmptyDirectories: true
   groupSortPosition: top
+  knownRegions:
+    - en
+    - de
+  defaultLocalization: en
 
 packages:
   Sparkle:
@@ -18,6 +22,7 @@ targets:
     platform: macOS
     sources:
       - path: OpenWorktimeTracker
+      - path: Shared
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.openworktimetracker.app
@@ -34,6 +39,30 @@ targets:
     dependencies:
       - package: Sparkle
         product: Sparkle
+      - target: WorktimeWidgetExtension
+
+  WorktimeWidgetExtension:
+    type: app-extension
+    platform: macOS
+    product: WorktimeWidget
+    sources:
+      - path: WorktimeWidget
+        excludes:
+          - Info.plist
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.openworktimetracker.app.widget
+        PRODUCT_NAME: WorktimeWidget
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        SWIFT_VERSION: "5.9"
+        INFOPLIST_FILE: WorktimeWidget/Info.plist
+        GENERATE_INFOPLIST_FILE: false
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: WorktimeWidget/WorktimeWidget.entitlements
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks"
 
   OpenWorktimeTrackerTests:
     type: bundle.unit-test

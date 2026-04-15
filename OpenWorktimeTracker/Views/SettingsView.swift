@@ -33,21 +33,25 @@ struct SettingsView: View {
     // Startup
     @State private var launchAtLogin = AppDelegate.isLaunchAtLoginEnabled
 
+    // Cloud
+    @AppStorage(AppSettingsKey.iCloudSyncEnabled) private var iCloudSync = AppDefaults
+        .iCloudSyncEnabled
+
     var body: some View {
         TabView {
             generalTab
                 .tabItem {
-                    Label("General", systemImage: "gear")
+                    Label("settings.general", systemImage: "gear")
                 }
 
             notificationsTab
                 .tabItem {
-                    Label("Notifications", systemImage: "bell")
+                    Label("settings.notifications", systemImage: "bell")
                 }
 
             dataTab
                 .tabItem {
-                    Label("Data", systemImage: "folder")
+                    Label("settings.data", systemImage: "folder")
                 }
         }
         .frame(width: 450, height: 350)
@@ -57,16 +61,16 @@ struct SettingsView: View {
 
     private var generalTab: some View {
         Form {
-            Section("Appearance") {
+            Section(String(localized: "settings.appearance")) {
                 HStack {
-                    Text("Orange threshold (h)")
+                    Text("settings.orangeThreshold")
                     Spacer()
                     TextField("", value: $orangeThreshold, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                 }
                 HStack {
-                    Text("Red threshold (h)")
+                    Text("settings.redThreshold")
                     Spacer()
                     TextField("", value: $redThreshold, format: .number)
                         .frame(width: 60)
@@ -74,16 +78,16 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Auto Break (ArbZG)") {
+            Section(String(localized: "settings.autoBreak")) {
                 HStack {
-                    Text("Break after > 6h (min)")
+                    Text("settings.breakAfter6h")
                     Spacer()
                     TextField("", value: $break6h, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                 }
                 HStack {
-                    Text("Break after > 9h (min)")
+                    Text("settings.breakAfter9h")
                     Spacer()
                     TextField("", value: $break9h, format: .number)
                         .frame(width: 60)
@@ -91,9 +95,9 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Idle Detection") {
+            Section(String(localized: "settings.idleDetection")) {
                 HStack {
-                    Text("Idle threshold (min)")
+                    Text("settings.idleThreshold")
                     Spacer()
                     TextField("", value: $idleThreshold, format: .number)
                         .frame(width: 60)
@@ -101,8 +105,8 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Startup") {
-                Toggle("Launch at Login", isOn: $launchAtLogin)
+            Section(String(localized: "settings.startup")) {
+                Toggle(String(localized: "settings.launchAtLogin"), isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, newValue in
                         AppDelegate.setLaunchAtLogin(newValue)
                     }
@@ -116,26 +120,27 @@ struct SettingsView: View {
     private var notificationsTab: some View {
         Form {
             Section {
-                Toggle("Enable notifications", isOn: $notificationsEnabled)
+                Toggle(
+                    String(localized: "settings.enableNotifications"), isOn: $notificationsEnabled)
             }
 
-            Section("Thresholds") {
+            Section(String(localized: "settings.thresholds")) {
                 HStack {
-                    Text("Normal (h)")
+                    Text("settings.normalHours")
                     Spacer()
                     TextField("", value: $normalHours, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                 }
                 HStack {
-                    Text("Critical (h)")
+                    Text("settings.criticalHours")
                     Spacer()
                     TextField("", value: $criticalHours, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                 }
                 HStack {
-                    Text("Milestone (h)")
+                    Text("settings.milestoneHours")
                     Spacer()
                     TextField("", value: $milestoneHours, format: .number)
                         .frame(width: 60)
@@ -143,7 +148,7 @@ struct SettingsView: View {
                 }
             }
 
-            Text("Notifications are sent once per day when net time crosses a threshold.")
+            Text("settings.notificationHelp")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -154,29 +159,57 @@ struct SettingsView: View {
 
     private var dataTab: some View {
         Form {
-            Section("Logs") {
+            Section(String(localized: "settings.logs")) {
                 HStack {
-                    Button("Open Log Folder") {
+                    Button(String(localized: "settings.openLogFolder")) {
                         NSWorkspace.shared.open(manager.persistence.logDirectory)
                     }
 
-                    Button("Choose Log Folder...") {
+                    Button(String(localized: "settings.chooseLogFolder")) {
                         chooseLogFolder()
                     }
                 }
             }
 
-            Section("Export") {
-                Button("Export as CSV...") {
+            Section(String(localized: "settings.cloudSync")) {
+                Toggle(String(localized: "settings.syncICloud"), isOn: $iCloudSync)
+                    .onChange(of: iCloudSync) { _, newValue in
+                        if newValue {
+                            manager.persistence.syncWithCloud()
+                        }
+                    }
+
+                if iCloudSync {
+                    if CloudSyncManager.shared.iCloudAvailable {
+                        Label("settings.iCloudConnected", systemImage: "checkmark.icloud")
+                            .foregroundStyle(.secondary)
+                            .font(.caption)
+
+                        Button(String(localized: "settings.syncNow")) {
+                            manager.persistence.syncWithCloud()
+                        }
+                    } else {
+                        Label(
+                            String(localized: "settings.iCloudUnavailable"),
+                            systemImage: "exclamationmark.icloud"
+                        )
+                        .foregroundStyle(.orange)
+                        .font(.caption)
+                    }
+                }
+            }
+
+            Section(String(localized: "settings.export")) {
+                Button(String(localized: "settings.exportCSV")) {
                     if let url = manager.persistence.exportCSV() {
                         NSWorkspace.shared.open(url)
                     }
                 }
             }
 
-            Section("About") {
+            Section(String(localized: "settings.about")) {
                 HStack {
-                    Text("Version")
+                    Text("settings.version")
                     Spacer()
                     Text(
                         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString")
@@ -196,8 +229,8 @@ struct SettingsView: View {
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        panel.prompt = "Choose"
-        panel.message = "Select a folder for worktime logs"
+        panel.prompt = String(localized: "settings.choosePrompt")
+        panel.message = String(localized: "settings.chooseMessage")
 
         if panel.runModal() == .OK, let url = panel.url {
             manager.persistence.setCustomLogFolder(url)

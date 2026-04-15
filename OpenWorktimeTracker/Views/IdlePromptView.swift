@@ -2,9 +2,9 @@ import SwiftUI
 
 struct IdlePromptView: View {
     @Environment(WorkdayManager.self) private var manager
-    @Environment(\.dismiss) private var dismiss
 
     let promptInfo: IdlePromptInfo
+    var onDismiss: (() -> Void)?
 
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.xl) {
@@ -19,15 +19,23 @@ struct IdlePromptView: View {
                 .padding(.top, DesignTokens.Spacing.lg)
 
             // Title
-            Text(promptInfo.spansMidnight ? "Neuer Arbeitstag!" : "Inaktivität erkannt")
-                .font(DesignTokens.Typography.headlineSmall)
-                .foregroundStyle(DesignTokens.Colors.onSurface)
+            Text(
+                promptInfo.spansMidnight
+                    ? String(localized: "idle.newWorkday")
+                    : String(localized: "idle.inactivityDetected")
+            )
+            .font(DesignTokens.Typography.headlineSmall)
+            .foregroundStyle(DesignTokens.Colors.onSurface)
 
             // Details
             VStack(spacing: DesignTokens.Spacing.sm) {
-                Text("Du warst \(promptInfo.formattedDuration) inaktiv")
-                    .font(DesignTokens.Typography.bodyMedium)
-                    .foregroundStyle(DesignTokens.Colors.onSurface)
+                Text(
+                    String(
+                        format: String(localized: "idle.youWereInactive"),
+                        promptInfo.formattedDuration)
+                )
+                .font(DesignTokens.Typography.bodyMedium)
+                .foregroundStyle(DesignTokens.Colors.onSurface)
 
                 Text(promptInfo.formattedRange)
                     .font(DesignTokens.Typography.bodySmall)
@@ -57,11 +65,11 @@ struct IdlePromptView: View {
         VStack(spacing: DesignTokens.Spacing.sm) {
             Button {
                 manager.handleIdleDecision(.work)
-                dismiss()
+                onDismiss?()
             } label: {
                 HStack {
                     Image(systemName: "person.2.fill")
-                    Text("War Arbeitszeit (Meeting/Testen)")
+                    Text("idle.wasWorkTime")
                 }
                 .font(DesignTokens.Typography.labelLarge)
                 .frame(maxWidth: .infinity)
@@ -74,11 +82,11 @@ struct IdlePromptView: View {
 
             Button {
                 manager.handleIdleDecision(.pause)
-                dismiss()
+                onDismiss?()
             } label: {
                 HStack {
                     Image(systemName: "cup.and.saucer.fill")
-                    Text("War Pause (abziehen)")
+                    Text("idle.wasPause")
                 }
                 .font(DesignTokens.Typography.labelLarge)
                 .frame(maxWidth: .infinity)
@@ -97,11 +105,14 @@ struct IdlePromptView: View {
         VStack(spacing: DesignTokens.Spacing.sm) {
             Button {
                 manager.handleNewDayFromIdle(endYesterdayAt: promptInfo.idleStart)
-                dismiss()
+                onDismiss?()
             } label: {
                 VStack(spacing: 2) {
-                    Text("Gestern um \(promptInfo.idleStart.hoursMinutesString) beenden")
-                    Text("Heute jetzt starten")
+                    Text(
+                        String(
+                            format: String(localized: "idle.endYesterday"),
+                            promptInfo.idleStart.hoursMinutesString))
+                    Text("idle.startToday")
                         .font(DesignTokens.Typography.labelMicro)
                         .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
                 }
@@ -116,9 +127,9 @@ struct IdlePromptView: View {
 
             Button {
                 manager.handleIdleDecision(.work)
-                dismiss()
+                onDismiss?()
             } label: {
-                Text("Alles als Arbeitszeit zählen")
+                Text("idle.countAsWork")
                     .font(DesignTokens.Typography.labelLarge)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)

@@ -13,6 +13,7 @@ struct OpenWorktimeTrackerApp: App {
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: menuBarIcon)
+                    .symbolEffect(.pulse, isActive: workdayManager.state == .running)
                 Text(workdayManager.menuBarTitle)
                     .monospacedDigit()
             }

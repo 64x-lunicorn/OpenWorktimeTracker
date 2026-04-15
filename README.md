@@ -19,7 +19,13 @@ No Dock icon. No manual start. Just open your Mac and your workday begins.
 - **ArbZG-Compliant Breaks** — Automatic break calculation per German labor law (§4 ArbZG)
 - **Threshold Notifications** — Alerts at configurable limits (e.g., 8h normal, 10h critical)
 - **Idle Detection** — Detects inactivity and asks: "Was that a meeting or a break?"
-- **Live Menu Bar** — Shows net work time, color-coded by threshold
+- **Screen Lock Detection** — Recognizes lock/unlock as idle periods
+- **Live Menu Bar** — Shows net work time, color-coded by threshold, animated while running
+- **7-Day History + Stats** — Weekly bar chart and week/month summary with overtime tracking
+- **Manual Time Editing** — Adjust start/end time directly in the popover
+- **Global Shortcuts** — Ctrl+Option+P (pause/resume), Ctrl+Option+E (end day)
+- **iCloud Sync** — Sync daily logs to iCloud Drive across devices
+- **macOS Widgets** — Small and medium widgets showing current work time
 - **Daily JSON Logs** — Transparent, exportable, one file per day
 - **Sparkle Auto-Updates** — Seamless updates via GitHub Releases
 - **Ethereal Design** — Glassmorphism, tonal depth, adaptive light/dark mode
@@ -255,6 +261,14 @@ make build
 | Milestone Notification | 10h | "Maximum reached!" |
 | Idle Threshold | 5 min | Time before idle prompt |
 | Launch at Login | On | Auto-start with macOS |
+| iCloud Sync | Off | Sync logs to iCloud Drive |
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| Ctrl+Option+P | Pause / Resume |
+| Ctrl+Option+E | End Day |
 
 ---
 

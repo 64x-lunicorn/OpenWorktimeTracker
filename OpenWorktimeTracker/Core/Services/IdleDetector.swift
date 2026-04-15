@@ -9,6 +9,11 @@ final class IdleDetector {
     var isIdle = false
     var idleStartTime: Date?
     var pendingPrompt: IdlePromptInfo?
+    private var screenLocked = false
+    private var lockTime: Date?
+
+    /// Called when a new idle prompt should be shown.
+    var onPromptReady: ((IdlePromptInfo) -> Void)?
 
     // MARK: - Configuration
 
@@ -25,6 +30,7 @@ final class IdleDetector {
         checkTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             self?.checkIdleState()
         }
+        registerScreenLockObservers()
     }
 
     func stopMonitoring() {
@@ -32,11 +38,71 @@ final class IdleDetector {
         checkTimer = nil
         isIdle = false
         idleStartTime = nil
+        DistributedNotificationCenter.default().removeObserver(self)
+    }
+
+    // MARK: - Screen Lock/Unlock
+
+    private func registerScreenLockObservers() {
+        let dnc = DistributedNotificationCenter.default()
+
+        dnc.addObserver(
+            self,
+            selector: #selector(screenDidLock),
+            name: NSNotification.Name("com.apple.screenIsLocked"),
+            object: nil
+        )
+        dnc.addObserver(
+            self,
+            selector: #selector(screenDidUnlock),
+            name: NSNotification.Name("com.apple.screenIsUnlocked"),
+            object: nil
+        )
+    }
+
+    @objc private func screenDidLock() {
+        screenLocked = true
+        lockTime = Date()
+        // Treat screen lock as start of idle
+        if !isIdle {
+            isIdle = true
+            idleStartTime = Date()
+        }
+    }
+
+    @objc private func screenDidUnlock() {
+        guard screenLocked else { return }
+        screenLocked = false
+        let unlockTime = Date()
+
+        if let start = idleStartTime ?? lockTime {
+            let duration = unlockTime.timeIntervalSince(start)
+            let threshold = idleThresholdSeconds > 0 ? idleThresholdSeconds : 300
+
+            if duration >= threshold {
+                let spansMidnight = !Calendar.current.isDate(start, inSameDayAs: unlockTime)
+                pendingPrompt = IdlePromptInfo(
+                    idleStart: start,
+                    idleEnd: unlockTime,
+                    duration: duration,
+                    spansMidnight: spansMidnight
+                )
+                if let prompt = pendingPrompt {
+                    onPromptReady?(prompt)
+                }
+            }
+        }
+        isIdle = false
+        idleStartTime = nil
+        lockTime = nil
     }
 
     // MARK: - Idle Check
 
     private func checkIdleState() {
+        // Skip polling when screen is locked — handled by lock/unlock observers
+        guard !screenLocked else { return }
+
         let idleSeconds = currentIdleTime()
         let threshold = idleThresholdSeconds > 0 ? idleThresholdSeconds : 300  // default 5 min
 
@@ -59,6 +125,9 @@ final class IdleDetector {
                     duration: duration,
                     spansMidnight: spansMidnight
                 )
+                if let prompt = pendingPrompt {
+                    onPromptReady?(prompt)
+                }
             }
             isIdle = false
             idleStartTime = nil
@@ -66,8 +135,15 @@ final class IdleDetector {
     }
 
     private func currentIdleTime() -> TimeInterval {
-        // CGEventSource.secondsSinceLastEventType gives seconds since last HID event
-        CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .mouseMoved)
+        // Check both mouse and keyboard events, return the smaller value
+        // (= time since last activity of any kind)
+        let mouseMoved = CGEventSource.secondsSinceLastEventType(
+            .combinedSessionState, eventType: .mouseMoved)
+        let mouseDown = CGEventSource.secondsSinceLastEventType(
+            .combinedSessionState, eventType: .leftMouseDown)
+        let keyDown = CGEventSource.secondsSinceLastEventType(
+            .combinedSessionState, eventType: .keyDown)
+        return min(mouseMoved, mouseDown, keyDown)
     }
 
     func dismissPrompt() {

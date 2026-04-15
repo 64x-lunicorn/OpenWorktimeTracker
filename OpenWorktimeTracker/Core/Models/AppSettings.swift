@@ -13,6 +13,7 @@ enum AppSettingsKey {
     static let idleThresholdMinutes = "idleThresholdMinutes"
     static let logFolderBookmark = "logFolderBookmark"
     static let newDayStartHour = "newDayStartHour"
+    static let iCloudSyncEnabled = "iCloudSyncEnabled"
 }
 
 enum AppDefaults {
@@ -27,4 +28,5 @@ enum AppDefaults {
     static let launchAtLogin: Bool = true
     static let idleThresholdMinutes: Int = 5
     static let newDayStartHour: Int = 4  // Before 4 AM is still "yesterday"
+    static let iCloudSyncEnabled: Bool = false
 }

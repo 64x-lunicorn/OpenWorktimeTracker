@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+    <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#6366f1" />
+            <stop offset="100%" stop-color="#4f46e5" />
+        </linearGradient>
+        <linearGradient id="face" x1="32" y1="32" x2="96" y2="96" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#e0e7ff" />
+            <stop offset="100%" stop-color="#c7d2fe" />
+        </linearGradient>
+    </defs>
+    <!-- Rounded square background -->
+    <rect width="128" height="128" rx="28" fill="url(#bg)" />
+    <!-- Clock face -->
+    <circle cx="64" cy="64" r="38" fill="url(#face)" opacity="0.15" />
+    <circle cx="64" cy="64" r="36" fill="none" stroke="#e0e7ff" stroke-width="2.5" opacity="0.8" />
+    <!-- Hour markers -->
+    <line x1="64" y1="30" x2="64" y2="35" stroke="#e0e7ff" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="64" y1="93" x2="64" y2="98" stroke="#e0e7ff" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="30" y1="64" x2="35" y2="64" stroke="#e0e7ff" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="93" y1="64" x2="98" y2="64" stroke="#e0e7ff" stroke-width="2.5" stroke-linecap="round" />
+    <!-- Minor markers -->
+    <line x1="88.05" y1="40.27" x2="85.37" y2="43.02" stroke="#e0e7ff" stroke-width="1.5"
+        stroke-linecap="round" opacity="0.6" />
+    <line x1="88.05" y1="87.73" x2="85.37" y2="84.98" stroke="#e0e7ff" stroke-width="1.5"
+        stroke-linecap="round" opacity="0.6" />
+    <line x1="39.95" y1="40.27" x2="42.63" y2="43.02" stroke="#e0e7ff" stroke-width="1.5"
+        stroke-linecap="round" opacity="0.6" />
+    <line x1="39.95" y1="87.73" x2="42.63" y2="84.98" stroke="#e0e7ff" stroke-width="1.5"
+        stroke-linecap="round" opacity="0.6" />
+    <!-- Hour hand (pointing to ~8 o'clock position = 240 degrees) -->
+    <line x1="64" y1="64" x2="50" y2="80" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" />
+    <!-- Minute hand (pointing to ~12 o'clock) -->
+    <line x1="64" y1="64" x2="64" y2="36" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" />
+    <!-- Center dot -->
+    <circle cx="64" cy="64" r="3.5" fill="#ffffff" />
+    <!-- Play/tracking indicator (small triangle) -->
+    <polygon points="90,100 90,114 102,107" fill="#34d399" opacity="0.9" />
+</svg>

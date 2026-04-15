@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import Observation
+import WidgetKit
 
 @Observable
 final class WorkdayManager {
@@ -47,6 +48,34 @@ final class WorkdayManager {
     func bootstrap() {
         NotificationManager.shared.requestPermission()
         registerForSleepWake()
+
+        idleDetector.onPromptReady = { [weak self] prompt in
+            guard let self else { return }
+            DispatchQueue.main.async {
+                IdlePromptWindowController.shared.show(promptInfo: prompt, manager: self)
+            }
+        }
+
+        // Global keyboard shortcuts
+        let shortcuts = GlobalShortcutManager.shared
+        shortcuts.onPauseResume = { [weak self] in
+            guard let self else { return }
+            switch self.state {
+            case .running: self.pause()
+            case .paused: self.resume()
+            case .notStarted: self.startNewDay()
+            case .ended: break
+            }
+        }
+        shortcuts.onEndDay = { [weak self] in
+            guard let self else { return }
+            if self.state == .running || self.state == .paused {
+                self.endDay()
+            }
+        }
+        shortcuts.register()
+
+        persistence.syncWithCloud()
         evaluateWorkday()
     }
 
@@ -155,6 +184,51 @@ final class WorkdayManager {
         persistence.save(entry)
     }
 
+    func updateStartTime(_ newStart: Date) {
+        guard var entry = currentEntry else { return }
+        entry.startTime = newStart
+        currentEntry = entry
+        persistence.save(entry)
+        updateComputedValues()
+    }
+
+    func updateEndTime(_ newEnd: Date) {
+        guard var entry = currentEntry, state == .ended else { return }
+        entry.endTime = newEnd
+        currentEntry = entry
+        persistence.save(entry)
+        updateComputedValues()
+    }
+
+    /// Estimated end time to reach a target of net work hours.
+    /// Accounts for auto-break that will be added at 6h/9h thresholds.
+    var estimatedEndTime: Date? {
+        guard let entry = currentEntry, state == .running else { return nil }
+        let targetHours =
+            UserDefaults.standard.object(forKey: AppSettingsKey.normalNotificationHours)
+            as? Double ?? AppDefaults.normalNotificationHours
+        let targetSeconds = targetHours * 3600
+
+        // Calculate how much gross time is needed to reach targetSeconds net
+        // Net = Gross - ManualPause - IdlePause - AutoBreak
+        // AutoBreak depends on (Gross - ManualPause - IdlePause)
+        let alreadyPaused = entry.totalManualPause + entry.totalIdlePause
+        let calc = breakCalculator
+
+        // Estimate: target net + pauses already taken + auto-break for the total
+        let estimatedWorkTime = targetSeconds
+        let estimatedAutoBreak = calc.autoBreak(
+            forWorkTime: estimatedWorkTime,
+            alreadyPaused: alreadyPaused
+        )
+        let neededGross = targetSeconds + alreadyPaused + estimatedAutoBreak
+        let currentGross = entry.grossTime
+        let remaining = neededGross - currentGross
+
+        guard remaining > 0 else { return nil }
+        return Date().addingTimeInterval(remaining)
+    }
+
     // MARK: - Idle Handling
 
     func handleIdleDecision(_ decision: IdleDecision.Decision) {
@@ -171,6 +245,7 @@ final class WorkdayManager {
         currentEntry = entry
         persistence.save(entry)
         idleDetector.dismissPrompt()
+        IdlePromptWindowController.shared.dismiss()
     }
 
     func handleNewDayFromIdle(endYesterdayAt: Date) {
@@ -189,6 +264,7 @@ final class WorkdayManager {
 
         // Start fresh
         idleDetector.dismissPrompt()
+        IdlePromptWindowController.shared.dismiss()
         startNewDay()
     }
 
@@ -228,6 +304,14 @@ final class WorkdayManager {
         )
         netTime = max(0, workBeforeAuto - autoBreak)
         displayTime = netTime
+
+        SharedDefaults.update(
+            state: state.rawValue,
+            netTime: netTime,
+            grossTime: grossTime,
+            startTime: entry.startTime,
+            date: entry.date
+        )
     }
 
     // MARK: - Threshold Notifications
@@ -304,6 +388,7 @@ final class WorkdayManager {
         if let entry = currentEntry {
             persistence.save(entry)
             lastSaveTime = now
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 
@@ -318,6 +403,21 @@ final class WorkdayManager {
         wsnc.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) {
             [weak self] _ in
             self?.handleWake()
+        }
+
+        // Screen lock/unlock (covers lid close without sleep, fast user switching)
+        let dnc = DistributedNotificationCenter.default()
+        dnc.addObserver(
+            forName: NSNotification.Name("com.apple.screenIsLocked"),
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.handleSleep()  // save state on lock
+        }
+        dnc.addObserver(
+            forName: NSNotification.Name("com.apple.screenIsUnlocked"),
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.handleWake()  // re-evaluate on unlock
         }
     }
 

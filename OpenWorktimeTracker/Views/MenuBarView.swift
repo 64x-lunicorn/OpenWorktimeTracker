@@ -18,6 +18,12 @@ struct MenuBarView: View {
                     // Metric Cards
                     MetricCardsView()
 
+                    // Week History
+                    WeekHistoryView()
+
+                    // Summary Statistics
+                    SummaryStatsView()
+
                     // Note
                     noteSection
 
@@ -30,10 +36,6 @@ struct MenuBarView: View {
         .frame(width: DesignTokens.popoverWidth, height: DesignTokens.popoverMinHeight)
         .background(DesignTokens.Colors.surface)
         .environment(manager)
-        .sheet(item: idlePromptBinding) { prompt in
-            IdlePromptView(promptInfo: prompt)
-                .environment(manager)
-        }
         .onAppear {
             manager.bootstrap()
         }
@@ -44,9 +46,13 @@ struct MenuBarView: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Workday \(manager.currentEntry?.date ?? Date().dateString)")
-                    .font(DesignTokens.Typography.headlineSmall)
-                    .foregroundStyle(DesignTokens.Colors.onSurface)
+                Text(
+                    String(
+                        format: String(localized: "menubar.workday"),
+                        manager.currentEntry?.date ?? Date().dateString)
+                )
+                .font(DesignTokens.Typography.headlineSmall)
+                .foregroundStyle(DesignTokens.Colors.onSurface)
 
                 Text(manager.state.rawValue.capitalized)
                     .font(DesignTokens.Typography.labelSmall)
@@ -87,25 +93,27 @@ struct MenuBarView: View {
 
     private var noteSection: some View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-            Text("Note")
+            Text("menubar.note")
                 .font(DesignTokens.Typography.labelSmall)
                 .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
                 .textCase(.uppercase)
                 .tracking(1.5)
 
-            TextField("Add a note for today...", text: $noteText, axis: .vertical)
-                .textFieldStyle(.plain)
-                .font(DesignTokens.Typography.bodySmall)
-                .lineLimit(2...4)
-                .padding(DesignTokens.Spacing.sm)
-                .background(DesignTokens.Colors.surfaceContainerLow)
-                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
-                .onChange(of: noteText) { _, newValue in
-                    manager.updateNote(newValue)
-                }
-                .onAppear {
-                    noteText = manager.currentEntry?.note ?? ""
-                }
+            TextField(
+                String(localized: "menubar.note.placeholder"), text: $noteText, axis: .vertical
+            )
+            .textFieldStyle(.plain)
+            .font(DesignTokens.Typography.bodySmall)
+            .lineLimit(2...4)
+            .padding(DesignTokens.Spacing.sm)
+            .background(DesignTokens.Colors.surfaceContainerLow)
+            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
+            .onChange(of: noteText) { _, newValue in
+                manager.updateNote(newValue)
+            }
+            .onAppear {
+                noteText = manager.currentEntry?.note ?? ""
+            }
         }
     }
 
@@ -115,17 +123,26 @@ struct MenuBarView: View {
         VStack(spacing: DesignTokens.Spacing.sm) {
             HStack(spacing: DesignTokens.Spacing.sm) {
                 if manager.state == .running {
-                    ActionButton(title: "Pause", icon: "pause.fill", style: .secondary) {
+                    ActionButton(
+                        title: String(localized: "menubar.pause"), icon: "pause.fill",
+                        style: .secondary
+                    ) {
                         manager.pause()
                     }
                 } else if manager.state == .paused {
-                    ActionButton(title: "Resume", icon: "play.fill", style: .secondary) {
+                    ActionButton(
+                        title: String(localized: "menubar.resume"), icon: "play.fill",
+                        style: .secondary
+                    ) {
                         manager.resume()
                     }
                 }
 
                 if manager.state == .running || manager.state == .paused {
-                    ActionButton(title: "End Day", icon: "stop.fill", style: .primary) {
+                    ActionButton(
+                        title: String(localized: "menubar.endDay"), icon: "stop.fill",
+                        style: .primary
+                    ) {
                         manager.endDay()
                     }
                 }
@@ -134,27 +151,30 @@ struct MenuBarView: View {
             HStack(spacing: DesignTokens.Spacing.sm) {
                 if manager.state == .ended {
                     ActionButton(
-                        title: "Restart", icon: "arrow.counterclockwise", style: .secondary
+                        title: String(localized: "menubar.restart"), icon: "arrow.counterclockwise",
+                        style: .secondary
                     ) {
                         manager.restartDay()
                     }
                 }
 
                 Menu {
-                    Button("Open Log Folder") {
+                    Button(String(localized: "menubar.openLogFolder")) {
                         NSWorkspace.shared.open(manager.persistence.logDirectory)
                     }
-                    Button("Export CSV...") {
+                    Button(String(localized: "menubar.exportCSV")) {
                         if let url = manager.persistence.exportCSV() {
                             NSWorkspace.shared.open(url)
                         }
                     }
                     Divider()
-                    SettingsLink {
-                        Text("Settings...")
+                    Button(String(localized: "menubar.settings")) {
+                        NSApp.activate(ignoringOtherApps: true)
+                        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
                     }
+                    .keyboardShortcut(",", modifiers: .command)
                     Divider()
-                    Button("Quit") {
+                    Button(String(localized: "menubar.quit")) {
                         NSApplication.shared.terminate(nil)
                     }
                 } label: {
@@ -184,12 +204,5 @@ struct MenuBarView: View {
         case .paused: return DesignTokens.Colors.accentOrange
         case .ended: return DesignTokens.Colors.accentBlue
         }
-    }
-
-    private var idlePromptBinding: Binding<IdlePromptInfo?> {
-        Binding(
-            get: { manager.idleDetector.pendingPrompt },
-            set: { _ in manager.idleDetector.dismissPrompt() }
-        )
     }
 }

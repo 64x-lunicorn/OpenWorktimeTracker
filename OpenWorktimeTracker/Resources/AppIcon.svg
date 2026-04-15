@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+    <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#818cf8" />
+            <stop offset="50%" stop-color="#6366f1" />
+            <stop offset="100%" stop-color="#4338ca" />
+        </linearGradient>
+        <linearGradient id="clockFace" x1="256" y1="256" x2="768" y2="768"
+            gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#e0e7ff" stop-opacity="0.2" />
+            <stop offset="100%" stop-color="#c7d2fe" stop-opacity="0.08" />
+        </linearGradient>
+        <linearGradient id="ring" x1="200" y1="200" x2="824" y2="824" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#e0e7ff" stop-opacity="0.9" />
+            <stop offset="100%" stop-color="#c7d2fe" stop-opacity="0.6" />
+        </linearGradient>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
+        </filter>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#1e1b4b" flood-opacity="0.3" />
+        </filter>
+    </defs>
+
+    <!-- Background rounded square (macOS icon shape) -->
+    <rect width="1024" height="1024" rx="224" fill="url(#bg)" />
+
+    <!-- Subtle inner shadow -->
+    <rect x="16" y="16" width="992" height="992" rx="216" fill="none" stroke="#a5b4fc"
+        stroke-width="2" opacity="0.2" />
+
+    <!-- Clock face background -->
+    <circle cx="512" cy="490" r="320" fill="url(#clockFace)" />
+
+    <!-- Clock ring -->
+    <circle cx="512" cy="490" r="310" fill="none" stroke="url(#ring)" stroke-width="12"
+        filter="url(#shadow)" />
+
+    <!-- Hour markers (12 positions) -->
+    <!-- 12 o'clock -->
+    <line x1="512" y1="200" x2="512" y2="240" stroke="#e0e7ff" stroke-width="14"
+        stroke-linecap="round" />
+    <!-- 3 o'clock -->
+    <line x1="800" y1="490" x2="760" y2="490" stroke="#e0e7ff" stroke-width="14"
+        stroke-linecap="round" />
+    <!-- 6 o'clock -->
+    <line x1="512" y1="780" x2="512" y2="740" stroke="#e0e7ff" stroke-width="14"
+        stroke-linecap="round" />
+    <!-- 9 o'clock -->
+    <line x1="224" y1="490" x2="264" y2="490" stroke="#e0e7ff" stroke-width="14"
+        stroke-linecap="round" />
+
+    <!-- Minor hour markers -->
+    <!-- 1 o'clock -->
+    <line x1="656" y1="241" x2="639" y2="271" stroke="#e0e7ff" stroke-width="8"
+        stroke-linecap="round" opacity="0.5" />
+    <!-- 2 o'clock -->
+    <line x1="762" y1="346" x2="735" y2="362" stroke="#e0e7ff" stroke-width="8"
+        stroke-linecap="round" opacity="0.5" />
+    <!-- 4 o'clock -->
+    <line x1="762" y1="634" x2="735" y2="618" stroke="#e0e7ff" stroke-width="8"
+        stroke-linecap="round" opacity="0.5" />
+    <!-- 5 o'clock -->
+    <line x1="656" y1="739" x2="639" y2="709" stroke="#e0e7ff" stroke-width="8"
+        stroke-linecap="round" opacity="0.5" />
+    <!-- 7 o'clock -->
+    <line x1="368" y1="739" x2="385" y2="709" stroke="#e0e7ff" stroke-width="8"
+        stroke-linecap="round" opacity="0.5" />
+    <!-- 8 o'clock -->
+    <line x1="262" y1="634" x2="289" y2="618" stroke="#e0e7ff" stroke-width="8"
+        stroke-linecap="round" opacity="0.5" />
+    <!-- 10 o'clock -->
+    <line x1="262" y1="346" x2="289" y2="362" stroke="#e0e7ff" stroke-width="8"
+        stroke-linecap="round" opacity="0.5" />
+    <!-- 11 o'clock -->
+    <line x1="368" y1="241" x2="385" y2="271" stroke="#e0e7ff" stroke-width="8"
+        stroke-linecap="round" opacity="0.5" />
+
+    <!-- Hour hand (pointing to ~8 = 240 degrees from 12) -->
+    <line x1="512" y1="490" x2="390" y2="620" stroke="#ffffff" stroke-width="20"
+        stroke-linecap="round" filter="url(#shadow)" />
+
+    <!-- Minute hand (pointing to ~12) -->
+    <line x1="512" y1="490" x2="512" y2="230" stroke="#ffffff" stroke-width="14"
+        stroke-linecap="round" filter="url(#shadow)" />
+
+    <!-- Center cap -->
+    <circle cx="512" cy="490" r="22" fill="#ffffff" filter="url(#shadow)" />
+    <circle cx="512" cy="490" r="14" fill="#6366f1" />
+
+    <!-- Tracking indicator: green play triangle (bottom right) -->
+    <g filter="url(#shadow)">
+        <circle cx="740" cy="800" r="52" fill="#059669" opacity="0.9" />
+        <polygon points="724,776 724,824 764,800" fill="#ffffff" />
+    </g>
+
+    <!-- Subtle glow on the clock hands -->
+    <line x1="512" y1="490" x2="390" y2="620" stroke="#a5b4fc" stroke-width="20"
+        stroke-linecap="round" filter="url(#glow)" opacity="0.3" />
+    <line x1="512" y1="490" x2="512" y2="230" stroke="#a5b4fc" stroke-width="14"
+        stroke-linecap="round" filter="url(#glow)" opacity="0.3" />
+</svg>

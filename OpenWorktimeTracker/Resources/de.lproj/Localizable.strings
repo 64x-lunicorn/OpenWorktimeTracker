@@ -1,0 +1,102 @@
+/* MenuBarView */
+"menubar.workday" = "Arbeitstag %@";
+"menubar.note" = "Notiz";
+"menubar.note.placeholder" = "Notiz für heute...";
+"menubar.pause" = "Pause";
+"menubar.resume" = "Fortsetzen";
+"menubar.endDay" = "Tag beenden";
+"menubar.restart" = "Neustart";
+"menubar.openLogFolder" = "Log-Ordner öffnen";
+"menubar.exportCSV" = "CSV exportieren...";
+"menubar.settings" = "Einstellungen...";
+"menubar.quit" = "Beenden";
+
+/* TimerDisplayView */
+"timer.netWorkTime" = "NETTO-ARBEITSZEIT";
+
+/* MetricCardsView */
+"metric.start" = "Start";
+"metric.gross" = "Brutto";
+"metric.autoBreak" = "Auto-Pause";
+"metric.manualPause" = "Man. Pause";
+"metric.end" = "Ende";
+"metric.eta" = "ETA 8h";
+"metric.target" = "Ziel";
+"metric.reached" = "erreicht";
+"metric.editStartTime" = "Startzeit bearbeiten";
+"metric.editEndTime" = "Endzeit bearbeiten";
+"metric.cancel" = "Abbrechen";
+"metric.save" = "Speichern";
+
+/* WeekHistoryView */
+"history.last7days" = "LETZTE 7 TAGE";
+"history.noData" = "Noch keine Daten";
+
+/* SummaryStatsView */
+"summary.title" = "ZUSAMMENFASSUNG";
+"summary.week" = "Woche";
+"summary.month" = "Monat";
+"summary.noData" = "Keine Daten für diesen Zeitraum";
+"summary.totalHours" = "Gesamt";
+"summary.workDays" = "Arbeitstage";
+"summary.dailyAvg" = "Tagesschnitt";
+"summary.overtime" = "Überstunden";
+
+/* IdlePromptView */
+"idle.newWorkday" = "Neuer Arbeitstag!";
+"idle.inactivityDetected" = "Inaktivität erkannt";
+"idle.youWereInactive" = "Du warst %@ inaktiv";
+"idle.wasWorkTime" = "War Arbeitszeit (Meeting/Testen)";
+"idle.wasPause" = "War Pause (abziehen)";
+"idle.endYesterday" = "Gestern um %@ beenden";
+"idle.startToday" = "Heute jetzt starten";
+"idle.countAsWork" = "Alles als Arbeitszeit zählen";
+
+/* IdlePromptWindowController */
+"idle.panel.newWorkday" = "Neuer Arbeitstag";
+"idle.panel.inactivity" = "Inaktivität erkannt";
+
+/* NotificationManager */
+"notification.normal.title" = "Reguläre Arbeitszeit erreicht";
+"notification.normal.body" = "Du hast %.1f Stunden gearbeitet. Zeit zum Aufhören?";
+"notification.critical.title" = "Kritische Arbeitszeit!";
+"notification.critical.body" = "Du arbeitest seit %.1f Stunden. Du solltest jetzt gehen!";
+"notification.milestone.title" = "Maximum erreicht!";
+"notification.milestone.body" = "%.1f Stunden Arbeitszeit. Sofort aufhören!";
+"notification.newDay.title" = "Neuer Arbeitstag";
+"notification.newDay.body" = "Guten Morgen! Dein Arbeitstag wird jetzt erfasst.";
+
+/* SettingsView */
+"settings.general" = "Allgemein";
+"settings.notifications" = "Mitteilungen";
+"settings.data" = "Daten";
+"settings.appearance" = "Darstellung";
+"settings.orangeThreshold" = "Orange-Schwelle (h)";
+"settings.redThreshold" = "Rot-Schwelle (h)";
+"settings.autoBreak" = "Auto-Pause (ArbZG)";
+"settings.breakAfter6h" = "Pause nach > 6h (Min)";
+"settings.breakAfter9h" = "Pause nach > 9h (Min)";
+"settings.idleDetection" = "Inaktivitätserkennung";
+"settings.idleThreshold" = "Inaktivitätsschwelle (Min)";
+"settings.startup" = "Autostart";
+"settings.launchAtLogin" = "Beim Anmelden starten";
+"settings.enableNotifications" = "Mitteilungen aktivieren";
+"settings.thresholds" = "Schwellwerte";
+"settings.normalHours" = "Normal (h)";
+"settings.criticalHours" = "Kritisch (h)";
+"settings.milestoneHours" = "Maximum (h)";
+"settings.notificationHelp" = "Mitteilungen werden einmal pro Tag gesendet, wenn die Nettozeit einen Schwellwert überschreitet.";
+"settings.logs" = "Protokolle";
+"settings.openLogFolder" = "Log-Ordner öffnen";
+"settings.chooseLogFolder" = "Log-Ordner wählen...";
+"settings.cloudSync" = "Cloud-Sync";
+"settings.syncICloud" = "Mit iCloud Drive synchronisieren";
+"settings.iCloudConnected" = "iCloud verbunden";
+"settings.iCloudUnavailable" = "iCloud nicht verfügbar. Melde dich in den Systemeinstellungen an.";
+"settings.syncNow" = "Jetzt synchronisieren";
+"settings.export" = "Export";
+"settings.exportCSV" = "Als CSV exportieren...";
+"settings.about" = "Über";
+"settings.version" = "Version";
+"settings.choosePrompt" = "Wählen";
+"settings.chooseMessage" = "Ordner für Arbeitszeitprotokolle auswählen";

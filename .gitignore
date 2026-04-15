@@ -43,3 +43,8 @@ Package.resolved
 *.mobileprovision
 *.provisionprofile
 sparkle_private_key
+
+# Docs
+docs/node_modules/
+docs/dist/
+docs/.astro/

@@ -9,19 +9,29 @@
 /* Begin PBXBuildFile section */
 		01C8C4A1D1D00C2934B8A4A9 /* TimerDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB576F2CF5F2605464A6FEC /* TimerDisplayView.swift */; };
 		094A334F0B271C5B05ADCA45 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 46369458646495B6F3C7B84D /* Sparkle */; };
+		0A9796F1549A59EC38DAE952 /* GlobalShortcutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8316E37B0FE467EDC5CE6E6D /* GlobalShortcutManager.swift */; };
+		15061C70D45A5BEF76336071 /* SummaryStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5202C6AD0AF52C2D73DC6E17 /* SummaryStatsView.swift */; };
 		1DC0909035DD8290A96FE10F /* GlassContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CBF6F9629F77799CD434AF /* GlassContainer.swift */; };
 		236FF7EC60B08C2E4B0C9969 /* IdlePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96BF05DC18B804752127B67 /* IdlePromptView.swift */; };
 		253CF5BCF181B9CD0DF0734F /* TimeEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96852475F3CF42C080C27424 /* TimeEntry.swift */; };
 		2C5B028985B015B7A26ECBA7 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4023084E6F188BEE2079400 /* NotificationManager.swift */; };
+		2C62CB1A6DA628C4FB944F2C /* WorktimeWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D3BBAB16A1244C64A343A0 /* WorktimeWidgetBundle.swift */; };
 		2E50C9C91938F36E479FAB46 /* WorkdayDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92CC8582D1A82A4ED0B8BE3D /* WorkdayDetectorTests.swift */; };
 		330D1906DCAC60438162015F /* TimeEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0158B151E8021863597395 /* TimeEntryTests.swift */; };
 		354FD4B54E985FCFDE58ACC3 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C10AE9B003B0EC21B18010 /* DesignTokens.swift */; };
 		3700A1C2970A97914BE1CAF3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8D50E67E11943961E87A65F6 /* Assets.xcassets */; };
 		3C023C1963125F860E660730 /* BreakCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C14FD2343077B9FC533EAC07 /* BreakCalculator.swift */; };
 		3D60D0048DED858DE6BB52DA /* PersistenceManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0E2224DEF41A69EC1E92AA /* PersistenceManagerTests.swift */; };
+		44EFF479547F25448ADD540B /* WeekHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1089C3A7EF27586EB233E4B /* WeekHistoryView.swift */; };
+		485EAA20FC6AEEBF349564EC /* SharedDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCA465B8ABE2B90B1C03DF6 /* SharedDefaults.swift */; };
+		534225F52B177F08D7B9A813 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 03948982F36D08786005F7B3 /* Localizable.strings */; };
+		68ACEAD4CBCEF8E71A25AD6D /* WorktimeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CEB27ED8F85FFCEC6C42FF7 /* WorktimeWidget.swift */; };
+		7110D8AB3463251F8307631E /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E9F0E6F30AAE618BE4982D /* CloudSyncManager.swift */; };
 		75653E72BEF543D3BB31CE37 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3636564F038D5714D3F2E9D /* AppSettings.swift */; };
+		775FBCFE7BCEEEACE8CD0C92 /* SharedDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCA465B8ABE2B90B1C03DF6 /* SharedDefaults.swift */; };
 		7F193BB5F12158FB4A228045 /* BreakCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBAF5148F3F5E30F02C437 /* BreakCalculatorTests.swift */; };
 		8FDF3B4B103BB741A36E13A7 /* IdleDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587CB7F059336B48B3DEE9CC /* IdleDetector.swift */; };
+		956F97E8ED6A08E13330D6A2 /* IdlePromptWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D365D24EC89B5F03E63743 /* IdlePromptWindowController.swift */; };
 		993CFEE746E242DC4FE7A44E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B09158E1920D76D6EF7B3585 /* AppDelegate.swift */; };
 		9DD01273C074913E95147CA4 /* WorkdayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F597F7658C3A59EB200E8F1 /* WorkdayManager.swift */; };
 		A37E2A4BE6EA5DF1F0FBA60B /* ProgressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC1763B590C81EB59DF0B300 /* ProgressBarView.swift */; };
@@ -29,6 +39,8 @@
 		B2942C9DBBAD0D5F95307152 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B2CA010B0A3CBEDC5FA6F9 /* MenuBarView.swift */; };
 		CFA636175CB967A129D45107 /* ActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032AEE83355F68A71F71365C /* ActionButton.swift */; };
 		D0BA8C03FE5E382A0104E788 /* WorkdayDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB71FDA60A573DB4F2C4E3D6 /* WorkdayDetector.swift */; };
+		D863CFEDBAC6400A74C1551F /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 8CF945626AE912CB62BC84CD /* AppIcon.svg */; };
+		E757F1392B6CC4356E27B29B /* WorktimeWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 92ECFCF3E46C5163E13E2DBE /* WorktimeWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E7DB5A1B699217F6B7749C2E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7D8E211502FB3F2B407C29 /* SettingsView.swift */; };
 		F9CEAFEDD47DBEF79E904301 /* PersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F26F3D087AB990B78FB7094 /* PersistenceManager.swift */; };
 		FD9C3BA959F3FA91E9956165 /* MetricCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95771E351BA49672B02C68D /* MetricCardsView.swift */; };
@@ -36,6 +48,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		A23D07A2696BB455488BF8C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5FA9674DFE3CBB216C296AFB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 673E693971C40FFE5AB5532B;
+			remoteInfo = WorktimeWidgetExtension;
+		};
 		A74AAF3205E8D9C6B6D2810F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5FA9674DFE3CBB216C296AFB /* Project object */;
@@ -45,25 +64,50 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		110C0801830ABB69B6181EDB /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E757F1392B6CC4356E27B29B /* WorktimeWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		032AEE83355F68A71F71365C /* ActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButton.swift; sourceTree = "<group>"; };
 		03F65852D76A2EC82ACFC07D /* OpenWorktimeTracker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenWorktimeTracker.entitlements; sourceTree = "<group>"; };
 		0CB576F2CF5F2605464A6FEC /* TimerDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerDisplayView.swift; sourceTree = "<group>"; };
 		0E7D73A4BB2ACE5955D1E84A /* OpenWorktimeTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenWorktimeTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F26F3D087AB990B78FB7094 /* PersistenceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceManager.swift; sourceTree = "<group>"; };
+		5202C6AD0AF52C2D73DC6E17 /* SummaryStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryStatsView.swift; sourceTree = "<group>"; };
 		587CB7F059336B48B3DEE9CC /* IdleDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleDetector.swift; sourceTree = "<group>"; };
 		58B2CA010B0A3CBEDC5FA6F9 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		5C9B60DDF61A20041E00A564 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		65D365D24EC89B5F03E63743 /* IdlePromptWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdlePromptWindowController.swift; sourceTree = "<group>"; };
 		75C10AE9B003B0EC21B18010 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		7C0158B151E8021863597395 /* TimeEntryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeEntryTests.swift; sourceTree = "<group>"; };
+		8316E37B0FE467EDC5CE6E6D /* GlobalShortcutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcutManager.swift; sourceTree = "<group>"; };
+		86E9F0E6F30AAE618BE4982D /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncManager.swift; sourceTree = "<group>"; };
+		8BB9FC7AA9A4FDD8B540808B /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		8CEB27ED8F85FFCEC6C42FF7 /* WorktimeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorktimeWidget.swift; sourceTree = "<group>"; };
+		8CF945626AE912CB62BC84CD /* AppIcon.svg */ = {isa = PBXFileReference; path = AppIcon.svg; sourceTree = "<group>"; };
 		8D50E67E11943961E87A65F6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8F597F7658C3A59EB200E8F1 /* WorkdayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayManager.swift; sourceTree = "<group>"; };
 		90A98A9F938927C616301EA5 /* OpenWorktimeTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenWorktimeTrackerApp.swift; sourceTree = "<group>"; };
 		92CC8582D1A82A4ED0B8BE3D /* WorkdayDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayDetectorTests.swift; sourceTree = "<group>"; };
+		92ECFCF3E46C5163E13E2DBE /* WorktimeWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WorktimeWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		96852475F3CF42C080C27424 /* TimeEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeEntry.swift; sourceTree = "<group>"; };
 		A3636564F038D5714D3F2E9D /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		A95771E351BA49672B02C68D /* MetricCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCardsView.swift; sourceTree = "<group>"; };
 		AC7D8E211502FB3F2B407C29 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B09158E1920D76D6EF7B3585 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		B1089C3A7EF27586EB233E4B /* WeekHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekHistoryView.swift; sourceTree = "<group>"; };
+		B8D9EEEE4131C2BAE686DD5C /* WorktimeWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WorktimeWidget.entitlements; sourceTree = "<group>"; };
 		B96BF05DC18B804752127B67 /* IdlePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdlePromptView.swift; sourceTree = "<group>"; };
 		BC1763B590C81EB59DF0B300 /* ProgressBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBarView.swift; sourceTree = "<group>"; };
 		C14FD2343077B9FC533EAC07 /* BreakCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakCalculator.swift; sourceTree = "<group>"; };
@@ -71,10 +115,12 @@
 		CB0E2224DEF41A69EC1E92AA /* PersistenceManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceManagerTests.swift; sourceTree = "<group>"; };
 		CB71FDA60A573DB4F2C4E3D6 /* WorkdayDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayDetector.swift; sourceTree = "<group>"; };
 		D3FBAF5148F3F5E30F02C437 /* BreakCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakCalculatorTests.swift; sourceTree = "<group>"; };
+		D7D3BBAB16A1244C64A343A0 /* WorktimeWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorktimeWidgetBundle.swift; sourceTree = "<group>"; };
 		E32C98F3FE145BECC4EC7022 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		EEB4DD34A3D82EECDD4CBFB1 /* OpenWorktimeTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenWorktimeTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4023084E6F188BEE2079400 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		F66D750410EAFCCE00D0FB84 /* Date+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
+		FFCA465B8ABE2B90B1C03DF6 /* SharedDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDefaults.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +143,14 @@
 				BC1763B590C81EB59DF0B300 /* ProgressBarView.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		209839E023452C819B38F3F4 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				FFCA465B8ABE2B90B1C03DF6 /* SharedDefaults.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		346DA73FE85D023743E41C4D /* Core */ = {
@@ -126,6 +180,7 @@
 			children = (
 				EEB4DD34A3D82EECDD4CBFB1 /* OpenWorktimeTracker.app */,
 				0E7D73A4BB2ACE5955D1E84A /* OpenWorktimeTrackerTests.xctest */,
+				92ECFCF3E46C5163E13E2DBE /* WorktimeWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -141,6 +196,8 @@
 		AE0BCEE232680C089B5E9998 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				03948982F36D08786005F7B3 /* Localizable.strings */,
+				8CF945626AE912CB62BC84CD /* AppIcon.svg */,
 				8D50E67E11943961E87A65F6 /* Assets.xcassets */,
 				E32C98F3FE145BECC4EC7022 /* Info.plist */,
 				03F65852D76A2EC82ACFC07D /* OpenWorktimeTracker.entitlements */,
@@ -152,6 +209,8 @@
 			isa = PBXGroup;
 			children = (
 				C14FD2343077B9FC533EAC07 /* BreakCalculator.swift */,
+				86E9F0E6F30AAE618BE4982D /* CloudSyncManager.swift */,
+				8316E37B0FE467EDC5CE6E6D /* GlobalShortcutManager.swift */,
 				587CB7F059336B48B3DEE9CC /* IdleDetector.swift */,
 				F4023084E6F188BEE2079400 /* NotificationManager.swift */,
 				2F26F3D087AB990B78FB7094 /* PersistenceManager.swift */,
@@ -180,6 +239,16 @@
 			path = Design;
 			sourceTree = "<group>";
 		};
+		D201344BFD44B626658A537F /* WorktimeWidget */ = {
+			isa = PBXGroup;
+			children = (
+				B8D9EEEE4131C2BAE686DD5C /* WorktimeWidget.entitlements */,
+				8CEB27ED8F85FFCEC6C42FF7 /* WorktimeWidget.swift */,
+				D7D3BBAB16A1244C64A343A0 /* WorktimeWidgetBundle.swift */,
+			);
+			path = WorktimeWidget;
+			sourceTree = "<group>";
+		};
 		D7D00A4662B25D212C5611FF /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -203,10 +272,13 @@
 			children = (
 				1A3EBD0FE3F7BF7A1A17C55B /* Components */,
 				B96BF05DC18B804752127B67 /* IdlePromptView.swift */,
+				65D365D24EC89B5F03E63743 /* IdlePromptWindowController.swift */,
 				58B2CA010B0A3CBEDC5FA6F9 /* MenuBarView.swift */,
 				A95771E351BA49672B02C68D /* MetricCardsView.swift */,
 				AC7D8E211502FB3F2B407C29 /* SettingsView.swift */,
+				5202C6AD0AF52C2D73DC6E17 /* SummaryStatsView.swift */,
 				0CB576F2CF5F2605464A6FEC /* TimerDisplayView.swift */,
+				B1089C3A7EF27586EB233E4B /* WeekHistoryView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -216,6 +288,8 @@
 			children = (
 				427467946827DF0C1795A4E0 /* OpenWorktimeTracker */,
 				B9BDAA6BB18202FD21D95C9B /* OpenWorktimeTrackerTests */,
+				209839E023452C819B38F3F4 /* Shared */,
+				D201344BFD44B626658A537F /* WorktimeWidget */,
 				8E05A03795BB82E9AFFA2509 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -230,10 +304,12 @@
 				7E1E98D35B50D24B9AF1E5DD /* Sources */,
 				6D6C73B1A709AE3E507516C4 /* Resources */,
 				DCEC90520EC792734F9D09CF /* Frameworks */,
+				110C0801830ABB69B6181EDB /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A1DAEB2D52EBD39F25E09953 /* PBXTargetDependency */,
 			);
 			name = OpenWorktimeTracker;
 			packageProductDependencies = (
@@ -242,6 +318,23 @@
 			productName = OpenWorktimeTracker;
 			productReference = EEB4DD34A3D82EECDD4CBFB1 /* OpenWorktimeTracker.app */;
 			productType = "com.apple.product-type.application";
+		};
+		673E693971C40FFE5AB5532B /* WorktimeWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D197ED5BC7F1BB49E86F1E5A /* Build configuration list for PBXNativeTarget "WorktimeWidgetExtension" */;
+			buildPhases = (
+				EF5CD70A7D48B5C4E900CA4F /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WorktimeWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = WorktimeWidgetExtension;
+			productReference = 92ECFCF3E46C5163E13E2DBE /* WorktimeWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		909FAD7D79D8D51BD1E7E91C /* OpenWorktimeTrackerTests */ = {
 			isa = PBXNativeTarget;
@@ -273,6 +366,9 @@
 					1B19B2A1D6A5647399CDA4ED = {
 						ProvisioningStyle = Automatic;
 					};
+					673E693971C40FFE5AB5532B = {
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = 4268AF09B3BCA3C60AF34C31 /* Build configuration list for PBXProject "OpenWorktimeTracker" */;
@@ -280,6 +376,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
+				de,
 				en,
 			);
 			mainGroup = FD020915C330CF1F1907FF65;
@@ -294,6 +391,7 @@
 			targets = (
 				1B19B2A1D6A5647399CDA4ED /* OpenWorktimeTracker */,
 				909FAD7D79D8D51BD1E7E91C /* OpenWorktimeTrackerTests */,
+				673E693971C40FFE5AB5532B /* WorktimeWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -303,7 +401,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D863CFEDBAC6400A74C1551F /* AppIcon.svg in Resources */,
 				3700A1C2970A97914BE1CAF3 /* Assets.xcassets in Resources */,
+				534225F52B177F08D7B9A813 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -329,11 +429,14 @@
 				993CFEE746E242DC4FE7A44E /* AppDelegate.swift in Sources */,
 				75653E72BEF543D3BB31CE37 /* AppSettings.swift in Sources */,
 				3C023C1963125F860E660730 /* BreakCalculator.swift in Sources */,
+				7110D8AB3463251F8307631E /* CloudSyncManager.swift in Sources */,
 				FEBEC5FF73CDE0307ABF6FB6 /* Date+Extensions.swift in Sources */,
 				354FD4B54E985FCFDE58ACC3 /* DesignTokens.swift in Sources */,
 				1DC0909035DD8290A96FE10F /* GlassContainer.swift in Sources */,
+				0A9796F1549A59EC38DAE952 /* GlobalShortcutManager.swift in Sources */,
 				8FDF3B4B103BB741A36E13A7 /* IdleDetector.swift in Sources */,
 				236FF7EC60B08C2E4B0C9969 /* IdlePromptView.swift in Sources */,
+				956F97E8ED6A08E13330D6A2 /* IdlePromptWindowController.swift in Sources */,
 				B2942C9DBBAD0D5F95307152 /* MenuBarView.swift in Sources */,
 				FD9C3BA959F3FA91E9956165 /* MetricCardsView.swift in Sources */,
 				2C5B028985B015B7A26ECBA7 /* NotificationManager.swift in Sources */,
@@ -341,10 +444,23 @@
 				F9CEAFEDD47DBEF79E904301 /* PersistenceManager.swift in Sources */,
 				A37E2A4BE6EA5DF1F0FBA60B /* ProgressBarView.swift in Sources */,
 				E7DB5A1B699217F6B7749C2E /* SettingsView.swift in Sources */,
+				775FBCFE7BCEEEACE8CD0C92 /* SharedDefaults.swift in Sources */,
+				15061C70D45A5BEF76336071 /* SummaryStatsView.swift in Sources */,
 				253CF5BCF181B9CD0DF0734F /* TimeEntry.swift in Sources */,
 				01C8C4A1D1D00C2934B8A4A9 /* TimerDisplayView.swift in Sources */,
+				44EFF479547F25448ADD540B /* WeekHistoryView.swift in Sources */,
 				D0BA8C03FE5E382A0104E788 /* WorkdayDetector.swift in Sources */,
 				9DD01273C074913E95147CA4 /* WorkdayManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EF5CD70A7D48B5C4E900CA4F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				485EAA20FC6AEEBF349564EC /* SharedDefaults.swift in Sources */,
+				68ACEAD4CBCEF8E71A25AD6D /* WorktimeWidget.swift in Sources */,
+				2C62CB1A6DA628C4FB944F2C /* WorktimeWidgetBundle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -356,9 +472,45 @@
 			target = 1B19B2A1D6A5647399CDA4ED /* OpenWorktimeTracker */;
 			targetProxy = A74AAF3205E8D9C6B6D2810F /* PBXContainerItemProxy */;
 		};
+		A1DAEB2D52EBD39F25E09953 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 673E693971C40FFE5AB5532B /* WorktimeWidgetExtension */;
+			targetProxy = A23D07A2696BB455488BF8C2 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
+/* Begin PBXVariantGroup section */
+		03948982F36D08786005F7B3 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				8BB9FC7AA9A4FDD8B540808B /* de */,
+				5C9B60DDF61A20041E00A564 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
+		06EF988886C58FC42A89FE55 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = WorktimeWidget/WorktimeWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WorktimeWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.openworktimetracker.app.widget;
+				PRODUCT_NAME = WorktimeWidget;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
 		374272A7B5C81A9E90B46BA7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -499,6 +651,25 @@
 			};
 			name = Debug;
 		};
+		E47EB134550E162AAE6AC2FA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = WorktimeWidget/WorktimeWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WorktimeWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.openworktimetracker.app.widget;
+				PRODUCT_NAME = WorktimeWidget;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
 		F41619E596729C2A50F0A7EB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -588,6 +759,15 @@
 			buildConfigurations = (
 				F41619E596729C2A50F0A7EB /* Debug */,
 				99687019A5603815BA1D9243 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D197ED5BC7F1BB49E86F1E5A /* Build configuration list for PBXNativeTarget "WorktimeWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E47EB134550E162AAE6AC2FA /* Debug */,
+				06EF988886C58FC42A89FE55 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

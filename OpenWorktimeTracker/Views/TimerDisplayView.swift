@@ -6,7 +6,7 @@ struct TimerDisplayView: View {
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.md) {
             // Label
-            Text("NET WORK TIME")
+            Text("timer.netWorkTime")
                 .font(DesignTokens.Typography.labelSmall)
                 .tracking(2)
                 .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)

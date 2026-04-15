@@ -21,21 +21,23 @@ final class NotificationManager {
 
         switch type {
         case .normal(let hours):
-            content.title = "Normale Arbeitszeit erreicht"
-            content.body = String(format: "Du hast %.1f Stunden gearbeitet. Feierabend?", hours)
-            content.sound = .default
+            content.title = String(localized: "notification.normal.title")
+            content.body = String(format: String(localized: "notification.normal.body"), hours)
+            content.sound = UNNotificationSound.default
 
         case .critical(let hours):
-            content.title = "Kritische Arbeitszeit!"
+            content.title = String(localized: "notification.critical.title")
             content.body = String(
-                format: "Du arbeitest seit %.1f Stunden. Du solltest jetzt gehen!", hours)
+                format: String(localized: "notification.critical.body"), hours)
             content.sound = .defaultCritical
 
         case .milestone(let hours):
-            content.title = "Maximum erreicht!"
-            content.body = String(format: "%.1f Stunden Arbeitszeit. Sofort aufhören!", hours)
-            content.sound = .defaultCritical
+            content.title = String(localized: "notification.milestone.title")
+            content.body = String(format: String(localized: "notification.milestone.body"), hours)
+            content.sound = .defaultCriticalSound
         }
+
+        content.interruptionLevel = type.interruptionLevel
 
         let request = UNNotificationRequest(
             identifier: "threshold-\(type.identifier)",
@@ -49,8 +51,8 @@ final class NotificationManager {
 
     func sendNewDayNotification() {
         let content = UNMutableNotificationContent()
-        content.title = "Neuer Arbeitstag"
-        content.body = "Guten Morgen! Dein Arbeitstag wird jetzt erfasst."
+        content.title = String(localized: "notification.newDay.title")
+        content.body = String(localized: "notification.newDay.body")
         content.sound = .default
 
         let request = UNNotificationRequest(
@@ -73,5 +75,17 @@ final class NotificationManager {
             case .milestone: return "milestone"
             }
         }
+
+        var interruptionLevel: UNNotificationInterruptionLevel {
+            switch self {
+            case .normal: return .active
+            case .critical: return .timeSensitive
+            case .milestone: return .critical
+            }
+        }
     }
+}
+
+extension UNNotificationSound {
+    static let defaultCriticalSound = UNNotificationSound.defaultCritical
 }

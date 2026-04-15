@@ -1,0 +1,86 @@
+---
+title: OpenWorktimeTracker
+description: Automatic worktime tracking for macOS -- silently, smartly, and beautifully.
+template: splash
+hero:
+  title: OpenWorktimeTracker
+  tagline: A native macOS menu bar app that automatically tracks your daily working hours -- silently, smartly, and beautifully.
+  image:
+    file: ../../assets/logo.svg
+  actions:
+    - text: Download
+      link: https://github.com/64x-lunicorn/OpenWorktimeTracker/releases
+      icon: external
+      variant: primary
+    - text: Getting Started
+      link: /getting-started/installation/
+      icon: right-arrow
+      variant: secondary
+---
+
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+## Why OpenWorktimeTracker?
+
+No Dock icon. No manual start. Just open your Mac and your workday begins.
+
+<CardGrid>
+  <Card title="Auto-Start" icon="rocket">
+    Launches at login and starts tracking immediately. No buttons to press, no
+    apps to open.
+  </Card>
+  <Card title="Smart Day Detection" icon="puzzle">
+    Automatically detects new workdays -- overnight idle, sleep/wake, and app
+    restarts are handled seamlessly.
+  </Card>
+  <Card title="ArbZG-Compliant Breaks" icon="approve-check-circle">
+    Automatic break calculation per German labor law (ArbZG SS4). Fully
+    configurable thresholds.
+  </Card>
+  <Card title="Idle Detection" icon="warning">
+    Detects inactivity and asks: "Was that a meeting or a break?" You decide,
+    the app adjusts.
+  </Card>
+  <Card title="Live Menu Bar" icon="bars">
+    Shows net work time directly in the menu bar, color-coded by your configured
+    thresholds.
+  </Card>
+  <Card title="Daily JSON Logs" icon="document">
+    Transparent, human-readable, exportable. One JSON file per day, plus CSV
+    export.
+  </Card>
+  <Card title="Auto-Updates" icon="refresh">
+    Seamless updates via Sparkle and GitHub Releases. Always up to date.
+  </Card>
+  <Card title="Ethereal Design" icon="star">
+    Glassmorphism, tonal depth, adaptive light and dark mode. Beautiful by
+    default.
+  </Card>
+</CardGrid>
+
+---
+
+## Quick Links
+
+<CardGrid>
+  <LinkCard
+    title="Installation"
+    description="Download or build from source"
+    href="/getting-started/installation/"
+  />
+  <LinkCard
+    title="Features"
+    description="Everything OWT can do"
+    href="/features/overview/"
+  />
+  <LinkCard
+    title="Architecture"
+    description="How it works under the hood"
+    href="/architecture/overview/"
+  />
+  <LinkCard
+    title="Contributing"
+    description="Help make OWT better"
+    href="/development/contributing/"
+  />
+</CardGrid>

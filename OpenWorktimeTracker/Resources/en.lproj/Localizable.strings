@@ -1,0 +1,102 @@
+/* MenuBarView */
+"menubar.workday" = "Workday %@";
+"menubar.note" = "Note";
+"menubar.note.placeholder" = "Add a note for today...";
+"menubar.pause" = "Pause";
+"menubar.resume" = "Resume";
+"menubar.endDay" = "End Day";
+"menubar.restart" = "Restart";
+"menubar.openLogFolder" = "Open Log Folder";
+"menubar.exportCSV" = "Export CSV...";
+"menubar.settings" = "Settings...";
+"menubar.quit" = "Quit";
+
+/* TimerDisplayView */
+"timer.netWorkTime" = "NET WORK TIME";
+
+/* MetricCardsView */
+"metric.start" = "Start";
+"metric.gross" = "Gross";
+"metric.autoBreak" = "Auto Break";
+"metric.manualPause" = "Manual Pause";
+"metric.end" = "End";
+"metric.eta" = "ETA 8h";
+"metric.target" = "Target";
+"metric.reached" = "reached";
+"metric.editStartTime" = "Edit Start Time";
+"metric.editEndTime" = "Edit End Time";
+"metric.cancel" = "Cancel";
+"metric.save" = "Save";
+
+/* WeekHistoryView */
+"history.last7days" = "LAST 7 DAYS";
+"history.noData" = "No history yet";
+
+/* SummaryStatsView */
+"summary.title" = "SUMMARY";
+"summary.week" = "Week";
+"summary.month" = "Month";
+"summary.noData" = "No data for this period";
+"summary.totalHours" = "Total Hours";
+"summary.workDays" = "Work Days";
+"summary.dailyAvg" = "Daily Avg";
+"summary.overtime" = "Overtime";
+
+/* IdlePromptView */
+"idle.newWorkday" = "New Workday!";
+"idle.inactivityDetected" = "Inactivity Detected";
+"idle.youWereInactive" = "You were inactive for %@";
+"idle.wasWorkTime" = "Was work time (meeting/testing)";
+"idle.wasPause" = "Was a break (deduct)";
+"idle.endYesterday" = "End yesterday at %@";
+"idle.startToday" = "Start today now";
+"idle.countAsWork" = "Count all as work time";
+
+/* IdlePromptWindowController */
+"idle.panel.newWorkday" = "New Workday";
+"idle.panel.inactivity" = "Inactivity Detected";
+
+/* NotificationManager */
+"notification.normal.title" = "Regular hours reached";
+"notification.normal.body" = "You have worked %.1f hours. Time to wrap up?";
+"notification.critical.title" = "Critical work time!";
+"notification.critical.body" = "You have been working for %.1f hours. You should leave now!";
+"notification.milestone.title" = "Maximum reached!";
+"notification.milestone.body" = "%.1f hours of work time. Stop immediately!";
+"notification.newDay.title" = "New workday";
+"notification.newDay.body" = "Good morning! Your workday is now being tracked.";
+
+/* SettingsView */
+"settings.general" = "General";
+"settings.notifications" = "Notifications";
+"settings.data" = "Data";
+"settings.appearance" = "Appearance";
+"settings.orangeThreshold" = "Orange threshold (h)";
+"settings.redThreshold" = "Red threshold (h)";
+"settings.autoBreak" = "Auto Break (ArbZG)";
+"settings.breakAfter6h" = "Break after > 6h (min)";
+"settings.breakAfter9h" = "Break after > 9h (min)";
+"settings.idleDetection" = "Idle Detection";
+"settings.idleThreshold" = "Idle threshold (min)";
+"settings.startup" = "Startup";
+"settings.launchAtLogin" = "Launch at Login";
+"settings.enableNotifications" = "Enable notifications";
+"settings.thresholds" = "Thresholds";
+"settings.normalHours" = "Normal (h)";
+"settings.criticalHours" = "Critical (h)";
+"settings.milestoneHours" = "Milestone (h)";
+"settings.notificationHelp" = "Notifications are sent once per day when net time crosses a threshold.";
+"settings.logs" = "Logs";
+"settings.openLogFolder" = "Open Log Folder";
+"settings.chooseLogFolder" = "Choose Log Folder...";
+"settings.cloudSync" = "Cloud Sync";
+"settings.syncICloud" = "Sync to iCloud Drive";
+"settings.iCloudConnected" = "iCloud connected";
+"settings.iCloudUnavailable" = "iCloud not available. Sign in via System Settings.";
+"settings.syncNow" = "Sync Now";
+"settings.export" = "Export";
+"settings.exportCSV" = "Export as CSV...";
+"settings.about" = "About";
+"settings.version" = "Version";
+"settings.choosePrompt" = "Choose";
+"settings.chooseMessage" = "Select a folder for worktime logs";
