@@ -25,6 +25,7 @@
 		44EFF479547F25448ADD540B /* WeekHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1089C3A7EF27586EB233E4B /* WeekHistoryView.swift */; };
 		485EAA20FC6AEEBF349564EC /* SharedDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCA465B8ABE2B90B1C03DF6 /* SharedDefaults.swift */; };
 		534225F52B177F08D7B9A813 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 03948982F36D08786005F7B3 /* Localizable.strings */; };
+		55E3067ACA31DF95588F7244 /* WorktimeWidgetExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 92ECFCF3E46C5163E13E2DBE /* WorktimeWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		68ACEAD4CBCEF8E71A25AD6D /* WorktimeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CEB27ED8F85FFCEC6C42FF7 /* WorktimeWidget.swift */; };
 		7110D8AB3463251F8307631E /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E9F0E6F30AAE618BE4982D /* CloudSyncManager.swift */; };
 		75653E72BEF543D3BB31CE37 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3636564F038D5714D3F2E9D /* AppSettings.swift */; };
@@ -40,7 +41,6 @@
 		CFA636175CB967A129D45107 /* ActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032AEE83355F68A71F71365C /* ActionButton.swift */; };
 		D0BA8C03FE5E382A0104E788 /* WorkdayDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB71FDA60A573DB4F2C4E3D6 /* WorkdayDetector.swift */; };
 		D863CFEDBAC6400A74C1551F /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 8CF945626AE912CB62BC84CD /* AppIcon.svg */; };
-		E757F1392B6CC4356E27B29B /* WorktimeWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 92ECFCF3E46C5163E13E2DBE /* WorktimeWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E7DB5A1B699217F6B7749C2E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7D8E211502FB3F2B407C29 /* SettingsView.swift */; };
 		F9CEAFEDD47DBEF79E904301 /* PersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F26F3D087AB990B78FB7094 /* PersistenceManager.swift */; };
 		FD9C3BA959F3FA91E9956165 /* MetricCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95771E351BA49672B02C68D /* MetricCardsView.swift */; };
@@ -65,15 +65,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		110C0801830ABB69B6181EDB /* Embed Foundation Extensions */ = {
+		60A1AD10B93B81D355EADC7E /* Embed ExtensionKit Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
 			files = (
-				E757F1392B6CC4356E27B29B /* WorktimeWidgetExtension.appex in Embed Foundation Extensions */,
+				55E3067ACA31DF95588F7244 /* WorktimeWidgetExtension.appex in Embed ExtensionKit Extensions */,
 			);
-			name = "Embed Foundation Extensions";
+			name = "Embed ExtensionKit Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -100,7 +100,7 @@
 		8F597F7658C3A59EB200E8F1 /* WorkdayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayManager.swift; sourceTree = "<group>"; };
 		90A98A9F938927C616301EA5 /* OpenWorktimeTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenWorktimeTrackerApp.swift; sourceTree = "<group>"; };
 		92CC8582D1A82A4ED0B8BE3D /* WorkdayDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayDetectorTests.swift; sourceTree = "<group>"; };
-		92ECFCF3E46C5163E13E2DBE /* WorktimeWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WorktimeWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		92ECFCF3E46C5163E13E2DBE /* WorktimeWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = WorktimeWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		96852475F3CF42C080C27424 /* TimeEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeEntry.swift; sourceTree = "<group>"; };
 		A3636564F038D5714D3F2E9D /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		A95771E351BA49672B02C68D /* MetricCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCardsView.swift; sourceTree = "<group>"; };
@@ -111,6 +111,7 @@
 		B96BF05DC18B804752127B67 /* IdlePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdlePromptView.swift; sourceTree = "<group>"; };
 		BC1763B590C81EB59DF0B300 /* ProgressBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBarView.swift; sourceTree = "<group>"; };
 		C14FD2343077B9FC533EAC07 /* BreakCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakCalculator.swift; sourceTree = "<group>"; };
+		C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
 		C8CBF6F9629F77799CD434AF /* GlassContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassContainer.swift; sourceTree = "<group>"; };
 		CB0E2224DEF41A69EC1E92AA /* PersistenceManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceManagerTests.swift; sourceTree = "<group>"; };
 		CB71FDA60A573DB4F2C4E3D6 /* WorkdayDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayDetector.swift; sourceTree = "<group>"; };
@@ -267,6 +268,15 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		DCD06B1F02C1AC94B7FF3647 /* openWorktimeTracker */ = {
+			isa = PBXGroup;
+			children = (
+				C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */,
+			);
+			name = openWorktimeTracker;
+			path = .;
+			sourceTree = "<group>";
+		};
 		F79488607CC0E0EFA22FC044 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -287,6 +297,7 @@
 			isa = PBXGroup;
 			children = (
 				427467946827DF0C1795A4E0 /* OpenWorktimeTracker */,
+				DCD06B1F02C1AC94B7FF3647 /* openWorktimeTracker */,
 				B9BDAA6BB18202FD21D95C9B /* OpenWorktimeTrackerTests */,
 				209839E023452C819B38F3F4 /* Shared */,
 				D201344BFD44B626658A537F /* WorktimeWidget */,
@@ -304,7 +315,7 @@
 				7E1E98D35B50D24B9AF1E5DD /* Sources */,
 				6D6C73B1A709AE3E507516C4 /* Resources */,
 				DCEC90520EC792734F9D09CF /* Frameworks */,
-				110C0801830ABB69B6181EDB /* Embed Foundation Extensions */,
+				60A1AD10B93B81D355EADC7E /* Embed ExtensionKit Extensions */,
 			);
 			buildRules = (
 			);
@@ -334,7 +345,7 @@
 			);
 			productName = WorktimeWidgetExtension;
 			productReference = 92ECFCF3E46C5163E13E2DBE /* WorktimeWidgetExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
+			productType = "com.apple.product-type.extensionkit-extension";
 		};
 		909FAD7D79D8D51BD1E7E91C /* OpenWorktimeTrackerTests */ = {
 			isa = PBXNativeTarget;
@@ -494,6 +505,7 @@
 /* Begin XCBuildConfiguration section */
 		06EF988886C58FC42A89FE55 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = WorktimeWidget/WorktimeWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -531,6 +543,7 @@
 		};
 		630807ADCE64B8017850713D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = OpenWorktimeTracker/Resources/OpenWorktimeTracker.entitlements;
@@ -611,6 +624,7 @@
 		};
 		B635DBFA8949114E5237DCDC /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = OpenWorktimeTracker/Resources/OpenWorktimeTracker.entitlements;
@@ -653,6 +667,7 @@
 		};
 		E47EB134550E162AAE6AC2FA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = WorktimeWidget/WorktimeWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;

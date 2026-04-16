@@ -28,6 +28,9 @@ Package.resolved
 # App Distribution
 *.dmg
 *.app
+
+# Local development config
+Local.xcconfig
 *.ipa
 *.dSYM.zip
 *.dSYM
