@@ -83,18 +83,35 @@ jobs:
           ENTITLEMENTS_APP="OpenWorktimeTracker/Resources/OpenWorktimeTracker.entitlements"
           ENTITLEMENTS_WIDGET="WorktimeWidget/WorktimeWidget.entitlements"
 
-          # Sign the widget extension first
-          codesign --force --options runtime --timestamp \
-            --sign "$IDENTITY" \
-            --entitlements "$ENTITLEMENTS_WIDGET" \
-            "$APP_PATH/Contents/PlugIns/WorktimeWidget.appex" 2>/dev/null || true
+          # Sign the widget extension first (lives under Extensions/, not PlugIns/)
+          WIDGET_PATH="$APP_PATH/Contents/Extensions/WorktimeWidget.appex"
+          if [ -d "$WIDGET_PATH" ]; then
+            codesign --force --options runtime --timestamp \
+              --sign "$IDENTITY" \
+              --entitlements "$ENTITLEMENTS_WIDGET" \
+              "$WIDGET_PATH"
+            echo "Widget extension signed at $WIDGET_PATH"
+          else
+            # Fallback: check PlugIns path
+            WIDGET_PATH="$APP_PATH/Contents/PlugIns/WorktimeWidget.appex"
+            if [ -d "$WIDGET_PATH" ]; then
+              codesign --force --options runtime --timestamp \
+                --sign "$IDENTITY" \
+                --entitlements "$ENTITLEMENTS_WIDGET" \
+                "$WIDGET_PATH"
+              echo "Widget extension signed at $WIDGET_PATH (PlugIns)"
+            else
+              echo "WARNING: Widget extension not found!"
+              find "$APP_PATH/Contents" -name "*.appex" -type d
+            fi
+          fi
 
           # Sign Sparkle framework components
           find "$APP_PATH/Contents/Frameworks/Sparkle.framework" -type f -perm +111 -exec \
-            codesign --force --options runtime --timestamp --sign "$IDENTITY" {} \; 2>/dev/null || true
+            codesign --force --options runtime --timestamp --sign "$IDENTITY" {} \;
           codesign --force --options runtime --timestamp \
             --sign "$IDENTITY" \
-            "$APP_PATH/Contents/Frameworks/Sparkle.framework" 2>/dev/null || true
+            "$APP_PATH/Contents/Frameworks/Sparkle.framework"
 
           # Sign the main app
           codesign --force --options runtime --timestamp \
