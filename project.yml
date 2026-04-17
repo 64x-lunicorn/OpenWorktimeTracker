@@ -20,9 +20,6 @@ targets:
   OpenWorktimeTracker:
     type: application
     platform: macOS
-    configFiles:
-      Debug: Local.xcconfig
-      Release: Local.xcconfig
     sources:
       - path: OpenWorktimeTracker
       - path: Shared
@@ -48,9 +45,6 @@ targets:
     type: extensionkit-extension
     platform: macOS
     product: WorktimeWidget
-    configFiles:
-      Debug: Local.xcconfig
-      Release: Local.xcconfig
     sources:
       - path: WorktimeWidget
         excludes:
