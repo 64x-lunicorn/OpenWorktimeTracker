@@ -197,12 +197,18 @@ jobs:
         run: |
           # Download Sparkle tools
           SPARKLE_VERSION="2.6.0"
+          SPARKLE_DIR="$RUNNER_TEMP/sparkle"
+          mkdir -p "$SPARKLE_DIR"
           curl -sL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz" \
-            | tar xJ -C "$RUNNER_TEMP" --include='*/bin/*'
+            | tar xJ -C "$SPARKLE_DIR"
+          # Find sign_update binary
+          SIGN_UPDATE=$(find "$SPARKLE_DIR" -name "sign_update" -type f | head -1)
+          echo "Found sign_update at: $SIGN_UPDATE"
+          chmod +x "$SIGN_UPDATE"
 
           # Sign the DMG with Sparkle EdDSA key
           echo "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_key"
-          SIGNATURE=$("$RUNNER_TEMP/bin/sign_update" "$DMG_PATH" --ed-key-file "$RUNNER_TEMP/sparkle_key")
+          SIGNATURE=$("$SIGN_UPDATE" "$DMG_PATH" --ed-key-file "$RUNNER_TEMP/sparkle_key")
           echo "SPARKLE_SIGNATURE=$SIGNATURE" >> "$GITHUB_ENV"
           rm "$RUNNER_TEMP/sparkle_key"
 
