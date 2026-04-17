@@ -10,6 +10,9 @@ struct WorktimeEntry: TimelineEntry {
     let grossTimeSeconds: TimeInterval
     let startTime: Date?
     let workDate: String
+    let targetHours: Double
+    let orangeThreshold: Double
+    let redThreshold: Double
 }
 
 // MARK: - Timeline Provider
@@ -22,7 +25,10 @@ struct WorktimeProvider: TimelineProvider {
             netTimeSeconds: 5 * 3600 + 23 * 60,
             grossTimeSeconds: 6 * 3600,
             startTime: Calendar.current.date(bySettingHour: 8, minute: 30, second: 0, of: Date()),
-            workDate: "2024-01-15"
+            workDate: "2024-01-15",
+            targetHours: 8.0,
+            orangeThreshold: 8.0,
+            redThreshold: 9.5
         )
     }
 
@@ -32,8 +38,10 @@ struct WorktimeProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<WorktimeEntry>) -> Void) {
         let entry = createEntry()
-        // Refresh every 5 minutes
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 5, to: Date())!
+        let isRunning = entry.state == "running"
+        let refreshMinutes = isRunning ? 1 : 5
+        let nextUpdate = Calendar.current.date(
+            byAdding: .minute, value: refreshMinutes, to: Date())!
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
         completion(timeline)
     }
@@ -45,7 +53,10 @@ struct WorktimeProvider: TimelineProvider {
             netTimeSeconds: SharedDefaults.readNetTime(),
             grossTimeSeconds: SharedDefaults.readGrossTime(),
             startTime: SharedDefaults.readStartTime(),
-            workDate: SharedDefaults.readDate()
+            workDate: SharedDefaults.readDate(),
+            targetHours: SharedDefaults.readTargetHours(),
+            orangeThreshold: SharedDefaults.readOrangeThreshold(),
+            redThreshold: SharedDefaults.readRedThreshold()
         )
     }
 }
@@ -57,7 +68,6 @@ struct WorktimeWidgetSmallView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // State indicator
             HStack(spacing: 4) {
                 Circle()
                     .fill(stateColor)
@@ -70,17 +80,19 @@ struct WorktimeWidgetSmallView: View {
 
             Spacer()
 
-            // Net time
             Text(formatTime(entry.netTimeSeconds))
                 .font(.system(size: 28, weight: .medium, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.primary)
 
-            // Start time
             if let start = entry.startTime {
-                Text("since \(formatHourMinute(start))")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                Text(
+                    String(
+                        format: String(localized: "widget.since"),
+                        formatHourMinute(start))
+                )
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -88,20 +100,27 @@ struct WorktimeWidgetSmallView: View {
     }
 
     private var stateColor: Color {
+        let hours = entry.netTimeSeconds / 3600
+        if hours >= entry.redThreshold {
+            return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        }
+        if hours >= entry.orangeThreshold {
+            return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        }
         switch entry.state {
-        case "running": return .green
-        case "paused": return .orange
-        case "ended": return .blue
-        default: return .gray
+        case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
+        case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
+        default: return .secondary
         }
     }
 
     private var stateLabel: String {
         switch entry.state {
-        case "running": return "Working"
-        case "paused": return "Paused"
-        case "ended": return "Done"
-        default: return "Idle"
+        case "running": return String(localized: "widget.state.running")
+        case "paused": return String(localized: "widget.state.paused")
+        case "ended": return String(localized: "widget.state.ended")
+        default: return String(localized: "widget.state.idle")
         }
     }
 }
@@ -113,7 +132,6 @@ struct WorktimeWidgetMediumView: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            // Left: main time
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 4) {
                     Circle()
@@ -133,34 +151,45 @@ struct WorktimeWidgetMediumView: View {
                     .foregroundStyle(.primary)
 
                 if let start = entry.startTime {
-                    Text("since \(formatHourMinute(start))")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                    Text(
+                        String(
+                            format: String(localized: "widget.since"),
+                            formatHourMinute(start))
+                    )
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
                 }
             }
 
             Spacer()
 
-            // Right: progress ring
             VStack(spacing: 8) {
                 ZStack {
                     Circle()
                         .stroke(.quaternary, lineWidth: 6)
                     Circle()
-                        .trim(from: 0, to: min(1.0, entry.netTimeSeconds / (8 * 3600)))
+                        .trim(
+                            from: 0, to: min(1.0, entry.netTimeSeconds / (entry.targetHours * 3600))
+                        )
                         .stroke(progressColor, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                     Text(
-                        String(format: "%.0f%%", min(100, entry.netTimeSeconds / (8 * 3600) * 100))
+                        String(
+                            format: "%.0f%%",
+                            min(100, entry.netTimeSeconds / (entry.targetHours * 3600) * 100))
                     )
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                 }
                 .frame(width: 60, height: 60)
 
-                Text("of 8h target")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.secondary)
+                Text(
+                    String(
+                        format: String(localized: "widget.target"),
+                        Int(entry.targetHours))
+                )
+                .font(.system(size: 9))
+                .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -168,28 +197,39 @@ struct WorktimeWidgetMediumView: View {
     }
 
     private var stateColor: Color {
+        let hours = entry.netTimeSeconds / 3600
+        if hours >= entry.redThreshold {
+            return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        }
+        if hours >= entry.orangeThreshold {
+            return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        }
         switch entry.state {
-        case "running": return .green
-        case "paused": return .orange
-        case "ended": return .blue
-        default: return .gray
+        case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
+        case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
+        default: return .secondary
         }
     }
 
     private var stateLabel: String {
         switch entry.state {
-        case "running": return "Working"
-        case "paused": return "Paused"
-        case "ended": return "Done"
-        default: return "Idle"
+        case "running": return String(localized: "widget.state.running")
+        case "paused": return String(localized: "widget.state.paused")
+        case "ended": return String(localized: "widget.state.ended")
+        default: return String(localized: "widget.state.idle")
         }
     }
 
     private var progressColor: Color {
         let hours = entry.netTimeSeconds / 3600
-        if hours >= 10 { return .red }
-        if hours >= 8 { return .orange }
-        return .green
+        if hours >= entry.redThreshold {
+            return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        }
+        if hours >= entry.orangeThreshold {
+            return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        }
+        return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
     }
 }
 

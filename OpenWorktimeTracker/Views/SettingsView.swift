@@ -68,6 +68,12 @@ struct SettingsView: View {
                     TextField("", value: $orangeThreshold, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
+                        .onChange(of: orangeThreshold) { _, newValue in
+                            orangeThreshold = max(0, newValue)
+                            if orangeThreshold >= redThreshold {
+                                redThreshold = orangeThreshold + 0.5
+                            }
+                        }
                 }
                 HStack {
                     Text("settings.redThreshold")
@@ -75,6 +81,12 @@ struct SettingsView: View {
                     TextField("", value: $redThreshold, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
+                        .onChange(of: redThreshold) { _, newValue in
+                            redThreshold = max(0.5, newValue)
+                            if redThreshold <= orangeThreshold {
+                                orangeThreshold = redThreshold - 0.5
+                            }
+                        }
                 }
             }
 
@@ -85,6 +97,9 @@ struct SettingsView: View {
                     TextField("", value: $break6h, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
+                        .onChange(of: break6h) { _, newValue in
+                            break6h = max(0, min(300, newValue))
+                        }
                 }
                 HStack {
                     Text("settings.breakAfter9h")
@@ -92,6 +107,12 @@ struct SettingsView: View {
                     TextField("", value: $break9h, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
+                        .onChange(of: break9h) { _, newValue in
+                            break9h = max(0, min(300, newValue))
+                            if break9h < break6h {
+                                break9h = break6h
+                            }
+                        }
                 }
             }
 
@@ -102,6 +123,9 @@ struct SettingsView: View {
                     TextField("", value: $idleThreshold, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
+                        .onChange(of: idleThreshold) { _, newValue in
+                            idleThreshold = max(1, newValue)
+                        }
                 }
             }
 
@@ -131,6 +155,9 @@ struct SettingsView: View {
                     TextField("", value: $normalHours, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
+                        .onChange(of: normalHours) { _, newValue in
+                            normalHours = max(0.5, newValue)
+                        }
                 }
                 HStack {
                     Text("settings.criticalHours")
@@ -138,6 +165,9 @@ struct SettingsView: View {
                     TextField("", value: $criticalHours, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
+                        .onChange(of: criticalHours) { _, newValue in
+                            criticalHours = max(normalHours, newValue)
+                        }
                 }
                 HStack {
                     Text("settings.milestoneHours")
@@ -145,6 +175,9 @@ struct SettingsView: View {
                     TextField("", value: $milestoneHours, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
+                        .onChange(of: milestoneHours) { _, newValue in
+                            milestoneHours = max(criticalHours, newValue)
+                        }
                 }
             }
 

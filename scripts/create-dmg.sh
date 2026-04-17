@@ -19,7 +19,7 @@ echo "Creating DMG from $APP_PATH..."
 
 # Try create-dmg first (prettier)
 if command -v create-dmg &>/dev/null; then
-    create-dmg \
+    if create-dmg \
         --volname "$APP_NAME" \
         --window-pos 200 120 \
         --window-size 600 400 \
@@ -28,16 +28,24 @@ if command -v create-dmg &>/dev/null; then
         --app-drop-link 425 190 \
         --hide-extension "${APP_NAME}.app" \
         "$DMG_PATH" \
-        "$APP_PATH" || true
+        "$APP_PATH"; then
+        echo "DMG created with create-dmg"
+    else
+        echo "Warning: create-dmg failed, falling back to hdiutil..."
+        rm -f "$DMG_PATH"
+    fi
 fi
 
 # Fallback to hdiutil
 if [ ! -f "$DMG_PATH" ]; then
-    echo "Falling back to hdiutil..."
-    hdiutil create -volname "$APP_NAME" \
+    echo "Using hdiutil..."
+    if ! hdiutil create -volname "$APP_NAME" \
         -srcfolder "$APP_PATH" \
         -ov -format UDZO \
-        "$DMG_PATH"
+        "$DMG_PATH"; then
+        echo "Error: Failed to create DMG"
+        exit 1
+    fi
 fi
 
 echo "DMG created: $DMG_PATH"

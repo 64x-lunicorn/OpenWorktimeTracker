@@ -24,7 +24,7 @@ Test the app for a few days and observe the following:
 - [x] App icon (indigo clock with play indicator)
 - [x] `SUFeedURL` in Info.plist set to GitHub Pages URL
 - [x] GitHub repo URL in README.md (64x-lunicorn)
-- [ ] Generate Sparkle EdDSA keys and set `SUPublicEDKey`
+- [x] Generate Sparkle EdDSA keys and set `SUPublicEDKey`
 - [x] License: AGPL-3.0
 - [x] Last 7 days overview in popover
 - [x] Show manual pause duration in popover
@@ -48,17 +48,16 @@ Test the app for a few days and observe the following:
 
 ## Priority 3 -- Before v1.0 Release
 
-- [ ] Enable Sparkle auto-updates (`startingUpdater: true` in AppDelegate) + Appcast on GitHub Pages
-- [ ] Configure GitHub Secrets:
+- [x] Enable Sparkle auto-updates (`startingUpdater: true` in AppDelegate) + Appcast on GitHub Pages
+- [x] Configure GitHub Secrets:
   - `DEVELOPER_ID_CERTIFICATE_P12` -- Base64-encoded .p12 certificate
   - `CERTIFICATE_PASSWORD` -- Password for .p12
   - `APPLE_ID` -- Apple ID email
   - `APPLE_TEAM_ID` -- Team ID from Developer Portal
   - `NOTARIZATION_PASSWORD` -- App-specific Password
   - `SPARKLE_PRIVATE_KEY` -- EdDSA Private Key for Sparkle
+- [ ] Run manual testing checklist (see above)
 - [ ] Push first release tag (`git tag v0.1.0 && git push --tags`)
-- [ ] Prepare Homebrew Cask formula
-- [ ] Screenshots for README (light + dark)
 
 ---
 

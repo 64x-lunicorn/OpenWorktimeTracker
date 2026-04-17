@@ -108,4 +108,53 @@ final class BreakCalculatorTests: XCTestCase {
         XCTAssertEqual(custom.requiredBreak(forWorkTime: 7 * 3600), 20 * 60)
         XCTAssertEqual(custom.requiredBreak(forWorkTime: 10 * 3600), 40 * 60)
     }
+
+    // MARK: - Edge Cases
+
+    func testRequiredBreakExactly6Hours() {
+        // Exactly 6h should NOT trigger break (rule is >6h)
+        XCTAssertEqual(calculator.requiredBreak(forWorkTime: 6 * 3600), 0)
+    }
+
+    func testRequiredBreakExactly9Hours() {
+        // Exactly 9h should still be in the >6h bracket (30min), not >9h
+        XCTAssertEqual(calculator.requiredBreak(forWorkTime: 9 * 3600), 30 * 60)
+    }
+
+    func testRequiredBreakJustOver6Hours() {
+        // 6h + 1 second
+        XCTAssertEqual(calculator.requiredBreak(forWorkTime: 6 * 3600 + 1), 30 * 60)
+    }
+
+    func testRequiredBreakJustOver9Hours() {
+        // 9h + 1 second
+        XCTAssertEqual(calculator.requiredBreak(forWorkTime: 9 * 3600 + 1), 45 * 60)
+    }
+
+    func testRequiredBreakZeroWorkTime() {
+        XCTAssertEqual(calculator.requiredBreak(forWorkTime: 0), 0)
+    }
+
+    func testAutoBreakWhenAlreadyPausedEnough() {
+        // 7h work with 30min already paused → no additional auto break needed
+        let auto = calculator.autoBreak(forWorkTime: 7 * 3600, alreadyPaused: 30 * 60)
+        XCTAssertEqual(auto, 0)
+    }
+
+    func testAutoBreakWhenOverPaused() {
+        // 7h work with 60min already paused → should be 0, not negative
+        let auto = calculator.autoBreak(forWorkTime: 7 * 3600, alreadyPaused: 60 * 60)
+        XCTAssertEqual(auto, 0)
+    }
+
+    func testNetWorkTimeNeverNegative() {
+        // Very short work time with large pauses
+        let net = calculator.netWorkTime(grossTime: 600, manualPause: 300, idlePause: 300)
+        XCTAssertGreaterThanOrEqual(net, 0)
+    }
+
+    func testNetWorkTimeZeroGross() {
+        let net = calculator.netWorkTime(grossTime: 0, manualPause: 0, idlePause: 0)
+        XCTAssertEqual(net, 0)
+    }
 }

@@ -7,14 +7,18 @@ struct ProgressBarView: View {
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.xs) {
             HStack {
-                Text("Goal: \(goalText)")
-                    .font(DesignTokens.Typography.labelMicro)
-                    .tracking(1)
-                    .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
+                Text(
+                    String(
+                        format: String(localized: "progress.goal"),
+                        goalText)
+                )
+                .font(DesignTokens.Typography.labelMicro)
+                .tracking(1)
+                .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
 
                 Spacer()
 
-                Text("\(Int(progress * 100))%")
+                Text("\(min(100, Int(progress * 100)))%")
                     .font(DesignTokens.Typography.labelMicro)
                     .tracking(1)
                     .foregroundStyle(DesignTokens.Colors.onSurface)
@@ -33,6 +37,9 @@ struct ProgressBarView: View {
             }
             .frame(height: 4)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("progress.accessibility.label"))
+        .accessibilityValue(Text("\(min(100, Int(progress * 100)))%"))
     }
 
     private var goalText: String {

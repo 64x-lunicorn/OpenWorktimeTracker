@@ -11,6 +11,12 @@
 "menubar.settings" = "Settings...";
 "menubar.quit" = "Quit";
 
+/* State Labels */
+"state.notStarted" = "Not Started";
+"state.running" = "Running";
+"state.paused" = "Paused";
+"state.ended" = "Ended";
+
 /* TimerDisplayView */
 "timer.netWorkTime" = "NET WORK TIME";
 
@@ -52,13 +58,26 @@
 "idle.startToday" = "Start today now";
 "idle.countAsWork" = "Count all as work time";
 
+"idle.endDay" = "End Day";
+"idle.restart" = "Restart";
+
 /* IdlePromptWindowController */
 "idle.panel.newWorkday" = "New Workday";
 "idle.panel.inactivity" = "Inactivity Detected";
 
+/* MaxHoursPromptView */
+"maxhours.title" = "Maximum Work Time!";
+"maxhours.body" = "You have already worked %.1f hours. Do you want to end the day?";
+"maxhours.endDay" = "End Day";
+"maxhours.continueWorking" = "Continue Working";
+"maxhours.panel.title" = "Maximum Work Time";
+
 /* NotificationManager */
 "notification.normal.title" = "Regular hours reached";
 "notification.normal.body" = "You have worked %.1f hours. Time to wrap up?";
+
+/* ProgressBarView */
+"progress.goal" = "Goal: %@";
 "notification.critical.title" = "Critical work time!";
 "notification.critical.body" = "You have been working for %.1f hours. You should leave now!";
 "notification.milestone.title" = "Maximum reached!";
@@ -99,4 +118,9 @@
 "settings.about" = "About";
 "settings.version" = "Version";
 "settings.choosePrompt" = "Choose";
+
+/* Accessibility */
+"timer.accessibility.netWorkTime" = "Net work time";
+"progress.accessibility.label" = "Daily goal progress";
+"menubar.accessibility.header" = "Workday status";
 "settings.chooseMessage" = "Select a folder for worktime logs";

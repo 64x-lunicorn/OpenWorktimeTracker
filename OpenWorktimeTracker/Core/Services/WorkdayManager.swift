@@ -96,8 +96,17 @@ final class WorkdayManager {
         switch action {
         case .continueExisting(let entry):
             currentEntry = entry
-            state = entry.status == .running ? .running : .paused
-            startTimer()
+            switch entry.status {
+            case .running:
+                state = .running
+                startTimer()
+            case .paused:
+                state = .paused
+                startTimer()
+            case .ended:
+                state = .ended
+                updateComputedValues()
+            }
 
         case .startFreshDay:
             startNewDay()
@@ -186,6 +195,7 @@ final class WorkdayManager {
 
     func updateStartTime(_ newStart: Date) {
         guard var entry = currentEntry else { return }
+        if let end = entry.endTime, newStart > end { return }
         entry.startTime = newStart
         currentEntry = entry
         persistence.save(entry)
@@ -194,6 +204,7 @@ final class WorkdayManager {
 
     func updateEndTime(_ newEnd: Date) {
         guard var entry = currentEntry, state == .ended else { return }
+        if newEnd < entry.startTime { return }
         entry.endTime = newEnd
         currentEntry = entry
         persistence.save(entry)
@@ -246,6 +257,57 @@ final class WorkdayManager {
         persistence.save(entry)
         idleDetector.dismissPrompt()
         IdlePromptWindowController.shared.dismiss()
+    }
+
+    func handleIdleDecisionAndEndDay() {
+        guard var entry = currentEntry,
+            let prompt = idleDetector.pendingPrompt
+        else { return }
+
+        // Record idle time as pause, then end the day at idle start
+        let idleDecision = IdleDecision(
+            idleStart: prompt.idleStart,
+            idleEnd: prompt.idleEnd,
+            decision: .pause
+        )
+        entry.idleDecisions.append(idleDecision)
+        entry.status = .ended
+        entry.endTime = prompt.idleStart
+        if let pauseStart = entry.pauseStartedAt {
+            entry.manualPauseSeconds += prompt.idleStart.timeIntervalSince(pauseStart)
+            entry.pauseStartedAt = nil
+        }
+        currentEntry = entry
+        state = .ended
+        persistence.save(entry)
+        stopTimer()
+        idleDetector.dismissPrompt()
+        idleDetector.stopMonitoring()
+        IdlePromptWindowController.shared.dismiss()
+    }
+
+    func handleIdleDecisionAndRestart() {
+        guard var entry = currentEntry,
+            let prompt = idleDetector.pendingPrompt
+        else { return }
+
+        // End current day at idle start, then start a new day
+        let idleDecision = IdleDecision(
+            idleStart: prompt.idleStart,
+            idleEnd: prompt.idleEnd,
+            decision: .pause
+        )
+        entry.idleDecisions.append(idleDecision)
+        entry.status = .ended
+        entry.endTime = prompt.idleStart
+        if let pauseStart = entry.pauseStartedAt {
+            entry.manualPauseSeconds += prompt.idleStart.timeIntervalSince(pauseStart)
+            entry.pauseStartedAt = nil
+        }
+        persistence.save(entry)
+        idleDetector.dismissPrompt()
+        IdlePromptWindowController.shared.dismiss()
+        startNewDay()
     }
 
     func handleNewDayFromIdle(endYesterdayAt: Date) {
@@ -341,6 +403,11 @@ final class WorkdayManager {
             entry.notifiedThresholds.insert("milestone")
             currentEntry = entry
             persistence.save(entry)
+            // Show popup asking to end the day
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                IdlePromptWindowController.shared.showMaxHoursPrompt(hours: hours, manager: self)
+            }
         } else if hours >= criticalH && !entry.notifiedThresholds.contains("critical") {
             notifications.sendThresholdNotification(type: .critical(hours: hours))
             entry.notifiedThresholds.insert("critical")
@@ -464,5 +531,18 @@ final class WorkdayManager {
 
     enum MenuBarColor {
         case normal, orange, red
+    }
+}
+
+// MARK: - State Localization
+
+extension WorkdayManager.State {
+    var localizedLabel: String {
+        switch self {
+        case .notStarted: return String(localized: "state.notStarted")
+        case .running: return String(localized: "state.running")
+        case .paused: return String(localized: "state.paused")
+        case .ended: return String(localized: "state.ended")
+        }
     }
 }

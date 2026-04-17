@@ -159,7 +159,6 @@ struct MetricCardsView: View {
             HStack {
                 Button(String(localized: "metric.cancel")) {
                     isEditingStart = false
-                    isEditingEnd = false
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
@@ -212,5 +211,8 @@ private struct MetricCard: View {
         .padding(DesignTokens.Spacing.md)
         .background(DesignTokens.Colors.surfaceContainerLow)
         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(label))
+        .accessibilityValue(Text(value))
     }
 }

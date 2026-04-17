@@ -1,0 +1,7 @@
+/* Widget */
+"widget.state.running" = "Working";
+"widget.state.paused" = "Paused";
+"widget.state.ended" = "Done";
+"widget.state.idle" = "Idle";
+"widget.since" = "since %@";
+"widget.target" = "of %dh target";

@@ -3,8 +3,15 @@ import Foundation
 final class PersistenceManager {
 
     private let fileManager = FileManager.default
+    private let saveQueue = DispatchQueue(
+        label: "com.openworktimetracker.persistence", qos: .utility)
+
+    private var _cachedSecurityScopedURL: URL?
 
     var logDirectory: URL {
+        if let override = overrideLogDirectory {
+            return override
+        }
         if let bookmarkData = UserDefaults.standard.data(forKey: AppSettingsKey.logFolderBookmark) {
             var isStale = false
             if let url = try? URL(
@@ -12,16 +19,33 @@ final class PersistenceManager {
                 options: .withSecurityScope,
                 bookmarkDataIsStale: &isStale
             ) {
-                _ = url.startAccessingSecurityScopedResource()
+                if _cachedSecurityScopedURL != url {
+                    _cachedSecurityScopedURL?.stopAccessingSecurityScopedResource()
+                    if url.startAccessingSecurityScopedResource() {
+                        _cachedSecurityScopedURL = url
+                    }
+                }
                 return url
             }
         }
         return defaultLogDirectory
     }
 
+    deinit {
+        _cachedSecurityScopedURL?.stopAccessingSecurityScopedResource()
+    }
+
     var defaultLogDirectory: URL {
-        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
-            .first!
+        guard
+            let appSupport = fileManager.urls(
+                for: .applicationSupportDirectory, in: .userDomainMask
+            )
+            .first
+        else {
+            return fileManager.temporaryDirectory
+                .appendingPathComponent("OpenWorktimeTracker", isDirectory: true)
+                .appendingPathComponent("logs", isDirectory: true)
+        }
         return
             appSupport
             .appendingPathComponent("OpenWorktimeTracker", isDirectory: true)
@@ -41,7 +65,10 @@ final class PersistenceManager {
         return dec
     }()
 
-    init() {
+    private let overrideLogDirectory: URL?
+
+    init(logDirectory: URL? = nil) {
+        self.overrideLogDirectory = logDirectory
         ensureDirectoryExists()
     }
 
@@ -69,10 +96,18 @@ final class PersistenceManager {
     func save(_ entry: TimeEntry) {
         ensureDirectoryExists()
         let fileURL = logDirectory.appendingPathComponent("\(entry.date).json")
-        if let data = try? encoder.encode(entry) {
-            try? data.write(to: fileURL, options: .atomic)
-            CloudSyncManager.shared.uploadEntry(at: fileURL)
+        let encoder = self.encoder
+        saveQueue.async {
+            if let data = try? encoder.encode(entry) {
+                try? data.write(to: fileURL, options: .atomic)
+                CloudSyncManager.shared.uploadEntry(at: fileURL)
+            }
         }
+    }
+
+    /// Blocks until all pending saves complete. For testing only.
+    func flush() {
+        saveQueue.sync {}
     }
 
     func load(for dateString: String) -> TimeEntry? {

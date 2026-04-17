@@ -11,6 +11,12 @@
 "menubar.settings" = "Einstellungen...";
 "menubar.quit" = "Beenden";
 
+/* State Labels */
+"state.notStarted" = "Nicht gestartet";
+"state.running" = "Läuft";
+"state.paused" = "Pausiert";
+"state.ended" = "Beendet";
+
 /* TimerDisplayView */
 "timer.netWorkTime" = "NETTO-ARBEITSZEIT";
 
@@ -52,13 +58,26 @@
 "idle.startToday" = "Heute jetzt starten";
 "idle.countAsWork" = "Alles als Arbeitszeit zählen";
 
+"idle.endDay" = "Tag beenden";
+"idle.restart" = "Neustarten";
+
 /* IdlePromptWindowController */
 "idle.panel.newWorkday" = "Neuer Arbeitstag";
 "idle.panel.inactivity" = "Inaktivität erkannt";
 
+/* MaxHoursPromptView */
+"maxhours.title" = "Maximale Arbeitszeit!";
+"maxhours.body" = "Du hast bereits %.1f Stunden gearbeitet. Möchtest du den Tag beenden?";
+"maxhours.endDay" = "Tag beenden";
+"maxhours.continueWorking" = "Weiterarbeiten";
+"maxhours.panel.title" = "Maximale Arbeitszeit";
+
 /* NotificationManager */
 "notification.normal.title" = "Reguläre Arbeitszeit erreicht";
 "notification.normal.body" = "Du hast %.1f Stunden gearbeitet. Zeit zum Aufhören?";
+
+/* ProgressBarView */
+"progress.goal" = "Ziel: %@";
 "notification.critical.title" = "Kritische Arbeitszeit!";
 "notification.critical.body" = "Du arbeitest seit %.1f Stunden. Du solltest jetzt gehen!";
 "notification.milestone.title" = "Maximum erreicht!";
@@ -99,4 +118,9 @@
 "settings.about" = "Über";
 "settings.version" = "Version";
 "settings.choosePrompt" = "Wählen";
+
+/* Accessibility */
+"timer.accessibility.netWorkTime" = "Netto-Arbeitszeit";
+"progress.accessibility.label" = "Fortschritt Tagesziel";
+"menubar.accessibility.header" = "Arbeitstag-Status";
 "settings.chooseMessage" = "Ordner für Arbeitszeitprotokolle auswählen";

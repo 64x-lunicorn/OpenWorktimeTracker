@@ -32,6 +32,9 @@ struct TimerDisplayView: View {
                 thresholdColor: thresholdColor
             )
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("timer.accessibility.netWorkTime"))
+        .accessibilityValue(Text(hoursMinutes))
         .padding(DesignTokens.Spacing.lg)
         .frame(maxWidth: .infinity)
         .background {

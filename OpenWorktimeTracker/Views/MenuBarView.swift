@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuBarView: View {
     @Environment(WorkdayManager.self) private var manager
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(spacing: 0) {
@@ -54,7 +55,7 @@ struct MenuBarView: View {
                 .font(DesignTokens.Typography.headlineSmall)
                 .foregroundStyle(DesignTokens.Colors.onSurface)
 
-                Text(manager.state.rawValue.capitalized)
+                Text(manager.state.localizedLabel)
                     .font(DesignTokens.Typography.labelSmall)
                     .textCase(.uppercase)
                     .tracking(1.5)
@@ -66,6 +67,9 @@ struct MenuBarView: View {
             statusBadge
         }
         .padding(DesignTokens.Spacing.lg)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("menubar.accessibility.header"))
+        .accessibilityValue(Text(manager.state.localizedLabel))
     }
 
     private var statusBadge: some View {
@@ -75,7 +79,7 @@ struct MenuBarView: View {
                     .fill(DesignTokens.Colors.accentGreen)
                     .frame(width: 6, height: 6)
             }
-            Text(manager.state.rawValue.capitalized)
+            Text(manager.state.localizedLabel)
                 .font(DesignTokens.Typography.labelMicro)
                 .textCase(.uppercase)
                 .tracking(1)
@@ -112,6 +116,9 @@ struct MenuBarView: View {
                 manager.updateNote(newValue)
             }
             .onAppear {
+                noteText = manager.currentEntry?.note ?? ""
+            }
+            .onChange(of: manager.currentEntry?.id) { _, _ in
                 noteText = manager.currentEntry?.note ?? ""
             }
         }
@@ -169,8 +176,7 @@ struct MenuBarView: View {
                     }
                     Divider()
                     Button(String(localized: "menubar.settings")) {
-                        NSApp.activate(ignoringOtherApps: true)
-                        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                        openSettings()
                     }
                     .keyboardShortcut(",", modifiers: .command)
                     Divider()

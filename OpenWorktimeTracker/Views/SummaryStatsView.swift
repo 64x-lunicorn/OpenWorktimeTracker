@@ -70,8 +70,8 @@ struct SummaryStatsView: View {
                     StatCard(
                         label: String(localized: "summary.overtime"),
                         value: overtimeFormatted,
-                        icon: overtimeSeconds >= 0 ? "arrow.up.right" : "arrow.down.right",
-                        color: overtimeSeconds >= 0
+                        icon: overtimeHours >= 0 ? "arrow.up.right" : "arrow.down.right",
+                        color: overtimeHours >= 0
                             ? DesignTokens.Colors.accentRed : DesignTokens.Colors.accentGreen
                     )
                 }
@@ -136,13 +136,13 @@ struct SummaryStatsView: View {
             ?? AppDefaults.normalNotificationHours
     }
 
-    private var overtimeSeconds: Double {
+    private var overtimeHours: Double {
         totalHours - (Double(workDays) * targetHoursPerDay)
     }
 
     private var overtimeFormatted: String {
-        let abs = abs(overtimeSeconds)
-        let sign = overtimeSeconds >= 0 ? "+" : "-"
+        let abs = abs(overtimeHours)
+        let sign = overtimeHours >= 0 ? "+" : "-"
         return String(format: "%@%.1fh", sign, abs)
     }
 

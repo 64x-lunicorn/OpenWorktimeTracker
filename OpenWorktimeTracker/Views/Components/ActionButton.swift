@@ -26,6 +26,7 @@ struct ActionButton: View {
             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(title))
     }
 
     private var background: some ShapeStyle {

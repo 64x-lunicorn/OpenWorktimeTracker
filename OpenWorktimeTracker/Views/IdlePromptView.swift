@@ -57,6 +57,12 @@ struct IdlePromptView: View {
         .padding(DesignTokens.Spacing.xl)
         .frame(width: 320)
         .background(DesignTokens.Colors.surface)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(
+            promptInfo.spansMidnight
+                ? String(localized: "idle.newWorkday")
+                : String(localized: "idle.inactivityDetected")
+        ))
     }
 
     // MARK: - Same Day Actions
@@ -93,6 +99,40 @@ struct IdlePromptView: View {
                 .padding(.vertical, 10)
                 .background(DesignTokens.Colors.accentOrange.opacity(0.15))
                 .foregroundStyle(DesignTokens.Colors.accentOrange)
+                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                manager.handleIdleDecisionAndEndDay()
+                onDismiss?()
+            } label: {
+                HStack {
+                    Image(systemName: "stop.circle.fill")
+                    Text("idle.endDay")
+                }
+                .font(DesignTokens.Typography.labelLarge)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(DesignTokens.Colors.accentRed.opacity(0.15))
+                .foregroundStyle(DesignTokens.Colors.accentRed)
+                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                manager.handleIdleDecisionAndRestart()
+                onDismiss?()
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.clockwise.circle.fill")
+                    Text("idle.restart")
+                }
+                .font(DesignTokens.Typography.labelLarge)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(DesignTokens.Colors.surfaceContainerHigh)
+                .foregroundStyle(DesignTokens.Colors.onSurface)
                 .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             }
             .buttonStyle(.plain)

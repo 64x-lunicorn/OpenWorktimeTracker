@@ -63,6 +63,9 @@ final class IdleDetector {
     @objc private func screenDidLock() {
         screenLocked = true
         lockTime = Date()
+        // Stop timer polling — lock/unlock handlers take over
+        checkTimer?.invalidate()
+        checkTimer = nil
         // Treat screen lock as start of idle
         if !isIdle {
             isIdle = true
@@ -95,6 +98,11 @@ final class IdleDetector {
         isIdle = false
         idleStartTime = nil
         lockTime = nil
+
+        // Restart timer polling after unlock
+        checkTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+            self?.checkIdleState()
+        }
     }
 
     // MARK: - Idle Check

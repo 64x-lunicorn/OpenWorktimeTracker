@@ -120,7 +120,7 @@ private struct DayRow: View {
         guard let date = parseDate() else { return "?" }
         let formatter = DateFormatter()
         formatter.dateFormat = "EE"
-        formatter.locale = Locale(identifier: "en_US")
+        formatter.locale = Locale.current
         return formatter.string(from: date)
     }
 
