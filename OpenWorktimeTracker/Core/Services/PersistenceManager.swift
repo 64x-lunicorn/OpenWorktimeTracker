@@ -120,6 +120,11 @@ final class PersistenceManager {
         load(for: TimeEntry.dateString(from: Date()))
     }
 
+    func delete(for dateString: String) {
+        let fileURL = logDirectory.appendingPathComponent("\(dateString).json")
+        try? fileManager.removeItem(at: fileURL)
+    }
+
     func loadMostRecentEntry() -> TimeEntry? {
         ensureDirectoryExists()
         let dir = logDirectory

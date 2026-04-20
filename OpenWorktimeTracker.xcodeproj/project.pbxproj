@@ -11,6 +11,7 @@
 		094A334F0B271C5B05ADCA45 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 46369458646495B6F3C7B84D /* Sparkle */; };
 		09742B896CA7EB3ED436018E /* IdleDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E368E8701FFBF179A415BBF /* IdleDetectorTests.swift */; };
 		0A9796F1549A59EC38DAE952 /* GlobalShortcutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8316E37B0FE467EDC5CE6E6D /* GlobalShortcutManager.swift */; };
+		0D3BA242E6C837790469B04F /* LogEntryEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5351C1EB6221F54A7FC64A02 /* LogEntryEditView.swift */; };
 		15061C70D45A5BEF76336071 /* SummaryStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5202C6AD0AF52C2D73DC6E17 /* SummaryStatsView.swift */; };
 		1DC0909035DD8290A96FE10F /* GlassContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CBF6F9629F77799CD434AF /* GlassContainer.swift */; };
 		1E239897EB901FE3D915E1D7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5AFAE89712EB3B674570A28B /* Localizable.strings */; };
@@ -44,8 +45,10 @@
 		ADE593C4C405609F5F1B3894 /* WorkdayManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C770EF5C2029076BF88AF474 /* WorkdayManagerTests.swift */; };
 		AEE1E6715AC00AE314B9D854 /* OpenWorktimeTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90A98A9F938927C616301EA5 /* OpenWorktimeTrackerApp.swift */; };
 		B2942C9DBBAD0D5F95307152 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B2CA010B0A3CBEDC5FA6F9 /* MenuBarView.swift */; };
+		BF24A802B731C7DB18835234 /* LogEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EEEFF607EEBE5390F88EB0B /* LogEditorWindowController.swift */; };
 		CFA636175CB967A129D45107 /* ActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032AEE83355F68A71F71365C /* ActionButton.swift */; };
 		D0BA8C03FE5E382A0104E788 /* WorkdayDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB71FDA60A573DB4F2C4E3D6 /* WorkdayDetector.swift */; };
+		D0C5E94C8A43326CE27D71E0 /* LogEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78CD4A8501FEDAAE565AEAC8 /* LogEditorView.swift */; };
 		D863CFEDBAC6400A74C1551F /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 8CF945626AE912CB62BC84CD /* AppIcon.svg */; };
 		E7DB5A1B699217F6B7749C2E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7D8E211502FB3F2B407C29 /* SettingsView.swift */; };
 		F9CEAFEDD47DBEF79E904301 /* PersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F26F3D087AB990B78FB7094 /* PersistenceManager.swift */; };
@@ -90,16 +93,19 @@
 		0CB576F2CF5F2605464A6FEC /* TimerDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerDisplayView.swift; sourceTree = "<group>"; };
 		0E368E8701FFBF179A415BBF /* IdleDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleDetectorTests.swift; sourceTree = "<group>"; };
 		0E7D73A4BB2ACE5955D1E84A /* OpenWorktimeTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenWorktimeTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0EEEFF607EEBE5390F88EB0B /* LogEditorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEditorWindowController.swift; sourceTree = "<group>"; };
 		1ED914F58E92DF73CF1547A3 /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
 		234A384CE4770836D7D1485C /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		2F26F3D087AB990B78FB7094 /* PersistenceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceManager.swift; sourceTree = "<group>"; };
 		5202C6AD0AF52C2D73DC6E17 /* SummaryStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryStatsView.swift; sourceTree = "<group>"; };
+		5351C1EB6221F54A7FC64A02 /* LogEntryEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEntryEditView.swift; sourceTree = "<group>"; };
 		587CB7F059336B48B3DEE9CC /* IdleDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleDetector.swift; sourceTree = "<group>"; };
 		58B2CA010B0A3CBEDC5FA6F9 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		5C9B60DDF61A20041E00A564 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		65D365D24EC89B5F03E63743 /* IdlePromptWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdlePromptWindowController.swift; sourceTree = "<group>"; };
 		7255E8D3611E793FAB71F0AC /* MaxHoursPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaxHoursPromptView.swift; sourceTree = "<group>"; };
 		75C10AE9B003B0EC21B18010 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		78CD4A8501FEDAAE565AEAC8 /* LogEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEditorView.swift; sourceTree = "<group>"; };
 		7C0158B151E8021863597395 /* TimeEntryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeEntryTests.swift; sourceTree = "<group>"; };
 		8316E37B0FE467EDC5CE6E6D /* GlobalShortcutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcutManager.swift; sourceTree = "<group>"; };
 		86E9F0E6F30AAE618BE4982D /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncManager.swift; sourceTree = "<group>"; };
@@ -123,7 +129,6 @@
 		BC1763B590C81EB59DF0B300 /* ProgressBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBarView.swift; sourceTree = "<group>"; };
 		C14FD2343077B9FC533EAC07 /* BreakCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakCalculator.swift; sourceTree = "<group>"; };
 		C770EF5C2029076BF88AF474 /* WorkdayManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayManagerTests.swift; sourceTree = "<group>"; };
-		C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
 		C8CBF6F9629F77799CD434AF /* GlassContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassContainer.swift; sourceTree = "<group>"; };
 		CB0E2224DEF41A69EC1E92AA /* PersistenceManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceManagerTests.swift; sourceTree = "<group>"; };
 		CB71FDA60A573DB4F2C4E3D6 /* WorkdayDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayDetector.swift; sourceTree = "<group>"; };
@@ -284,21 +289,15 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		DCD06B1F02C1AC94B7FF3647 /* openWorktimeTracker */ = {
-			isa = PBXGroup;
-			children = (
-				C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */,
-			);
-			name = openWorktimeTracker;
-			path = .;
-			sourceTree = "<group>";
-		};
 		F79488607CC0E0EFA22FC044 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				1A3EBD0FE3F7BF7A1A17C55B /* Components */,
 				B96BF05DC18B804752127B67 /* IdlePromptView.swift */,
 				65D365D24EC89B5F03E63743 /* IdlePromptWindowController.swift */,
+				78CD4A8501FEDAAE565AEAC8 /* LogEditorView.swift */,
+				0EEEFF607EEBE5390F88EB0B /* LogEditorWindowController.swift */,
+				5351C1EB6221F54A7FC64A02 /* LogEntryEditView.swift */,
 				7255E8D3611E793FAB71F0AC /* MaxHoursPromptView.swift */,
 				58B2CA010B0A3CBEDC5FA6F9 /* MenuBarView.swift */,
 				A95771E351BA49672B02C68D /* MetricCardsView.swift */,
@@ -314,7 +313,6 @@
 			isa = PBXGroup;
 			children = (
 				427467946827DF0C1795A4E0 /* OpenWorktimeTracker */,
-				DCD06B1F02C1AC94B7FF3647 /* openWorktimeTracker */,
 				B9BDAA6BB18202FD21D95C9B /* OpenWorktimeTrackerTests */,
 				209839E023452C819B38F3F4 /* Shared */,
 				D201344BFD44B626658A537F /* WorktimeWidget */,
@@ -393,9 +391,11 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					1B19B2A1D6A5647399CDA4ED = {
+						DevelopmentTeam = 8WEDM868L3;
 						ProvisioningStyle = Automatic;
 					};
 					673E693971C40FFE5AB5532B = {
+						DevelopmentTeam = 8WEDM868L3;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -477,6 +477,9 @@
 				8FDF3B4B103BB741A36E13A7 /* IdleDetector.swift in Sources */,
 				236FF7EC60B08C2E4B0C9969 /* IdlePromptView.swift in Sources */,
 				956F97E8ED6A08E13330D6A2 /* IdlePromptWindowController.swift in Sources */,
+				D0C5E94C8A43326CE27D71E0 /* LogEditorView.swift in Sources */,
+				BF24A802B731C7DB18835234 /* LogEditorWindowController.swift in Sources */,
+				0D3BA242E6C837790469B04F /* LogEntryEditView.swift in Sources */,
 				A46982C34CFF559FED894D6F /* MaxHoursPromptView.swift in Sources */,
 				B2942C9DBBAD0D5F95307152 /* MenuBarView.swift in Sources */,
 				FD9C3BA959F3FA91E9956165 /* MetricCardsView.swift in Sources */,
@@ -545,17 +548,17 @@
 /* Begin XCBuildConfiguration section */
 		06EF988886C58FC42A89FE55 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = WorktimeWidget/WorktimeWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 8WEDM868L3;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = WorktimeWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.openworktimetracker.app.widget;
 				PRODUCT_NAME = WorktimeWidget;
 				SDKROOT = macosx;
@@ -583,13 +586,13 @@
 		};
 		630807ADCE64B8017850713D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = OpenWorktimeTracker/Resources/OpenWorktimeTracker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 8WEDM868L3;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = OpenWorktimeTracker/Resources/Info.plist;
@@ -598,7 +601,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.openworktimetracker.app;
 				PRODUCT_NAME = OpenWorktimeTracker;
 				SDKROOT = macosx;
@@ -664,13 +667,13 @@
 		};
 		B635DBFA8949114E5237DCDC /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = OpenWorktimeTracker/Resources/OpenWorktimeTracker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 8WEDM868L3;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = OpenWorktimeTracker/Resources/Info.plist;
@@ -679,7 +682,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.openworktimetracker.app;
 				PRODUCT_NAME = OpenWorktimeTracker;
 				SDKROOT = macosx;
@@ -707,17 +710,17 @@
 		};
 		E47EB134550E162AAE6AC2FA /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C81AB4A09A54AB5971F8BFB9 /* Local.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = WorktimeWidget/WorktimeWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 8WEDM868L3;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = WorktimeWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.openworktimetracker.app.widget;
 				PRODUCT_NAME = WorktimeWidget;
 				SDKROOT = macosx;

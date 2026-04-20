@@ -166,6 +166,9 @@ struct MenuBarView: View {
                 }
 
                 Menu {
+                    Button(String(localized: "menubar.logEditor")) {
+                        LogEditorWindowController.shared.show(manager: manager)
+                    }
                     Button(String(localized: "menubar.openLogFolder")) {
                         NSWorkspace.shared.open(manager.persistence.logDirectory)
                     }

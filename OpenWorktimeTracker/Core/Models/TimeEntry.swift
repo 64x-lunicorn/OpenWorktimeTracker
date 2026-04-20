@@ -83,7 +83,7 @@ struct IdleDecision: Codable, Identifiable {
     let id: UUID
     let idleStart: Date
     let idleEnd: Date
-    let decision: Decision
+    var decision: Decision
 
     enum Decision: String, Codable {
         case work  // Count as work time (meeting, thinking)

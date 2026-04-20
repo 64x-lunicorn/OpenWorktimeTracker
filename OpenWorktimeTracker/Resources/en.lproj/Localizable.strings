@@ -24,7 +24,7 @@
 "metric.start" = "Start";
 "metric.gross" = "Gross";
 "metric.autoBreak" = "Auto Break";
-"metric.manualPause" = "Manual Pause";
+"metric.pause" = "Pauses";
 "metric.end" = "End";
 "metric.eta" = "ETA 8h";
 "metric.target" = "Target";
@@ -124,3 +124,23 @@
 "progress.accessibility.label" = "Daily goal progress";
 "menubar.accessibility.header" = "Workday status";
 "settings.chooseMessage" = "Select a folder for worktime logs";
+
+/* LogEditor */
+"logEditor.title" = "Work Time Log";
+"logEditor.noEntries" = "No entries available";
+"logEditor.times" = "Times";
+"logEditor.start" = "Start Time";
+"logEditor.end" = "End Time";
+"logEditor.manualPause" = "Manual Pause";
+"logEditor.idleDecisions" = "Idle Decisions";
+"logEditor.work" = "Work";
+"logEditor.pause" = "Pause";
+"logEditor.note" = "Note";
+"logEditor.computed" = "Computed";
+"logEditor.grossTime" = "Gross";
+"logEditor.autoBreak" = "Auto Break";
+"logEditor.netTime" = "Net";
+"logEditor.save" = "Save";
+"logEditor.delete" = "Delete Entry";
+"logEditor.deleteConfirm" = "Are you sure you want to delete this entry?";
+"menubar.logEditor" = "Edit Log...";

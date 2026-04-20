@@ -58,11 +58,12 @@ struct IdlePromptView: View {
         .frame(width: 320)
         .background(DesignTokens.Colors.surface)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text(
-            promptInfo.spansMidnight
-                ? String(localized: "idle.newWorkday")
-                : String(localized: "idle.inactivityDetected")
-        ))
+        .accessibilityLabel(
+            Text(
+                promptInfo.spansMidnight
+                    ? String(localized: "idle.newWorkday")
+                    : String(localized: "idle.inactivityDetected")
+            ))
     }
 
     // MARK: - Same Day Actions

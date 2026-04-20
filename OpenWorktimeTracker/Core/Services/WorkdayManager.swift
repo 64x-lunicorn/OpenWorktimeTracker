@@ -46,7 +46,6 @@ final class WorkdayManager {
     // MARK: - Initialization
 
     func bootstrap() {
-        NotificationManager.shared.requestPermission()
         registerForSleepWake()
 
         idleDetector.onPromptReady = { [weak self] prompt in
@@ -211,6 +210,16 @@ final class WorkdayManager {
         updateComputedValues()
     }
 
+    func reloadCurrentEntry() {
+        guard let entry = currentEntry else { return }
+        let today = TimeEntry.dateString(from: Date())
+        if entry.date == today, let reloaded = persistence.load(for: today) {
+            currentEntry = reloaded
+            state = State(rawValue: reloaded.status.rawValue) ?? .notStarted
+            updateComputedValues()
+        }
+    }
+
     /// Estimated end time to reach a target of net work hours.
     /// Accounts for auto-break that will be added at 6h/9h thresholds.
     var estimatedEndTime: Date? {
@@ -356,7 +365,7 @@ final class WorkdayManager {
         guard let entry = currentEntry else { return }
 
         grossTime = entry.grossTime
-        manualPause = entry.totalManualPause
+        manualPause = entry.totalPause
 
         let calc = breakCalculator
         let workBeforeAuto = entry.workTimeBeforeAutoBreak

@@ -9,7 +9,7 @@ struct MetricCardsView: View {
 
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.sm) {
-            // Row 1: Start, Gross, Auto Break
+            // Row 1: Start, Gross
             HStack(spacing: DesignTokens.Spacing.sm) {
                 // Start time (tappable to edit)
                 Button {
@@ -30,20 +30,13 @@ struct MetricCardsView: View {
                     label: String(localized: "metric.gross"),
                     value: manager.grossTime.hoursMinutesFormatted
                 )
-
-                MetricCard(
-                    icon: "cup.and.saucer",
-                    label: String(localized: "metric.autoBreak"),
-                    value: manager.autoBreak.hoursMinutesFormatted,
-                    accent: manager.autoBreak > 0 ? DesignTokens.Colors.accentGreen : nil
-                )
             }
 
-            // Row 2: Manual Pause, End/ETA
+            // Row 2: Pauses, End/ETA
             HStack(spacing: DesignTokens.Spacing.sm) {
                 MetricCard(
                     icon: "pause.circle",
-                    label: String(localized: "metric.manualPause"),
+                    label: String(localized: "metric.pause"),
                     value: manager.manualPause.hoursMinutesFormatted,
                     accent: manager.manualPause > 0 ? DesignTokens.Colors.accentOrange : nil
                 )

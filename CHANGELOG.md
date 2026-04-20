@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-20
+
+### Added
+- Log Editor window for editing historical work time entries (start/end time, pauses, idle decisions, notes, delete)
+- Log Editor accessible via "Edit Log..." in the menu bar popup
+- Idle pauses (from idle prompt) now visible in the "Pauses" metric card (combined with manual pauses)
+- `PersistenceManager.delete(for:)` method for removing log entries
+- `WorkdayManager.reloadCurrentEntry()` for syncing edits to today's entry
+
+### Fixed
+- Notifications not showing: added `UNUserNotificationCenterDelegate` so banners appear for menu bar apps (always in foreground)
+- Notifications: removed `.defaultCritical` sound and `.critical`/`.timeSensitive` interruption levels (require Apple entitlement)
+- Notifications: permission request moved to `applicationDidFinishLaunching` for reliable timing
+- Notifications: added error logging for permission and delivery failures
+- Idle pauses were not displayed in the UI despite being correctly calculated
+- Auto-Pause metric card removed (value is already reflected in net time)
+
+### Changed
+- "Manual Pause" metric card renamed to "Pauses" (now includes both manual and idle pauses)
+- Metric card layout simplified to 2×2 grid (Start, Gross, Pauses, ETA/End)
+- `IdleDecision.decision` changed from `let` to `var` for editability in Log Editor
+- `DEVELOPMENT_TEAM` added to both targets in `project.yml` for proper widget code signing
+
 ## [0.1.0] - 2026-04-17
 
 ### Added

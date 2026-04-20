@@ -1,11 +1,24 @@
 import AppKit
 import ServiceManagement
 import Sparkle
+import UserNotifications
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var updaterController: SPUStandardUpdaterController!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Set notification delegate so banners show for this menu bar app
+        let notificationCenter = UNUserNotificationCenter.current()
+        notificationCenter.delegate = self
+
+        // Request notification permission early at launch
+        notificationCenter.requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if let error {
+                print("[Notifications] Permission error: \(error.localizedDescription)")
+            }
+            print("[Notifications] Permission granted: \(granted)")
+        }
+
         // Initialize Sparkle updater
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true,
@@ -47,5 +60,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     var updater: SPUUpdater {
         updaterController.updater
+    }
+}
+
+// MARK: - UNUserNotificationCenterDelegate
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler:
+            @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .list])
     }
 }

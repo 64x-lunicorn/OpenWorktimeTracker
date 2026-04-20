@@ -24,7 +24,7 @@
 "metric.start" = "Start";
 "metric.gross" = "Brutto";
 "metric.autoBreak" = "Auto-Pause";
-"metric.manualPause" = "Man. Pause";
+"metric.pause" = "Pausen";
 "metric.end" = "Ende";
 "metric.eta" = "ETA 8h";
 "metric.target" = "Ziel";
@@ -124,3 +124,23 @@
 "progress.accessibility.label" = "Fortschritt Tagesziel";
 "menubar.accessibility.header" = "Arbeitstag-Status";
 "settings.chooseMessage" = "Ordner für Arbeitszeitprotokolle auswählen";
+
+/* LogEditor */
+"logEditor.title" = "Arbeitszeit-Protokoll";
+"logEditor.noEntries" = "Keine Einträge vorhanden";
+"logEditor.times" = "Zeiten";
+"logEditor.start" = "Startzeit";
+"logEditor.end" = "Endzeit";
+"logEditor.manualPause" = "Manuelle Pause";
+"logEditor.idleDecisions" = "Idle-Entscheidungen";
+"logEditor.work" = "Arbeit";
+"logEditor.pause" = "Pause";
+"logEditor.note" = "Notiz";
+"logEditor.computed" = "Berechnet";
+"logEditor.grossTime" = "Brutto";
+"logEditor.autoBreak" = "Auto-Pause";
+"logEditor.netTime" = "Netto";
+"logEditor.save" = "Speichern";
+"logEditor.delete" = "Eintrag löschen";
+"logEditor.deleteConfirm" = "Möchten Sie diesen Eintrag wirklich löschen?";
+"menubar.logEditor" = "Protokoll bearbeiten...";
