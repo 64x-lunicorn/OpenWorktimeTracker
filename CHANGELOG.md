@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-29
+
+### Added
+- Dependabot configuration for automated dependency updates (Swift/SPM, GitHub Actions, npm/docs)
+- 100+ new unit tests across 6 extended test files (165 total tests)
+  - `PersistenceManagerExtendedTests` — delete, loadAll, loadLastDays, export CSV, corrupt file handling, concurrent saves
+  - `WorkdayDetectorExtendedTests` — suggestEndTime edge cases, midnight boundaries, custom new-day hour
+  - `IdleDetectorExtendedTests` — duplicate prompt prevention, dismiss flow, formatting edge cases
+  - `WorkdayManagerExtendedTests` — idle handling, state consistency, menu bar title, computed values
+  - `BreakCalculatorExtendedTests` — negative inputs, boundary precision, long work days, custom thresholds
+  - `TimeEntryExtendedTests` — Codable round-trips, IdleDecision mutability, edge cases
+
+### Fixed
+- Widget not updating on pause/resume (missing `WidgetCenter.shared.reloadAllTimelines()` calls)
+- Force unwrap crash in `WorkdayDetector.effectiveDateString(for:)` when calendar returns nil
+- `suggestEndTime` could return a time before entry start (e.g., 18:00 default for entries starting at 20:00)
+- Idle prompt window not dismissed when user closes via X button (added `NSWindowDelegate`)
+- Duplicate idle prompts firing when a prompt is already pending (added `pendingPrompt == nil` guards)
+- Midnight date-change race condition: stale idle prompt referencing yesterday's context now dismissed before transition
+- Silent data loss on save failures: replaced `try?` with proper error logging via `os.log`
+- Stale security-scoped bookmark not renewed: bookmark now auto-refreshed when marked stale
+
 ## [0.2.0] - 2026-04-20
 
 ### Added

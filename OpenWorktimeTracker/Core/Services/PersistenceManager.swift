@@ -1,4 +1,7 @@
 import Foundation
+import os.log
+
+private let logger = Logger(subsystem: "com.openworktimetracker.app", category: "Persistence")
 
 final class PersistenceManager {
 
@@ -19,6 +22,17 @@ final class PersistenceManager {
                 options: .withSecurityScope,
                 bookmarkDataIsStale: &isStale
             ) {
+                if isStale {
+                    // Re-create bookmark before it becomes unusable
+                    logger.warning("Security-scoped bookmark is stale, attempting to renew")
+                    if let newBookmark = try? url.bookmarkData(
+                        options: .withSecurityScope,
+                        includingResourceValuesForKeys: nil,
+                        relativeTo: nil
+                    ) {
+                        UserDefaults.standard.set(newBookmark, forKey: AppSettingsKey.logFolderBookmark)
+                    }
+                }
                 if _cachedSecurityScopedURL != url {
                     _cachedSecurityScopedURL?.stopAccessingSecurityScopedResource()
                     if url.startAccessingSecurityScopedResource() {
@@ -98,9 +112,12 @@ final class PersistenceManager {
         let fileURL = logDirectory.appendingPathComponent("\(entry.date).json")
         let encoder = self.encoder
         saveQueue.async {
-            if let data = try? encoder.encode(entry) {
-                try? data.write(to: fileURL, options: .atomic)
+            do {
+                let data = try encoder.encode(entry)
+                try data.write(to: fileURL, options: .atomic)
                 CloudSyncManager.shared.uploadEntry(at: fileURL)
+            } catch {
+                logger.error("Failed to save entry \(entry.date): \(error.localizedDescription)")
             }
         }
     }

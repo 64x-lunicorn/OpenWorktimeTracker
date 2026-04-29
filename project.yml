@@ -28,8 +28,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.openworktimetracker.app
         PRODUCT_NAME: OpenWorktimeTracker
         DEVELOPMENT_TEAM: 8WEDM868L3
-        MARKETING_VERSION: "0.2.0"
-        CURRENT_PROJECT_VERSION: "2"
+        MARKETING_VERSION: "0.3.0"
+        CURRENT_PROJECT_VERSION: "3"
         INFOPLIST_FILE: OpenWorktimeTracker/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: OpenWorktimeTracker/Resources/OpenWorktimeTracker.entitlements
         MACOSX_DEPLOYMENT_TARGET: "14.0"
@@ -56,8 +56,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.openworktimetracker.app.widget
         PRODUCT_NAME: WorktimeWidget
         DEVELOPMENT_TEAM: 8WEDM868L3
-        MARKETING_VERSION: "0.2.0"
-        CURRENT_PROJECT_VERSION: "2"
+        MARKETING_VERSION: "0.3.0"
+        CURRENT_PROJECT_VERSION: "3"
         MACOSX_DEPLOYMENT_TARGET: "14.0"
         SWIFT_VERSION: "5.9"
         INFOPLIST_FILE: WorktimeWidget/Info.plist

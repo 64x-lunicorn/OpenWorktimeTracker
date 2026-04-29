@@ -58,7 +58,9 @@ struct WorkdayDetector {
         let hour = calendar.component(.hour, from: date)
         if hour < newDayStartHour {
             // Before 4 AM → still counts as "yesterday"
-            let yesterday = calendar.date(byAdding: .day, value: -1, to: date)!
+            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: date) else {
+                return TimeEntry.dateString(from: date)
+            }
             return TimeEntry.dateString(from: yesterday)
         }
         return TimeEntry.dateString(from: date)
@@ -72,10 +74,14 @@ struct WorkdayDetector {
             return lastIdle.idleStart
         }
 
-        // Default: end of the day the entry was created (23:59 or last known activity)
+        // Default: end of the day the entry was created (18:00 or start time, whichever is later)
         var components = calendar.dateComponents([.year, .month, .day], from: entry.startTime)
         components.hour = 18  // Default fallback: 6 PM
         components.minute = 0
-        return calendar.date(from: components) ?? entry.startTime
+        if let fallback = calendar.date(from: components) {
+            // Ensure suggested end is not before start time
+            return max(fallback, entry.startTime)
+        }
+        return entry.startTime
     }
 }

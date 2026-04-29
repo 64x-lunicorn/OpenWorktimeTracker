@@ -144,6 +144,7 @@ final class WorkdayManager {
         currentEntry = entry
         state = .paused
         persistence.save(entry)
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func resume() {
@@ -156,6 +157,7 @@ final class WorkdayManager {
         currentEntry = entry
         state = .running
         persistence.save(entry)
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func endDay() {
@@ -441,6 +443,10 @@ final class WorkdayManager {
         )
         let effectiveDate = detector.effectiveDateString(for: Date())
         if effectiveDate != entry.date {
+            // Dismiss any pending idle prompt — it references the old day
+            idleDetector.dismissPrompt()
+            IdlePromptWindowController.shared.dismiss()
+
             // Day changed while running — end old day and start new
             var ended = entry
             ended.status = .ended

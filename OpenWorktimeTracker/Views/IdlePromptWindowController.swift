@@ -3,12 +3,15 @@ import SwiftUI
 
 /// Manages a free-floating NSPanel for the idle prompt.
 /// Shown as a top-level window independent of the menu bar popover.
-final class IdlePromptWindowController {
+final class IdlePromptWindowController: NSObject, NSWindowDelegate {
     static let shared = IdlePromptWindowController()
 
     private var panel: NSPanel?
+    private weak var manager: WorkdayManager?
 
-    private init() {}
+    private override init() {
+        super.init()
+    }
 
     func show(promptInfo: IdlePromptInfo, manager: WorkdayManager) {
         // Dismiss any existing panel first
@@ -62,8 +65,10 @@ final class IdlePromptWindowController {
         panel.center()
         panel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        panel.delegate = self
 
         self.panel = panel
+        self.manager = manager
     }
 
     func showMaxHoursPrompt(hours: Double, manager: WorkdayManager) {
@@ -115,12 +120,23 @@ final class IdlePromptWindowController {
         panel.center()
         panel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        panel.delegate = self
 
         self.panel = panel
+        self.manager = manager
     }
 
     func dismiss() {
+        panel?.delegate = nil
         panel?.close()
+        panel = nil
+    }
+
+    // MARK: - NSWindowDelegate
+
+    func windowWillClose(_ notification: Notification) {
+        // User manually closed via X button — clear pending prompt
+        manager?.idleDetector.dismissPrompt()
         panel = nil
     }
 }

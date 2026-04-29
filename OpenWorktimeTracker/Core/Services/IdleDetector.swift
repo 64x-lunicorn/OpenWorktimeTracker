@@ -78,7 +78,7 @@ final class IdleDetector {
         screenLocked = false
         let unlockTime = Date()
 
-        if let start = idleStartTime ?? lockTime {
+        if pendingPrompt == nil, let start = idleStartTime ?? lockTime {
             let duration = unlockTime.timeIntervalSince(start)
             let threshold = idleThresholdSeconds > 0 ? idleThresholdSeconds : 300
 
@@ -123,7 +123,7 @@ final class IdleDetector {
         } else if isIdle {
             // User returned from idle
             let returnTime = Date()
-            if let start = idleStartTime {
+            if pendingPrompt == nil, let start = idleStartTime {
                 let duration = returnTime.timeIntervalSince(start)
                 let spansMidnight = !Calendar.current.isDate(start, inSameDayAs: returnTime)
 
