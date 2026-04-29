@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0] - 2026-04-29
 
 ### Added
+
 - Dependabot configuration for automated dependency updates (Swift/SPM, GitHub Actions, npm/docs)
 - 100+ new unit tests across 6 extended test files (165 total tests)
   - `PersistenceManagerExtendedTests` — delete, loadAll, loadLastDays, export CSV, corrupt file handling, concurrent saves
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `TimeEntryExtendedTests` — Codable round-trips, IdleDecision mutability, edge cases
 
 ### Fixed
+
 - Widget not updating on pause/resume (missing `WidgetCenter.shared.reloadAllTimelines()` calls)
 - Force unwrap crash in `WorkdayDetector.effectiveDateString(for:)` when calendar returns nil
 - `suggestEndTime` could return a time before entry start (e.g., 18:00 default for entries starting at 20:00)
@@ -32,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2026-04-20
 
 ### Added
+
 - Log Editor window for editing historical work time entries (start/end time, pauses, idle decisions, notes, delete)
 - Log Editor accessible via "Edit Log..." in the menu bar popup
 - Idle pauses (from idle prompt) now visible in the "Pauses" metric card (combined with manual pauses)
@@ -39,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `WorkdayManager.reloadCurrentEntry()` for syncing edits to today's entry
 
 ### Fixed
+
 - Notifications not showing: added `UNUserNotificationCenterDelegate` so banners appear for menu bar apps (always in foreground)
 - Notifications: removed `.defaultCritical` sound and `.critical`/`.timeSensitive` interruption levels (require Apple entitlement)
 - Notifications: permission request moved to `applicationDidFinishLaunching` for reliable timing
@@ -47,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-Pause metric card removed (value is already reflected in net time)
 
 ### Changed
+
 - "Manual Pause" metric card renamed to "Pauses" (now includes both manual and idle pauses)
 - Metric card layout simplified to 2×2 grid (Start, Gross, Pauses, ETA/End)
 - `IdleDecision.decision` changed from `let` to `var` for editability in Log Editor
@@ -55,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-04-17
 
 ### Added
+
 - Menu bar app with live net work time display
 - Automatic workday detection (new day, overnight, sleep/wake)
 - ArbZG-compliant auto-break calculation (configurable thresholds)
@@ -79,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Astro/Starlight documentation site
 
 ### Fixed
+
 - State machine correctly handles `.ended` entries on app restart
 - Force unwrap crash in PersistenceManager default directory
 - Security-scoped resource leak in custom log folder access
