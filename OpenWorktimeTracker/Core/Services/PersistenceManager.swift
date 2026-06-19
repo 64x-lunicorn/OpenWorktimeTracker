@@ -128,6 +128,8 @@ final class PersistenceManager {
     }
 
     func load(for dateString: String) -> TimeEntry? {
+        // Wait for any pending saves to complete to avoid reading stale data
+        saveQueue.sync {}
         let fileURL = logDirectory.appendingPathComponent("\(dateString).json")
         guard let data = try? Data(contentsOf: fileURL) else { return nil }
         return try? decoder.decode(TimeEntry.self, from: data)

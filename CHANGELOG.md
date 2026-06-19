@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `bootstrap()` called on every menu bar popover appearance causing duplicate observer registrations and repeated workday evaluation
+- Timer scheduled on wrong RunLoop when called from non-main thread — now explicitly uses `RunLoop.main` with `.common` mode
+- `endDay()`, `startNewDay()`, `restartDay()`, and idle decision handlers missing Widget reload — widget showed stale state
+- `IdleDetector.idleThresholdSeconds` returned 0 when UserDefaults key not set (using `integer(forKey:)` which defaults to 0) — now falls back to `AppDefaults.idleThresholdMinutes`
+- Race condition between `handleWake()` and `IdleDetector.screenDidUnlock()` — wake now delays 0.5s so idle prompt can prepare first
+- Sleep/wake notification observer tokens not retained — could be deallocated prematurely; now stored in array
+- `PersistenceManager.load(for:)` could read stale data during concurrent save — now drains save queue before reading
+- `LogEditorView` array-index binding (`$entries[index]`) could crash if entries mutated during edit — replaced with safe `Binding(get:set:)`
+
 ## [0.3.0] - 2026-04-29
 
 ### Added

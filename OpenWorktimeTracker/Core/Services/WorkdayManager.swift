@@ -42,10 +42,14 @@ final class WorkdayManager {
 
     private var timer: Timer?
     private var lastSaveTime: Date?
+    private var hasBootstrapped = false
+    private var sleepWakeObservers: [Any] = []
 
     // MARK: - Initialization
 
     func bootstrap() {
+        guard !hasBootstrapped else { return }
+        hasBootstrapped = true
         registerForSleepWake()
 
         idleDetector.onPromptReady = { [weak self] prompt in
@@ -135,6 +139,7 @@ final class WorkdayManager {
         startTimer()
         idleDetector.startMonitoring()
         notifications.sendNewDayNotification()
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func pause() {
@@ -176,6 +181,7 @@ final class WorkdayManager {
         persistence.save(entry)
         stopTimer()
         idleDetector.stopMonitoring()
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func restartDay() {
@@ -185,6 +191,7 @@ final class WorkdayManager {
         persistence.save(entry)
         startTimer()
         idleDetector.startMonitoring()
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func updateNote(_ note: String) {
@@ -295,6 +302,7 @@ final class WorkdayManager {
         idleDetector.dismissPrompt()
         idleDetector.stopMonitoring()
         IdlePromptWindowController.shared.dismiss()
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func handleIdleDecisionAndRestart() {
@@ -345,10 +353,11 @@ final class WorkdayManager {
 
     private func startTimer() {
         stopTimer()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+        let newTimer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
             self?.tick()
         }
-        RunLoop.current.add(timer!, forMode: .common)
+        RunLoop.main.add(newTimer, forMode: .common)
+        timer = newTimer
     }
 
     private func stopTimer() {
@@ -478,29 +487,37 @@ final class WorkdayManager {
 
     private func registerForSleepWake() {
         let wsnc = NSWorkspace.shared.notificationCenter
-        wsnc.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) {
-            [weak self] _ in
-            self?.handleSleep()
-        }
-        wsnc.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) {
-            [weak self] _ in
-            self?.handleWake()
-        }
+        sleepWakeObservers.append(
+            wsnc.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) {
+                [weak self] _ in
+                self?.handleSleep()
+            }
+        )
+        sleepWakeObservers.append(
+            wsnc.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) {
+                [weak self] _ in
+                self?.handleWake()
+            }
+        )
 
         // Screen lock/unlock (covers lid close without sleep, fast user switching)
         let dnc = DistributedNotificationCenter.default()
-        dnc.addObserver(
-            forName: NSNotification.Name("com.apple.screenIsLocked"),
-            object: nil, queue: .main
-        ) { [weak self] _ in
-            self?.handleSleep()  // save state on lock
-        }
-        dnc.addObserver(
-            forName: NSNotification.Name("com.apple.screenIsUnlocked"),
-            object: nil, queue: .main
-        ) { [weak self] _ in
-            self?.handleWake()  // re-evaluate on unlock
-        }
+        sleepWakeObservers.append(
+            dnc.addObserver(
+                forName: NSNotification.Name("com.apple.screenIsLocked"),
+                object: nil, queue: .main
+            ) { [weak self] _ in
+                self?.handleSleep()  // save state on lock
+            }
+        )
+        sleepWakeObservers.append(
+            dnc.addObserver(
+                forName: NSNotification.Name("com.apple.screenIsUnlocked"),
+                object: nil, queue: .main
+            ) { [weak self] _ in
+                self?.handleWake()  // re-evaluate on unlock
+            }
+        )
     }
 
     private func handleSleep() {
@@ -511,8 +528,12 @@ final class WorkdayManager {
     }
 
     private func handleWake() {
-        // Re-evaluate workday — might be a new day
-        evaluateWorkday()
+        // Re-evaluate workday — might be a new day.
+        // Delay slightly so IdleDetector's screenDidUnlock fires first and
+        // can prepare its prompt before we potentially reset state.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.evaluateWorkday()
+        }
     }
 
     // MARK: - Menu Bar Display

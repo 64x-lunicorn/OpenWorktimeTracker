@@ -18,7 +18,9 @@ final class IdleDetector {
     // MARK: - Configuration
 
     var idleThresholdSeconds: TimeInterval {
-        Double(UserDefaults.standard.integer(forKey: AppSettingsKey.idleThresholdMinutes)) * 60.0
+        let minutes = UserDefaults.standard.object(forKey: AppSettingsKey.idleThresholdMinutes) as? Int
+            ?? AppDefaults.idleThresholdMinutes
+        return Double(minutes) * 60.0
     }
 
     private var checkTimer: Timer?

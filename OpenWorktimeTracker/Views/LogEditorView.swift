@@ -17,10 +17,10 @@ struct LogEditorView: View {
             .onAppear { loadEntries() }
         } detail: {
             if let date = selectedDate,
-                let index = entries.firstIndex(where: { $0.date == date })
+                let binding = bindingForEntry(date: date)
             {
                 LogEntryEditView(
-                    entry: $entries[index],
+                    entry: binding,
                     persistence: persistence,
                     manager: manager,
                     onSave: { savedEntry in
@@ -47,6 +47,14 @@ struct LogEditorView: View {
             }
         }
         .frame(minWidth: 650, minHeight: 450)
+    }
+
+    private func bindingForEntry(date: String) -> Binding<TimeEntry>? {
+        guard let index = entries.firstIndex(where: { $0.date == date }) else { return nil }
+        return Binding(
+            get: { entries[index] },
+            set: { entries[index] = $0 }
+        )
     }
 
     private func loadEntries() {
