@@ -1,10 +1,14 @@
 import Foundation
 
 extension Date {
-    var hoursMinutesString: String {
+    private static let hoursMinutesFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
-        return formatter.string(from: self)
+        return formatter
+    }()
+
+    var hoursMinutesString: String {
+        Date.hoursMinutesFormatter.string(from: self)
     }
 
     var dateString: String {

@@ -30,15 +30,23 @@ enum SharedDefaults {
     static let orangeThresholdKey = "widget_orangeThreshold"
     static let redThresholdKey = "widget_redThreshold"
 
+    // Setting keys the widget needs to read. Defined here (in the shared file)
+    // so the app and widget agree on the exact UserDefaults key strings without
+    // the widget depending on app-only code. AppSettingsKey references these so
+    // there is a single source of truth.
+    static let normalHoursSettingKey = "normalNotificationHours"
+    static let orangeThresholdSettingKey = "orangeThresholdHours"
+    static let redThresholdSettingKey = "redThresholdHours"
+
     static func update(
         state: String, netTime: TimeInterval, grossTime: TimeInterval, startTime: Date, date: String
     ) {
         let targetHours =
-            UserDefaults.standard.object(forKey: "normalNotificationHours") as? Double ?? 8.0
+            UserDefaults.standard.object(forKey: normalHoursSettingKey) as? Double ?? 8.0
         let orangeThreshold =
-            UserDefaults.standard.object(forKey: "orangeThresholdHours") as? Double ?? 8.0
+            UserDefaults.standard.object(forKey: orangeThresholdSettingKey) as? Double ?? 8.0
         let redThreshold =
-            UserDefaults.standard.object(forKey: "redThresholdHours") as? Double ?? 9.5
+            UserDefaults.standard.object(forKey: redThresholdSettingKey) as? Double ?? 9.5
 
         if let defaults = sharedDefaults {
             defaults.set(state, forKey: stateKey)

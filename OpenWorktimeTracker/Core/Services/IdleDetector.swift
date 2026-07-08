@@ -11,6 +11,8 @@ final class IdleDetector {
     var pendingPrompt: IdlePromptInfo?
     private var screenLocked = false
     private var lockTime: Date?
+    private var isMonitoring = false
+    private var observersRegistered = false
 
     /// Called when a new idle prompt should be shown.
     var onPromptReady: ((IdlePromptInfo) -> Void)?
@@ -28,7 +30,13 @@ final class IdleDetector {
     // MARK: - Lifecycle
 
     func startMonitoring() {
-        stopMonitoring()
+        // Restart only the polling timer; the lock/unlock observers stay alive
+        // for the object's lifetime so an in-flight unlock handler is never torn
+        // down mid-execution (e.g. when a new day starts during unlock).
+        checkTimer?.invalidate()
+        isMonitoring = true
+        isIdle = false
+        idleStartTime = nil
         checkTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             self?.checkIdleState()
         }
@@ -36,16 +44,18 @@ final class IdleDetector {
     }
 
     func stopMonitoring() {
+        isMonitoring = false
         checkTimer?.invalidate()
         checkTimer = nil
         isIdle = false
         idleStartTime = nil
-        DistributedNotificationCenter.default().removeObserver(self)
     }
 
     // MARK: - Screen Lock/Unlock
 
     private func registerScreenLockObservers() {
+        guard !observersRegistered else { return }
+        observersRegistered = true
         let dnc = DistributedNotificationCenter.default()
 
         dnc.addObserver(
@@ -62,7 +72,12 @@ final class IdleDetector {
         )
     }
 
+    deinit {
+        DistributedNotificationCenter.default().removeObserver(self)
+    }
+
     @objc private func screenDidLock() {
+        guard isMonitoring else { return }
         screenLocked = true
         lockTime = Date()
         // Stop timer polling — lock/unlock handlers take over
@@ -76,7 +91,7 @@ final class IdleDetector {
     }
 
     @objc private func screenDidUnlock() {
-        guard screenLocked else { return }
+        guard isMonitoring, screenLocked else { return }
         screenLocked = false
         let unlockTime = Date()
 

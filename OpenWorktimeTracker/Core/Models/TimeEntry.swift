@@ -71,11 +71,15 @@ struct TimeEntry: Codable, Identifiable {
         max(0, grossTime - totalPause)
     }
 
-    static func dateString(from date: Date) -> String {
+    private static let dateStringFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter.string(from: date)
+        return formatter
+    }()
+
+    static func dateString(from date: Date) -> String {
+        dateStringFormatter.string(from: date)
     }
 }
 

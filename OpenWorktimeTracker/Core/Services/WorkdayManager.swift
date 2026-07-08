@@ -103,9 +103,11 @@ final class WorkdayManager {
             case .running:
                 state = .running
                 startTimer()
+                idleDetector.startMonitoring()
             case .paused:
                 state = .paused
                 startTimer()
+                idleDetector.startMonitoring()
             case .ended:
                 state = .ended
                 updateComputedValues()
@@ -117,6 +119,11 @@ final class WorkdayManager {
         case .endPreviousAndStartNew(let previous, let suggestedEnd):
             // Auto-end the previous day and start new
             var ended = previous
+            // Finalize any pause that was still open so the net time stays correct
+            if let pauseStart = ended.pauseStartedAt {
+                ended.manualPauseSeconds += max(0, suggestedEnd.timeIntervalSince(pauseStart))
+                ended.pauseStartedAt = nil
+            }
             ended.status = .ended
             ended.endTime = suggestedEnd
             persistence.save(ended)
@@ -203,7 +210,12 @@ final class WorkdayManager {
 
     func updateStartTime(_ newStart: Date) {
         guard var entry = currentEntry else { return }
-        if let end = entry.endTime, newStart > end { return }
+        if let end = entry.endTime {
+            if newStart > end { return }
+        } else if newStart > Date() {
+            // Running/paused day: the start must not be in the future
+            return
+        }
         entry.startTime = newStart
         currentEntry = entry
         persistence.save(entry)
@@ -225,6 +237,15 @@ final class WorkdayManager {
         if entry.date == today, let reloaded = persistence.load(for: today) {
             currentEntry = reloaded
             state = State(rawValue: reloaded.status.rawValue) ?? .notStarted
+            // Keep timer and idle monitoring in sync with the reloaded status
+            switch state {
+            case .running, .paused:
+                startTimer()
+                idleDetector.startMonitoring()
+            case .notStarted, .ended:
+                stopTimer()
+                idleDetector.stopMonitoring()
+            }
             updateComputedValues()
         }
     }
@@ -232,7 +253,7 @@ final class WorkdayManager {
     /// Estimated end time to reach a target of net work hours.
     /// Accounts for auto-break that will be added at 6h/9h thresholds.
     var estimatedEndTime: Date? {
-        guard let entry = currentEntry, state == .running else { return nil }
+        guard let entry = currentEntry, state == .running || state == .paused else { return nil }
         let targetHours =
             UserDefaults.standard.object(forKey: AppSettingsKey.normalNotificationHours)
             as? Double ?? AppDefaults.normalNotificationHours
@@ -373,7 +394,21 @@ final class WorkdayManager {
     }
 
     private func updateComputedValues() {
-        guard let entry = currentEntry else { return }
+        guard let entry = currentEntry else {
+            grossTime = 0
+            manualPause = 0
+            autoBreak = 0
+            netTime = 0
+            displayTime = 0
+            SharedDefaults.update(
+                state: state.rawValue,
+                netTime: 0,
+                grossTime: 0,
+                startTime: Date(),
+                date: ""
+            )
+            return
+        }
 
         grossTime = entry.grossTime
         manualPause = entry.totalPause
@@ -398,13 +433,40 @@ final class WorkdayManager {
 
     // MARK: - Threshold Notifications
 
+    private var notificationsEnabled: Bool {
+        UserDefaults.standard.object(forKey: AppSettingsKey.notificationsEnabled) as? Bool
+            ?? AppDefaults.notificationsEnabled
+    }
+
     private func checkThresholds() {
-        guard var entry = currentEntry,
-            UserDefaults.standard.object(forKey: AppSettingsKey.notificationsEnabled) as? Bool
-                ?? AppDefaults.notificationsEnabled
-        else { return }
+        guard var entry = currentEntry else { return }
 
         let hours = netTime.inHours
+
+        let milestoneH =
+            UserDefaults.standard.object(forKey: AppSettingsKey.milestoneNotificationHours)
+            as? Double
+            ?? AppDefaults.milestoneNotificationHours
+
+        // The 10h milestone popup is a legal safeguard (ArbZG) and must appear
+        // regardless of whether notifications are enabled.
+        if hours >= milestoneH && !entry.notifiedThresholds.contains("milestone") {
+            entry.notifiedThresholds.insert("milestone")
+            currentEntry = entry
+            persistence.save(entry)
+            if notificationsEnabled {
+                notifications.sendThresholdNotification(type: .milestone(hours: hours))
+            }
+            // Show popup asking to end the day
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                IdlePromptWindowController.shared.showMaxHoursPrompt(hours: hours, manager: self)
+            }
+            return
+        }
+
+        // Normal and critical notifications are only sent when enabled.
+        guard notificationsEnabled else { return }
 
         let normalH =
             UserDefaults.standard.object(forKey: AppSettingsKey.normalNotificationHours) as? Double
@@ -413,22 +475,8 @@ final class WorkdayManager {
             UserDefaults.standard.object(forKey: AppSettingsKey.criticalNotificationHours)
             as? Double
             ?? AppDefaults.criticalNotificationHours
-        let milestoneH =
-            UserDefaults.standard.object(forKey: AppSettingsKey.milestoneNotificationHours)
-            as? Double
-            ?? AppDefaults.milestoneNotificationHours
 
-        if hours >= milestoneH && !entry.notifiedThresholds.contains("milestone") {
-            notifications.sendThresholdNotification(type: .milestone(hours: hours))
-            entry.notifiedThresholds.insert("milestone")
-            currentEntry = entry
-            persistence.save(entry)
-            // Show popup asking to end the day
-            DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
-                IdlePromptWindowController.shared.showMaxHoursPrompt(hours: hours, manager: self)
-            }
-        } else if hours >= criticalH && !entry.notifiedThresholds.contains("critical") {
+        if hours >= criticalH && !entry.notifiedThresholds.contains("critical") {
             notifications.sendThresholdNotification(type: .critical(hours: hours))
             entry.notifiedThresholds.insert("critical")
             currentEntry = entry
@@ -444,7 +492,7 @@ final class WorkdayManager {
     // MARK: - Date Change Detection
 
     private func checkDateChange() {
-        guard let entry = currentEntry, state == .running else { return }
+        guard let entry = currentEntry, state == .running || state == .paused else { return }
         let detector = WorkdayDetector(
             newDayStartHour: UserDefaults.standard.object(forKey: AppSettingsKey.newDayStartHour)
                 as? Int
@@ -456,18 +504,32 @@ final class WorkdayManager {
             idleDetector.dismissPrompt()
             IdlePromptWindowController.shared.dismiss()
 
-            // Day changed while running — end old day and start new
+            let wasPaused = (state == .paused)
+
+            // Day changed — end old day at midnight and finalize any open pause
             var ended = entry
             ended.status = .ended
-            // End at midnight or at last known activity
             let midnight = Calendar.current.startOfDay(for: Date())
             ended.endTime = midnight
             if let pauseStart = ended.pauseStartedAt {
-                ended.manualPauseSeconds += midnight.timeIntervalSince(pauseStart)
+                ended.manualPauseSeconds += max(0, midnight.timeIntervalSince(pauseStart))
                 ended.pauseStartedAt = nil
             }
             persistence.save(ended)
-            startNewDay()
+
+            if wasPaused {
+                // The user was paused across midnight (not actively working) —
+                // don't auto-start a running day, which would wrongly count the
+                // night as work. Reset to a clean, idle slate instead.
+                currentEntry = nil
+                state = .notStarted
+                stopTimer()
+                idleDetector.stopMonitoring()
+                updateComputedValues()
+                WidgetCenter.shared.reloadAllTimelines()
+            } else {
+                startNewDay()
+            }
         }
     }
 
@@ -532,7 +594,11 @@ final class WorkdayManager {
         // Delay slightly so IdleDetector's screenDidUnlock fires first and
         // can prepare its prompt before we potentially reset state.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.evaluateWorkday()
+            guard let self else { return }
+            // If the idle detector raised a prompt, let the user's decision drive
+            // the day transition instead of racing it with an auto-evaluation.
+            if self.idleDetector.pendingPrompt != nil { return }
+            self.evaluateWorkday()
         }
     }
 

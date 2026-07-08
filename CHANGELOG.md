@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-08
+
+### Fixed
+
+- Idle detection never started when the app resumed an already-running day on launch (only `startNewDay`/`restartDay` started it) — now also started in the `continueExisting` path and on `reloadCurrentEntry`
+- Date change not detected while paused — the entry could stick to the previous day; midnight rollover is now handled when paused and no longer counts the night as work
+- Previous day auto-ended via `endPreviousAndStartNew` did not finalize an open pause, skewing net time
+- `reloadCurrentEntry()` did not keep the timer or idle monitoring in sync with the reloaded status
+- `updateStartTime()` allowed a start time in the future on a running day
+- Notification thresholds could become inconsistent (`normal > critical`) when raising the normal hours — thresholds now cascade
+- 10h ArbZG safeguard popup was suppressed when notifications were disabled — now always shown
+- `IdleDetector` removed and re-added its lock/unlock observers on every start/stop, which could tear down an in-flight unlock handler — observers are now registered once and gated by a monitoring flag; `handleWake()` also defers to a pending idle prompt instead of racing it
+- Widget showed a frozen time and requested a reload every minute (exhausting WidgetKit's budget) — running time now counts up live via `Text(timerInterval:)` with budget-friendly refresh intervals
+- `DateFormatter` was re-allocated on every call in hot paths (timer tick, list rows, widget) — now cached
+- Estimated end time (ETA) disappeared while paused — now stays visible and shifts as the pause grows
+
+### Changed
+
+- Consolidated the unit-test suite from 12 files (a base and an "extended" file per unit) into 6, removing duplicated fixtures and redundant cases — 152 tests, full coverage retained
+
+## [0.4.0] - 2026-06-19
+
 ### Fixed
 
 - `bootstrap()` called on every menu bar popover appearance causing duplicate observer registrations and repeated workday evaluation
