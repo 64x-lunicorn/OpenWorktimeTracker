@@ -58,14 +58,14 @@ struct TimerDisplayView: View {
 
     private var hoursMinutes: String {
         let total = Int(manager.displayTime)
-        let h = total / 3600
-        let m = (total % 3600) / 60
-        return String(format: "%02d:%02d", h, m)
+        let hours = total / 3600
+        let minutes = (total % 3600) / 60
+        return String(format: "%02d:%02d", hours, minutes)
     }
 
     private var seconds: String {
-        let s = Int(manager.displayTime) % 60
-        return String(format: "%02d", s)
+        let secs = Int(manager.displayTime) % 60
+        return String(format: "%02d", secs)
     }
 
     private var goalProgress: Double {

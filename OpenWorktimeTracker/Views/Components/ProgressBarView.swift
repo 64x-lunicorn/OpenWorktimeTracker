@@ -46,11 +46,11 @@ struct ProgressBarView: View {
         let hours =
             UserDefaults.standard.object(forKey: AppSettingsKey.normalNotificationHours) as? Double
             ?? AppDefaults.normalNotificationHours
-        let h = Int(hours)
-        let m = Int((hours - Double(h)) * 60)
-        if m > 0 {
-            return "\(h)h \(m)m"
+        let wholeHours = Int(hours)
+        let minutes = Int((hours - Double(wholeHours)) * 60)
+        if minutes > 0 {
+            return "\(wholeHours)h \(minutes)m"
         }
-        return "\(h)h"
+        return "\(wholeHours)h"
     }
 }

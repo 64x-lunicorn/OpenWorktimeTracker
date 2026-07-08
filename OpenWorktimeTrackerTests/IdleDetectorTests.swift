@@ -116,4 +116,130 @@ final class IdleDetectorTests: XCTestCase {
         )
         XCTAssertFalse(prompt.spansMidnight)
     }
+
+    // MARK: - Duplicate Prompt Prevention
+
+    func testNoNewPromptWhilePendingExists() {
+        let existingPrompt = IdlePromptInfo(
+            idleStart: Date().addingTimeInterval(-1200),
+            idleEnd: Date().addingTimeInterval(-600),
+            duration: 600,
+            spansMidnight: false
+        )
+        detector.pendingPrompt = existingPrompt
+        let existingID = existingPrompt.id
+
+        var callbackCount = 0
+        detector.onPromptReady = { _ in
+            callbackCount += 1
+        }
+
+        // A pending prompt must not be overwritten by a new idle cycle
+        detector.isIdle = true
+        detector.idleStartTime = Date().addingTimeInterval(-300)
+
+        XCTAssertNotNil(detector.pendingPrompt)
+        XCTAssertEqual(detector.pendingPrompt?.id, existingID)
+        XCTAssertEqual(callbackCount, 0)
+    }
+
+    func testDismissAllowsNewPrompt() {
+        let prompt1 = IdlePromptInfo(
+            idleStart: Date().addingTimeInterval(-1200),
+            idleEnd: Date().addingTimeInterval(-600),
+            duration: 600,
+            spansMidnight: false
+        )
+        detector.pendingPrompt = prompt1
+
+        detector.dismissPrompt()
+        XCTAssertNil(detector.pendingPrompt)
+
+        let prompt2 = IdlePromptInfo(
+            idleStart: Date().addingTimeInterval(-300),
+            idleEnd: Date(),
+            duration: 300,
+            spansMidnight: false
+        )
+        detector.pendingPrompt = prompt2
+        XCTAssertNotNil(detector.pendingPrompt)
+    }
+
+    func testStopMonitoringDoesNotClearPendingPrompt() {
+        detector.isIdle = true
+        detector.idleStartTime = Date()
+        detector.pendingPrompt = IdlePromptInfo(
+            idleStart: Date().addingTimeInterval(-600),
+            idleEnd: Date(),
+            duration: 600,
+            spansMidnight: false
+        )
+
+        detector.stopMonitoring()
+
+        XCTAssertFalse(detector.isIdle)
+        XCTAssertNil(detector.idleStartTime)
+        // stopMonitoring does not clear pendingPrompt by design — only dismissPrompt does
+        XCTAssertNotNil(detector.pendingPrompt)
+    }
+
+    // MARK: - Idle Threshold
+
+    func testIdleThresholdNonNegative() {
+        // With no UserDefaults value the code falls back rather than returning a
+        // negative or unusable threshold.
+        XCTAssertGreaterThanOrEqual(detector.idleThresholdSeconds, 0)
+    }
+
+    // MARK: - IdlePromptInfo Formatting
+
+    func testFormattedDurationExactlyOneHour() {
+        let prompt = IdlePromptInfo(
+            idleStart: Date().addingTimeInterval(-3600),
+            idleEnd: Date(),
+            duration: 3600,
+            spansMidnight: false
+        )
+        XCTAssertEqual(prompt.formattedDuration, "1h 0m")
+    }
+
+    func testFormattedDurationLessThanOneMinute() {
+        let prompt = IdlePromptInfo(
+            idleStart: Date().addingTimeInterval(-30),
+            idleEnd: Date(),
+            duration: 30,
+            spansMidnight: false
+        )
+        XCTAssertEqual(prompt.formattedDuration, "0 Min")
+    }
+
+    func testFormattedDurationMultipleHours() {
+        let prompt = IdlePromptInfo(
+            idleStart: Date().addingTimeInterval(-7500),
+            idleEnd: Date(),
+            duration: 7500,  // 2h 5m
+            spansMidnight: false
+        )
+        XCTAssertEqual(prompt.formattedDuration, "2h 5m")
+    }
+
+    func testFormattedRangeContainsDash() {
+        let prompt = IdlePromptInfo(
+            idleStart: Date().addingTimeInterval(-3600),
+            idleEnd: Date(),
+            duration: 3600,
+            spansMidnight: false
+        )
+        XCTAssertTrue(prompt.formattedRange.contains("–"))
+    }
+
+    // MARK: - Unique IDs
+
+    func testPromptInfoHasUniqueID() {
+        let prompt1 = IdlePromptInfo(
+            idleStart: Date(), idleEnd: Date(), duration: 0, spansMidnight: false)
+        let prompt2 = IdlePromptInfo(
+            idleStart: Date(), idleEnd: Date(), duration: 0, spansMidnight: false)
+        XCTAssertNotEqual(prompt1.id, prompt2.id)
+    }
 }

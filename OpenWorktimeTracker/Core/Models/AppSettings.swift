@@ -1,12 +1,14 @@
 import Foundation
 
 enum AppSettingsKey {
-    static let orangeThresholdHours = "orangeThresholdHours"
-    static let redThresholdHours = "redThresholdHours"
+    // Defined once in SharedDefaults so the widget target (which cannot see this
+    // app-only file) and the app always use identical UserDefaults keys.
+    static let orangeThresholdHours = SharedDefaults.orangeThresholdSettingKey
+    static let redThresholdHours = SharedDefaults.redThresholdSettingKey
     static let breakAfter6hMinutes = "breakAfter6hMinutes"
     static let breakAfter9hMinutes = "breakAfter9hMinutes"
     static let notificationsEnabled = "notificationsEnabled"
-    static let normalNotificationHours = "normalNotificationHours"
+    static let normalNotificationHours = SharedDefaults.normalHoursSettingKey
     static let criticalNotificationHours = "criticalNotificationHours"
     static let milestoneNotificationHours = "milestoneNotificationHours"
     static let launchAtLogin = "launchAtLogin"

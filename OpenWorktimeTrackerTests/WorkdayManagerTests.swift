@@ -286,4 +286,176 @@ final class WorkdayManagerTests: XCTestCase {
             XCTAssertGreaterThan(estimated, Date())
         }
     }
+
+    func testEstimatedEndTimeWhenPaused() {
+        manager.startNewDay()
+        manager.pause()
+        // ETA stays available while paused so the user still sees a target;
+        // it simply shifts later as the pause grows.
+        let estimated = manager.estimatedEndTime
+        XCTAssertNotNil(estimated)
+        if let estimated {
+            XCTAssertGreaterThan(estimated, Date())
+        }
+    }
+
+    // MARK: - Pause / Resume Idempotency
+
+    func testMultipleResumesDoNotAccumulate() {
+        manager.startNewDay()
+        manager.pause()
+        manager.resume()
+
+        let pauseAfterResume = manager.currentEntry?.manualPauseSeconds ?? 0
+
+        // Second resume should be no-op (already running)
+        manager.resume()
+        XCTAssertEqual(manager.currentEntry?.manualPauseSeconds ?? 0, pauseAfterResume)
+        XCTAssertEqual(manager.state, .running)
+    }
+
+    // MARK: - Update Start/End Time Validations
+
+    func testUpdateStartTimeWithNoEntryIsNoOp() {
+        manager.updateStartTime(Date())
+        XCTAssertNil(manager.currentEntry)
+    }
+
+    func testUpdateEndTimeWithNoEntryIsNoOp() {
+        manager.updateEndTime(Date())
+        XCTAssertNil(manager.currentEntry)
+    }
+
+    func testUpdateStartTimeToValidEarlierTime() {
+        manager.startNewDay()
+        let originalStart = manager.currentEntry?.startTime
+        let earlierStart = Date().addingTimeInterval(-7200)  // 2h earlier
+
+        manager.updateStartTime(earlierStart)
+
+        XCTAssertEqual(manager.currentEntry?.startTime, earlierStart)
+        XCTAssertNotEqual(manager.currentEntry?.startTime, originalStart)
+    }
+
+    // MARK: - Restart Day
+
+    func testRestartDayFromEndedState() {
+        manager.startNewDay()
+        manager.endDay()
+        XCTAssertEqual(manager.state, .ended)
+
+        let endedEntryID = manager.currentEntry?.id
+        manager.restartDay()
+
+        XCTAssertEqual(manager.state, .running)
+        XCTAssertNotEqual(manager.currentEntry?.id, endedEntryID)
+        XCTAssertNil(manager.currentEntry?.endTime)
+    }
+
+    // MARK: - Note Update
+
+    func testUpdateNotePreservesOtherFields() {
+        manager.startNewDay()
+        let startTime = manager.currentEntry?.startTime
+        let id = manager.currentEntry?.id
+
+        manager.updateNote("Important meeting notes")
+
+        XCTAssertEqual(manager.currentEntry?.note, "Important meeting notes")
+        XCTAssertEqual(manager.currentEntry?.startTime, startTime)
+        XCTAssertEqual(manager.currentEntry?.id, id)
+    }
+
+    func testUpdateNoteMultipleTimes() {
+        manager.startNewDay()
+        manager.updateNote("First note")
+        manager.updateNote("Second note")
+        manager.updateNote("Final note")
+
+        XCTAssertEqual(manager.currentEntry?.note, "Final note")
+    }
+
+    // MARK: - Menu Bar Title
+
+    func testMenuBarTitleNotStarted() {
+        XCTAssertEqual(manager.menuBarTitle, "--:--")
+    }
+
+    func testMenuBarTitleRunning() {
+        manager.startNewDay()
+        XCTAssertFalse(manager.menuBarTitle.isEmpty)
+        XCTAssertNotEqual(manager.menuBarTitle, "--:--")
+    }
+
+    func testMenuBarTitlePaused() {
+        manager.startNewDay()
+        manager.pause()
+        XCTAssertTrue(manager.menuBarTitle.hasPrefix("||"))
+    }
+
+    func testMenuBarTitleEnded() {
+        manager.startNewDay()
+        manager.endDay()
+        let title = manager.menuBarTitle
+        XCTAssertFalse(title.hasPrefix("||"))
+        XCTAssertNotEqual(title, "--:--")
+    }
+
+    // MARK: - Idle Decision Handling
+
+    func testHandleIdleDecisionWithNoPendingPromptIsNoOp() {
+        manager.startNewDay()
+
+        let idleCountBefore = manager.currentEntry?.idleDecisions.count ?? 0
+        manager.handleIdleDecision(.work)
+
+        // Should not add a decision since no prompt is pending
+        XCTAssertEqual(manager.currentEntry?.idleDecisions.count ?? 0, idleCountBefore)
+    }
+
+    func testHandleIdleDecisionWithNoEntryIsNoOp() {
+        manager.handleIdleDecision(.pause)
+        XCTAssertNil(manager.currentEntry)
+    }
+
+}
+
+// MARK: - State & Computed Values
+
+extension WorkdayManagerTests {
+
+    func testEntryStatusMatchesManagerState() {
+        manager.startNewDay()
+        XCTAssertEqual(manager.currentEntry?.status, .running)
+        XCTAssertEqual(manager.state, .running)
+
+        manager.pause()
+        XCTAssertEqual(manager.currentEntry?.status, .paused)
+        XCTAssertEqual(manager.state, .paused)
+
+        manager.resume()
+        XCTAssertEqual(manager.currentEntry?.status, .running)
+        XCTAssertEqual(manager.state, .running)
+
+        manager.endDay()
+        XCTAssertEqual(manager.currentEntry?.status, .ended)
+        XCTAssertEqual(manager.state, .ended)
+    }
+
+    func testComputedValuesAfterStartAreReasonable() {
+        manager.startNewDay()
+
+        XCTAssertGreaterThanOrEqual(manager.grossTime, 0)
+        XCTAssertGreaterThanOrEqual(manager.netTime, 0)
+        XCTAssertEqual(manager.manualPause, 0, accuracy: 1)
+        XCTAssertEqual(manager.autoBreak, 0)
+    }
+
+    func testComputedValuesAfterEnd() {
+        manager.startNewDay()
+        manager.endDay()
+
+        XCTAssertGreaterThanOrEqual(manager.grossTime, 0)
+        XCTAssertGreaterThanOrEqual(manager.netTime, 0)
+    }
 }

@@ -157,6 +157,12 @@ struct SettingsView: View {
                         .multilineTextAlignment(.trailing)
                         .onChange(of: normalHours) { _, newValue in
                             normalHours = max(0.5, newValue)
+                            if criticalHours < normalHours {
+                                criticalHours = normalHours
+                            }
+                            if milestoneHours < criticalHours {
+                                milestoneHours = criticalHours
+                            }
                         }
                 }
                 HStack {
@@ -167,6 +173,9 @@ struct SettingsView: View {
                         .multilineTextAlignment(.trailing)
                         .onChange(of: criticalHours) { _, newValue in
                             criticalHours = max(normalHours, newValue)
+                            if milestoneHours < criticalHours {
+                                milestoneHours = criticalHours
+                            }
                         }
                 }
                 HStack {

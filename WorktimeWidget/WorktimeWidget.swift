@@ -13,6 +13,15 @@ struct WorktimeEntry: TimelineEntry {
     let targetHours: Double
     let orangeThreshold: Double
     let redThreshold: Double
+
+    var isRunning: Bool { state == "running" }
+
+    /// Point in time from which the net work time should count up live.
+    /// Equals "snapshot time minus already-accumulated net seconds", so a live
+    /// timer anchored here always displays the correct, increasing net time.
+    var liveNetStart: Date {
+        date.addingTimeInterval(-netTimeSeconds)
+    }
 }
 
 // MARK: - Timeline Provider
@@ -39,7 +48,12 @@ struct WorktimeProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<WorktimeEntry>) -> Void) {
         let entry = createEntry()
         let isRunning = entry.state == "running"
-        let refreshMinutes = isRunning ? 1 : 5
+        // The running view counts up live via Text(timerInterval:), so timelines
+        // only need occasional refreshes to update the progress ring and colors.
+        // Refreshing every minute would exhaust WidgetKit's daily reload budget
+        // and freeze the widget. The app also reloads timelines immediately on
+        // pause/resume/end, so a longer interval here is safe.
+        let refreshMinutes = isRunning ? 15 : 60
         let nextUpdate = Calendar.current.date(
             byAdding: .minute, value: refreshMinutes, to: Date())!
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
@@ -80,10 +94,16 @@ struct WorktimeWidgetSmallView: View {
 
             Spacer()
 
-            Text(formatTime(entry.netTimeSeconds))
-                .font(.system(size: 28, weight: .medium, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(.primary)
+            Group {
+                if entry.isRunning {
+                    Text(timerInterval: entry.liveNetStart...Date.distantFuture, countsDown: false)
+                } else {
+                    Text(formatTime(entry.netTimeSeconds))
+                }
+            }
+            .font(.system(size: 28, weight: .medium, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(.primary)
 
             if let start = entry.startTime {
                 Text(
@@ -145,10 +165,18 @@ struct WorktimeWidgetMediumView: View {
 
                 Spacer()
 
-                Text(formatTime(entry.netTimeSeconds))
-                    .font(.system(size: 32, weight: .medium, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(.primary)
+                Group {
+                    if entry.isRunning {
+                        Text(
+                            timerInterval: entry.liveNetStart...Date.distantFuture,
+                            countsDown: false)
+                    } else {
+                        Text(formatTime(entry.netTimeSeconds))
+                    }
+                }
+                .font(.system(size: 32, weight: .medium, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.primary)
 
                 if let start = entry.startTime {
                     Text(
@@ -241,10 +269,14 @@ private func formatTime(_ seconds: TimeInterval) -> String {
     return String(format: "%d:%02d", h, m)
 }
 
-private func formatHourMinute(_ date: Date) -> String {
+private let hourMinuteFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "HH:mm"
-    return formatter.string(from: date)
+    return formatter
+}()
+
+private func formatHourMinute(_ date: Date) -> String {
+    hourMinuteFormatter.string(from: date)
 }
 
 // MARK: - Widget View Router

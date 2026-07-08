@@ -27,16 +27,14 @@ struct BreakCalculator {
 
     /// Auto break = max(0, required break - already taken pauses).
     /// This ensures that if the user already took enough manual breaks, no additional auto-break is added.
-    func autoBreak(forWorkTime workTime: TimeInterval, alreadyPaused: TimeInterval) -> TimeInterval
-    {
+    func autoBreak(forWorkTime workTime: TimeInterval, alreadyPaused: TimeInterval) -> TimeInterval {
         let required = requiredBreak(forWorkTime: workTime)
         return max(0, required - alreadyPaused)
     }
 
     /// Net work time after all breaks.
     func netWorkTime(grossTime: TimeInterval, manualPause: TimeInterval, idlePause: TimeInterval)
-        -> TimeInterval
-    {
+        -> TimeInterval {
         let workBeforeAuto = grossTime - manualPause - idlePause
         let auto = autoBreak(forWorkTime: workBeforeAuto, alreadyPaused: manualPause + idlePause)
         return max(0, workBeforeAuto - auto)

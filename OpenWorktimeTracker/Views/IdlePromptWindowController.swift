@@ -9,7 +9,7 @@ final class IdlePromptWindowController: NSObject, NSWindowDelegate {
     private var panel: NSPanel?
     private weak var manager: WorkdayManager?
 
-    private override init() {
+    override private init() {
         super.init()
     }
 

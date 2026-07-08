@@ -86,8 +86,7 @@ struct MetricCardsView: View {
     }
 
     private func timeEditor(title: String, date: Binding<Date>, onSave: @escaping () -> Void)
-        -> some View
-    {
+        -> some View {
         let hours = Binding<Int>(
             get: { Calendar.current.component(.hour, from: date.wrappedValue) },
             set: { newHour in
