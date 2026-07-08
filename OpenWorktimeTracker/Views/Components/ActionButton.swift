@@ -36,7 +36,7 @@ struct ActionButton: View {
                 LinearGradient(
                     colors: [
                         DesignTokens.Colors.accentBlue,
-                        DesignTokens.Colors.accentBlue.opacity(0.85),
+                        DesignTokens.Colors.accentBlue.opacity(0.85)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing

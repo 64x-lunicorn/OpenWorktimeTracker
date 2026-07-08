@@ -17,8 +17,7 @@ struct LogEditorView: View {
             .onAppear { loadEntries() }
         } detail: {
             if let date = selectedDate,
-                let binding = bindingForEntry(date: date)
-            {
+                let binding = bindingForEntry(date: date) {
                 LogEntryEditView(
                     entry: binding,
                     persistence: persistence,

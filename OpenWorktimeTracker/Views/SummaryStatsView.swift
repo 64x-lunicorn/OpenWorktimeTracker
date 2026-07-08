@@ -27,8 +27,8 @@ struct SummaryStatsView: View {
                     .tracking(1.5)
                 Spacer()
                 Picker("", selection: $period) {
-                    ForEach(Period.allCases, id: \.self) { p in
-                        Text(p.label).tag(p)
+                    ForEach(Period.allCases, id: \.self) { option in
+                        Text(option.label).tag(option)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -46,7 +46,7 @@ struct SummaryStatsView: View {
                 LazyVGrid(
                     columns: [
                         GridItem(.flexible()),
-                        GridItem(.flexible()),
+                        GridItem(.flexible())
                     ], spacing: DesignTokens.Spacing.sm
                 ) {
                     StatCard(

@@ -31,7 +31,7 @@ final class TimeEntryTests: XCTestCase {
                 idleStart: Date().addingTimeInterval(-600),
                 idleEnd: Date(),
                 decision: .work  // Should NOT be counted
-            ),
+            )
         ]
 
         XCTAssertEqual(entry.totalIdlePause, 600, accuracy: 1)
@@ -263,7 +263,7 @@ final class TimeEntryTests: XCTestCase {
                 idleStart: start.addingTimeInterval(9000),
                 idleEnd: start.addingTimeInterval(9600),
                 decision: .pause  // 10 min
-            ),
+            )
         ]
 
         // Manual: 600 + Idle pause: 900 + 600 = 1500, total = 2100
@@ -281,10 +281,10 @@ final class TimeEntryTests: XCTestCase {
         XCTAssertEqual(str1, str2)
     }
 
-    func testDateStringMatchesPattern() {
+    func testDateStringMatchesPattern() throws {
         let str = TimeEntry.dateString(from: Date())
         // Should match YYYY-MM-DD
-        let regex = try! NSRegularExpression(pattern: "^\\d{4}-\\d{2}-\\d{2}$")
+        let regex = try NSRegularExpression(pattern: "^\\d{4}-\\d{2}-\\d{2}$")
         let range = NSRange(str.startIndex..., in: str)
         XCTAssertNotNil(regex.firstMatch(in: str, range: range))
     }

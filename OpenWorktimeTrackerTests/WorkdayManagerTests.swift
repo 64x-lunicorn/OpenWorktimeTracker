@@ -418,7 +418,11 @@ final class WorkdayManagerTests: XCTestCase {
         XCTAssertNil(manager.currentEntry)
     }
 
-    // MARK: - State Consistency
+}
+
+// MARK: - State & Computed Values
+
+extension WorkdayManagerTests {
 
     func testEntryStatusMatchesManagerState() {
         manager.startNewDay()
@@ -437,8 +441,6 @@ final class WorkdayManagerTests: XCTestCase {
         XCTAssertEqual(manager.currentEntry?.status, .ended)
         XCTAssertEqual(manager.state, .ended)
     }
-
-    // MARK: - Computed Values
 
     func testComputedValuesAfterStartAreReasonable() {
         manager.startNewDay()

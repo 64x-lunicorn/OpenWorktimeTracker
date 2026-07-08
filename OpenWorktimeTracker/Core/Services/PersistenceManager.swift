@@ -162,8 +162,7 @@ final class PersistenceManager {
 
         for file in jsonFiles {
             if let data = try? Data(contentsOf: file),
-                let entry = try? decoder.decode(TimeEntry.self, from: data)
-            {
+                let entry = try? decoder.decode(TimeEntry.self, from: data) {
                 return entry
             }
         }

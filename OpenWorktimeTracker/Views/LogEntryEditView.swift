@@ -29,13 +29,13 @@ struct LogEntryEditView: View {
         self.onSave = onSave
         self.onDelete = onDelete
 
-        let e = entry.wrappedValue
-        self._editedStart = State(initialValue: e.startTime)
-        self._editedEnd = State(initialValue: e.endTime ?? Date())
-        self._editedPauseHours = State(initialValue: Int(e.manualPauseSeconds) / 3600)
-        self._editedPauseMinutes = State(initialValue: (Int(e.manualPauseSeconds) % 3600) / 60)
-        self._editedNote = State(initialValue: e.note)
-        self._editedIdleDecisions = State(initialValue: e.idleDecisions)
+        let wrapped = entry.wrappedValue
+        self._editedStart = State(initialValue: wrapped.startTime)
+        self._editedEnd = State(initialValue: wrapped.endTime ?? Date())
+        self._editedPauseHours = State(initialValue: Int(wrapped.manualPauseSeconds) / 3600)
+        self._editedPauseMinutes = State(initialValue: (Int(wrapped.manualPauseSeconds) % 3600) / 60)
+        self._editedNote = State(initialValue: wrapped.note)
+        self._editedIdleDecisions = State(initialValue: wrapped.idleDecisions)
     }
 
     var body: some View {

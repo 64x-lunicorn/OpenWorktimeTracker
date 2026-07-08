@@ -53,7 +53,7 @@ final class PersistenceManagerTests: XCTestCase {
                 idleStart: Date().addingTimeInterval(-1800),
                 idleEnd: Date().addingTimeInterval(-900),
                 decision: .work
-            ),
+            )
         ]
 
         manager.save(entry)

@@ -279,97 +279,6 @@ final class WorkdayManager {
         return Date().addingTimeInterval(remaining)
     }
 
-    // MARK: - Idle Handling
-
-    func handleIdleDecision(_ decision: IdleDecision.Decision) {
-        guard var entry = currentEntry,
-            let prompt = idleDetector.pendingPrompt
-        else { return }
-
-        let idleDecision = IdleDecision(
-            idleStart: prompt.idleStart,
-            idleEnd: prompt.idleEnd,
-            decision: decision
-        )
-        entry.idleDecisions.append(idleDecision)
-        currentEntry = entry
-        persistence.save(entry)
-        idleDetector.dismissPrompt()
-        IdlePromptWindowController.shared.dismiss()
-    }
-
-    func handleIdleDecisionAndEndDay() {
-        guard var entry = currentEntry,
-            let prompt = idleDetector.pendingPrompt
-        else { return }
-
-        // Record idle time as pause, then end the day at idle start
-        let idleDecision = IdleDecision(
-            idleStart: prompt.idleStart,
-            idleEnd: prompt.idleEnd,
-            decision: .pause
-        )
-        entry.idleDecisions.append(idleDecision)
-        entry.status = .ended
-        entry.endTime = prompt.idleStart
-        if let pauseStart = entry.pauseStartedAt {
-            entry.manualPauseSeconds += prompt.idleStart.timeIntervalSince(pauseStart)
-            entry.pauseStartedAt = nil
-        }
-        currentEntry = entry
-        state = .ended
-        persistence.save(entry)
-        stopTimer()
-        idleDetector.dismissPrompt()
-        idleDetector.stopMonitoring()
-        IdlePromptWindowController.shared.dismiss()
-        WidgetCenter.shared.reloadAllTimelines()
-    }
-
-    func handleIdleDecisionAndRestart() {
-        guard var entry = currentEntry,
-            let prompt = idleDetector.pendingPrompt
-        else { return }
-
-        // End current day at idle start, then start a new day
-        let idleDecision = IdleDecision(
-            idleStart: prompt.idleStart,
-            idleEnd: prompt.idleEnd,
-            decision: .pause
-        )
-        entry.idleDecisions.append(idleDecision)
-        entry.status = .ended
-        entry.endTime = prompt.idleStart
-        if let pauseStart = entry.pauseStartedAt {
-            entry.manualPauseSeconds += prompt.idleStart.timeIntervalSince(pauseStart)
-            entry.pauseStartedAt = nil
-        }
-        persistence.save(entry)
-        idleDetector.dismissPrompt()
-        IdlePromptWindowController.shared.dismiss()
-        startNewDay()
-    }
-
-    func handleNewDayFromIdle(endYesterdayAt: Date) {
-        guard var entry = currentEntry,
-            idleDetector.pendingPrompt != nil
-        else { return }
-
-        // End the old entry
-        entry.status = .ended
-        entry.endTime = endYesterdayAt
-        if let pauseStart = entry.pauseStartedAt {
-            entry.manualPauseSeconds += endYesterdayAt.timeIntervalSince(pauseStart)
-            entry.pauseStartedAt = nil
-        }
-        persistence.save(entry)
-
-        // Start fresh
-        idleDetector.dismissPrompt()
-        IdlePromptWindowController.shared.dismiss()
-        startNewDay()
-    }
-
     // MARK: - Timer
 
     private func startTimer() {
@@ -550,14 +459,12 @@ final class WorkdayManager {
     private func registerForSleepWake() {
         let wsnc = NSWorkspace.shared.notificationCenter
         sleepWakeObservers.append(
-            wsnc.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) {
-                [weak self] _ in
+            wsnc.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
                 self?.handleSleep()
             }
         )
         sleepWakeObservers.append(
-            wsnc.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) {
-                [weak self] _ in
+            wsnc.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
                 self?.handleWake()
             }
         )
@@ -633,6 +540,100 @@ final class WorkdayManager {
 
     enum MenuBarColor {
         case normal, orange, red
+    }
+}
+
+// MARK: - Idle Handling
+
+extension WorkdayManager {
+
+    func handleIdleDecision(_ decision: IdleDecision.Decision) {
+        guard var entry = currentEntry,
+            let prompt = idleDetector.pendingPrompt
+        else { return }
+
+        let idleDecision = IdleDecision(
+            idleStart: prompt.idleStart,
+            idleEnd: prompt.idleEnd,
+            decision: decision
+        )
+        entry.idleDecisions.append(idleDecision)
+        currentEntry = entry
+        persistence.save(entry)
+        idleDetector.dismissPrompt()
+        IdlePromptWindowController.shared.dismiss()
+    }
+
+    func handleIdleDecisionAndEndDay() {
+        guard var entry = currentEntry,
+            let prompt = idleDetector.pendingPrompt
+        else { return }
+
+        // Record idle time as pause, then end the day at idle start
+        let idleDecision = IdleDecision(
+            idleStart: prompt.idleStart,
+            idleEnd: prompt.idleEnd,
+            decision: .pause
+        )
+        entry.idleDecisions.append(idleDecision)
+        entry.status = .ended
+        entry.endTime = prompt.idleStart
+        if let pauseStart = entry.pauseStartedAt {
+            entry.manualPauseSeconds += prompt.idleStart.timeIntervalSince(pauseStart)
+            entry.pauseStartedAt = nil
+        }
+        currentEntry = entry
+        state = .ended
+        persistence.save(entry)
+        stopTimer()
+        idleDetector.dismissPrompt()
+        idleDetector.stopMonitoring()
+        IdlePromptWindowController.shared.dismiss()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    func handleIdleDecisionAndRestart() {
+        guard var entry = currentEntry,
+            let prompt = idleDetector.pendingPrompt
+        else { return }
+
+        // End current day at idle start, then start a new day
+        let idleDecision = IdleDecision(
+            idleStart: prompt.idleStart,
+            idleEnd: prompt.idleEnd,
+            decision: .pause
+        )
+        entry.idleDecisions.append(idleDecision)
+        entry.status = .ended
+        entry.endTime = prompt.idleStart
+        if let pauseStart = entry.pauseStartedAt {
+            entry.manualPauseSeconds += prompt.idleStart.timeIntervalSince(pauseStart)
+            entry.pauseStartedAt = nil
+        }
+        persistence.save(entry)
+        idleDetector.dismissPrompt()
+        IdlePromptWindowController.shared.dismiss()
+        startNewDay()
+    }
+
+    func handleNewDayFromIdle(endYesterdayAt: Date) {
+        guard var entry = currentEntry,
+            idleDetector.pendingPrompt != nil
+        else { return }
+
+        // End the old entry
+        entry.status = .ended
+        entry.endTime = endYesterdayAt
+        if let pauseStart = entry.pauseStartedAt {
+            entry.manualPauseSeconds += endYesterdayAt.timeIntervalSince(pauseStart)
+            entry.pauseStartedAt = nil
+        }
+        persistence.save(entry)
+
+        // Start fresh
+        idleDetector.dismissPrompt()
+        IdlePromptWindowController.shared.dismiss()
+        startNewDay()
     }
 }
 
