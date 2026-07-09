@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-09
+
 ### Fixed
 
 - Idle prompt and max-hours popup could still appear after the workday was ended — `onPromptReady` callback now guards against `state == .ended`, `checkThresholds()` skips ended/not-started states, and `endDay()` dismisses any open prompt window
