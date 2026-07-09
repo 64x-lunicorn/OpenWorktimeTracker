@@ -59,7 +59,10 @@
 "idle.countAsWork" = "Count all as work time";
 
 "idle.endDay" = "End Day";
+"idle.endDay.atTime" = "End day at %@";
+"idle.endDay.afterHours" = "after %@ work time";
 "idle.restart" = "Restart";
+"idle.restart.detail" = "Day ends at %@, new day begins";
 
 /* IdlePromptWindowController */
 "idle.panel.newWorkday" = "New Workday";

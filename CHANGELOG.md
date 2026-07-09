@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Idle prompt and max-hours popup could still appear after the workday was ended — `onPromptReady` callback now guards against `state == .ended`, `checkThresholds()` skips ended/not-started states, and `endDay()` dismisses any open prompt window
+- `stopMonitoring()` left a stale `pendingPrompt` that could block `handleWake()` from re-evaluating the workday — now cleared on stop
+
+### Changed
+
+- Action buttons layout: merged the `...` menu into the same row as Pause/Resume and End Day buttons (was a separate row, looking disconnected)
+- Idle prompt "End Day" button now shows the exact end time and net work hours (e.g. "Tag beenden um 09:52 — nach 05:22 Arbeitszeit")
+- Idle prompt "Restart" button now shows what will happen (e.g. "Tag endet um 09:52, neuer Tag beginnt")
+
 ## [0.5.0] - 2026-07-08
 
 ### Fixed

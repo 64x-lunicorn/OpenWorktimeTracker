@@ -59,7 +59,10 @@
 "idle.countAsWork" = "Alles als Arbeitszeit zählen";
 
 "idle.endDay" = "Tag beenden";
+"idle.endDay.atTime" = "Tag beenden um %@";
+"idle.endDay.afterHours" = "nach %@ Arbeitszeit";
 "idle.restart" = "Neustarten";
+"idle.restart.detail" = "Tag endet um %@, neuer Tag beginnt";
 
 /* IdlePromptWindowController */
 "idle.panel.newWorkday" = "Neuer Arbeitstag";

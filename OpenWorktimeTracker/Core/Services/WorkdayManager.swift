@@ -55,6 +55,7 @@ final class WorkdayManager {
         idleDetector.onPromptReady = { [weak self] prompt in
             guard let self else { return }
             DispatchQueue.main.async {
+                guard self.state == .running || self.state == .paused else { return }
                 IdlePromptWindowController.shared.show(promptInfo: prompt, manager: self)
             }
         }
@@ -188,6 +189,8 @@ final class WorkdayManager {
         persistence.save(entry)
         stopTimer()
         idleDetector.stopMonitoring()
+        idleDetector.dismissPrompt()
+        IdlePromptWindowController.shared.dismiss()
         WidgetCenter.shared.reloadAllTimelines()
     }
 
@@ -348,7 +351,7 @@ final class WorkdayManager {
     }
 
     private func checkThresholds() {
-        guard var entry = currentEntry else { return }
+        guard var entry = currentEntry, state == .running || state == .paused else { return }
 
         let hours = netTime.inHours
 

@@ -68,6 +68,20 @@ struct IdlePromptView: View {
 
     // MARK: - Same Day Actions
 
+    /// Net work time if the day were ended at idle start.
+    private var netTimeAtIdleStart: TimeInterval {
+        guard let entry = manager.currentEntry else { return 0 }
+        let gross = max(0, promptInfo.idleStart.timeIntervalSince(entry.startTime))
+        let pauses = entry.manualPauseSeconds + entry.totalIdlePause
+        let workBeforeAuto = max(0, gross - pauses)
+        let calc = BreakCalculator(
+            breakAfter6hMinutes: UserDefaults.standard.object(forKey: AppSettingsKey.breakAfter6hMinutes) as? Int ?? AppDefaults.breakAfter6hMinutes,
+            breakAfter9hMinutes: UserDefaults.standard.object(forKey: AppSettingsKey.breakAfter9hMinutes) as? Int ?? AppDefaults.breakAfter9hMinutes
+        )
+        let autoBreak = calc.autoBreak(forWorkTime: workBeforeAuto, alreadyPaused: pauses)
+        return max(0, workBeforeAuto - autoBreak)
+    }
+
     private var sameDayActions: some View {
         VStack(spacing: DesignTokens.Spacing.sm) {
             Button {
@@ -108,11 +122,22 @@ struct IdlePromptView: View {
                 manager.handleIdleDecisionAndEndDay()
                 onDismiss?()
             } label: {
-                HStack {
-                    Image(systemName: "stop.circle.fill")
-                    Text("idle.endDay")
+                VStack(spacing: 2) {
+                    HStack {
+                        Image(systemName: "stop.circle.fill")
+                        Text(
+                            String(
+                                format: String(localized: "idle.endDay.atTime"),
+                                promptInfo.idleStart.hoursMinutesString))
+                    }
+                    .font(DesignTokens.Typography.labelLarge)
+                    Text(
+                        String(
+                            format: String(localized: "idle.endDay.afterHours"),
+                            netTimeAtIdleStart.hoursMinutesFormatted))
+                    .font(DesignTokens.Typography.labelMicro)
+                    .foregroundStyle(DesignTokens.Colors.accentRed.opacity(0.7))
                 }
-                .font(DesignTokens.Typography.labelLarge)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background(DesignTokens.Colors.accentRed.opacity(0.15))
@@ -125,11 +150,19 @@ struct IdlePromptView: View {
                 manager.handleIdleDecisionAndRestart()
                 onDismiss?()
             } label: {
-                HStack {
-                    Image(systemName: "arrow.clockwise.circle.fill")
-                    Text("idle.restart")
+                VStack(spacing: 2) {
+                    HStack {
+                        Image(systemName: "arrow.clockwise.circle.fill")
+                        Text("idle.restart")
+                    }
+                    .font(DesignTokens.Typography.labelLarge)
+                    Text(
+                        String(
+                            format: String(localized: "idle.restart.detail"),
+                            promptInfo.idleStart.hoursMinutesString))
+                    .font(DesignTokens.Typography.labelMicro)
+                    .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
                 }
-                .font(DesignTokens.Typography.labelLarge)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background(DesignTokens.Colors.surfaceContainerHigh)

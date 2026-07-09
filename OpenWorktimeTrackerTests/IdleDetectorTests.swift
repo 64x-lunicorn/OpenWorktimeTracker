@@ -165,7 +165,7 @@ final class IdleDetectorTests: XCTestCase {
         XCTAssertNotNil(detector.pendingPrompt)
     }
 
-    func testStopMonitoringDoesNotClearPendingPrompt() {
+    func testStopMonitoringClearsPendingPrompt() {
         detector.isIdle = true
         detector.idleStartTime = Date()
         detector.pendingPrompt = IdlePromptInfo(
@@ -179,8 +179,8 @@ final class IdleDetectorTests: XCTestCase {
 
         XCTAssertFalse(detector.isIdle)
         XCTAssertNil(detector.idleStartTime)
-        // stopMonitoring does not clear pendingPrompt by design — only dismissPrompt does
-        XCTAssertNotNil(detector.pendingPrompt)
+        // stopMonitoring clears pendingPrompt so no stale prompt lingers after day ends
+        XCTAssertNil(detector.pendingPrompt)
     }
 
     // MARK: - Idle Threshold

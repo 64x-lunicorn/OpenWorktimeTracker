@@ -49,6 +49,7 @@ final class IdleDetector {
         checkTimer = nil
         isIdle = false
         idleStartTime = nil
+        pendingPrompt = nil
     }
 
     // MARK: - Screen Lock/Unlock

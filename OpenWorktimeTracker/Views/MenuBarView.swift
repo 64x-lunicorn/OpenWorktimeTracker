@@ -127,80 +127,74 @@ struct MenuBarView: View {
     // MARK: - Actions
 
     private var actionButtons: some View {
-        VStack(spacing: DesignTokens.Spacing.sm) {
-            HStack(spacing: DesignTokens.Spacing.sm) {
-                if manager.state == .running {
-                    ActionButton(
-                        title: String(localized: "menubar.pause"), icon: "pause.fill",
-                        style: .secondary
-                    ) {
-                        manager.pause()
-                    }
-                } else if manager.state == .paused {
-                    ActionButton(
-                        title: String(localized: "menubar.resume"), icon: "play.fill",
-                        style: .secondary
-                    ) {
-                        manager.resume()
-                    }
+        HStack(spacing: DesignTokens.Spacing.sm) {
+            if manager.state == .running {
+                ActionButton(
+                    title: String(localized: "menubar.pause"), icon: "pause.fill",
+                    style: .secondary
+                ) {
+                    manager.pause()
                 }
-
-                if manager.state == .running || manager.state == .paused {
-                    ActionButton(
-                        title: String(localized: "menubar.endDay"), icon: "stop.fill",
-                        style: .primary
-                    ) {
-                        manager.endDay()
-                    }
+            } else if manager.state == .paused {
+                ActionButton(
+                    title: String(localized: "menubar.resume"), icon: "play.fill",
+                    style: .secondary
+                ) {
+                    manager.resume()
+                }
+            } else if manager.state == .ended {
+                ActionButton(
+                    title: String(localized: "menubar.restart"), icon: "arrow.counterclockwise",
+                    style: .secondary
+                ) {
+                    manager.restartDay()
                 }
             }
 
-            HStack(spacing: DesignTokens.Spacing.sm) {
-                if manager.state == .ended {
-                    ActionButton(
-                        title: String(localized: "menubar.restart"), icon: "arrow.counterclockwise",
-                        style: .secondary
-                    ) {
-                        manager.restartDay()
-                    }
+            if manager.state == .running || manager.state == .paused {
+                ActionButton(
+                    title: String(localized: "menubar.endDay"), icon: "stop.fill",
+                    style: .primary
+                ) {
+                    manager.endDay()
                 }
-
-                Menu {
-                    Button(String(localized: "menubar.logEditor")) {
-                        LogEditorWindowController.shared.show(manager: manager)
-                    }
-                    Button(String(localized: "menubar.openLogFolder")) {
-                        NSWorkspace.shared.open(manager.persistence.logDirectory)
-                    }
-                    Button(String(localized: "menubar.exportCSV")) {
-                        if let url = manager.persistence.exportCSV() {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }
-                    Divider()
-                    Button(String(localized: "menubar.settings")) {
-                        openSettings()
-                    }
-                    .keyboardShortcut(",", modifiers: .command)
-                    Divider()
-                    Button(String(localized: "menubar.quit")) {
-                        NSApplication.shared.terminate(nil)
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "ellipsis.circle")
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 8))
-                    }
-                    .font(DesignTokens.Typography.bodySmall)
-                    .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(DesignTokens.Colors.surfaceContainerHigh)
-                    .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
-                }
-                .menuStyle(.borderlessButton)
             }
+
+            Menu {
+                Button(String(localized: "menubar.logEditor")) {
+                    LogEditorWindowController.shared.show(manager: manager)
+                }
+                Button(String(localized: "menubar.openLogFolder")) {
+                    NSWorkspace.shared.open(manager.persistence.logDirectory)
+                }
+                Button(String(localized: "menubar.exportCSV")) {
+                    if let url = manager.persistence.exportCSV() {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                Divider()
+                Button(String(localized: "menubar.settings")) {
+                    openSettings()
+                }
+                .keyboardShortcut(",", modifiers: .command)
+                Divider()
+                Button(String(localized: "menubar.quit")) {
+                    NSApplication.shared.terminate(nil)
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "ellipsis.circle")
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 8))
+                }
+                .font(DesignTokens.Typography.bodySmall)
+                .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(DesignTokens.Colors.surfaceContainerHigh)
+                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
+            }
+            .menuStyle(.borderlessButton)
         }
     }
 
