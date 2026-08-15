@@ -25,6 +25,12 @@ Rest time the law requires but the user never took. Deducted automatically once
 work passes a legal threshold, and only for the part not already covered by a Pause.
 _Avoid_: Legal break, mandatory break, ArbZG break
 
+**Auto Break Rules**:
+The configured minutes of Auto Break owed at each legal threshold — by default 30
+minutes past 6 hours and 45 past 9. A Workday cannot derive Net Work Time without
+them, which is what stops a caller from silently using the wrong ones.
+_Avoid_: Break settings, break config
+
 **Net Work Time**:
 The number that matters: Gross Time minus every Pause and any Auto Break. This is
 what the menu bar shows.
@@ -44,6 +50,18 @@ _Avoid_: Idle choice, resolution
 A configurable point in the day that triggers a notification and recolours the menu
 bar — for example 8 hours as normal and 10 hours as critical.
 _Avoid_: Limit, alarm
+
+**Threshold Ladder**:
+The two Thresholds that recolour a Workday, held together as one value. Distinct
+from the notification Thresholds, which fire at their own points and are
+deliberately allowed to differ.
+_Avoid_: Threshold settings, colour config
+
+**Threshold Level**:
+Where a Workday's Net Work Time currently sits on the Threshold Ladder: _normal_,
+_elevated_, or _critical_. Named by meaning rather than by colour, because the menu
+bar, the week history and the log editor each paint it differently.
+_Avoid_: Colour, severity, status
 
 **Daily Log**:
 The one JSON file per calendar date holding that day's workday, readable and

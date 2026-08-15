@@ -37,10 +37,10 @@ struct OpenWorktimeTrackerApp: App {
     }
 
     private var menuBarForeground: some ShapeStyle {
-        switch workdayManager.menuBarColor {
+        switch workdayManager.thresholdLevel {
         case .normal: return AnyShapeStyle(.primary)
-        case .orange: return AnyShapeStyle(DesignTokens.Colors.accentOrange)
-        case .red: return AnyShapeStyle(DesignTokens.Colors.accentRed)
+        case .elevated: return AnyShapeStyle(DesignTokens.Colors.accentOrange)
+        case .critical: return AnyShapeStyle(DesignTokens.Colors.accentRed)
         }
     }
 }

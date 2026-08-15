@@ -27,7 +27,7 @@ struct WeekHistoryView: View {
             } else {
                 VStack(spacing: 2) {
                     ForEach(entries) { entry in
-                        DayRow(entry: entry, maxHours: maxHours)
+                        DayRow(workday: manager.workday(for: entry), maxHours: maxHours)
                     }
                 }
             }
@@ -49,21 +49,17 @@ struct WeekHistoryView: View {
     }
 
     private func netHours(for entry: TimeEntry) -> Double {
-        let calc = BreakCalculator()
-        let net = calc.netWorkTime(
-            grossTime: entry.grossTime,
-            manualPause: entry.totalManualPause,
-            idlePause: entry.totalIdlePause
-        )
-        return net.inHours
+        manager.workday(for: entry).netWorkTime.inHours
     }
 }
 
 // MARK: - Day Row
 
 private struct DayRow: View {
-    let entry: TimeEntry
+    let workday: Workday
     let maxHours: Double
+
+    private var entry: TimeEntry { workday.payload }
 
     var body: some View {
         HStack(spacing: DesignTokens.Spacing.sm) {
@@ -101,19 +97,11 @@ private struct DayRow: View {
     }
 
     private var netHours: Double {
-        let calc = BreakCalculator()
-        let net = calc.netWorkTime(
-            grossTime: entry.grossTime,
-            manualPause: entry.totalManualPause,
-            idlePause: entry.totalIdlePause
-        )
-        return net.inHours
+        workday.netWorkTime.inHours
     }
 
     private var barColor: Color {
-        if netHours >= 10 { return DesignTokens.Colors.accentRed }
-        if netHours >= 8 { return DesignTokens.Colors.accentOrange }
-        return DesignTokens.Colors.accentBlue
+        workday.thresholdLevel.accent
     }
 
     private var weekdayAbbr: String {

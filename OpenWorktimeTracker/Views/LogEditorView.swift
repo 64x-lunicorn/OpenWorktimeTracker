@@ -10,7 +10,7 @@ struct LogEditorView: View {
     var body: some View {
         NavigationSplitView {
             List(entries, selection: $selectedDate) { entry in
-                LogEntryRow(entry: entry)
+                LogEntryRow(workday: manager.workday(for: entry))
                     .tag(entry.date)
             }
             .navigationSplitViewColumnWidth(min: 200, ideal: 240, max: 300)
@@ -67,7 +67,9 @@ struct LogEditorView: View {
 // MARK: - Entry Row
 
 private struct LogEntryRow: View {
-    let entry: TimeEntry
+    let workday: Workday
+
+    private var entry: TimeEntry { workday.payload }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -103,18 +105,10 @@ private struct LogEntryRow: View {
     }
 
     private var netTime: TimeInterval {
-        let calc = BreakCalculator()
-        return calc.netWorkTime(
-            grossTime: entry.grossTime,
-            manualPause: entry.totalManualPause,
-            idlePause: entry.totalIdlePause
-        )
+        workday.netWorkTime
     }
 
     private var timeColor: Color {
-        let hours = netTime.inHours
-        if hours >= 9.5 { return DesignTokens.Colors.accentRed }
-        if hours >= 8.0 { return DesignTokens.Colors.accentOrange }
-        return DesignTokens.Colors.accentBlue
+        workday.thresholdLevel.accent
     }
 }

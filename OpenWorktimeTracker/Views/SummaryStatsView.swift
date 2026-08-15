@@ -149,13 +149,7 @@ struct SummaryStatsView: View {
     // MARK: - Helpers
 
     private func netHours(for entry: TimeEntry) -> Double {
-        let calc = BreakCalculator()
-        let net = calc.netWorkTime(
-            grossTime: entry.grossTime,
-            manualPause: entry.totalManualPause,
-            idlePause: entry.totalIdlePause
-        )
-        return net.inHours
+        manager.workday(for: entry).netWorkTime.inHours
     }
 
     private func parseDate(_ dateString: String) -> Date? {

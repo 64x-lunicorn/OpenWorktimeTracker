@@ -79,3 +79,14 @@ enum DesignTokens {
     static let popoverWidth: CGFloat = 340
     static let popoverMinHeight: CGFloat = 680
 }
+
+extension ThresholdLevel {
+    /// The accent a Workday is painted with at this level.
+    var accent: Color {
+        switch self {
+        case .normal: return DesignTokens.Colors.accentBlue
+        case .elevated: return DesignTokens.Colors.accentOrange
+        case .critical: return DesignTokens.Colors.accentRed
+        }
+    }
+}

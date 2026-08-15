@@ -16,6 +16,12 @@ struct WorktimeEntry: TimelineEntry {
 
     var isRunning: Bool { state == "running" }
 
+    /// Where this snapshot sits on the Threshold Ladder the app handed over.
+    var thresholdLevel: ThresholdLevel {
+        ThresholdLadder(elevatedHours: orangeThreshold, criticalHours: redThreshold)
+            .level(for: netTimeSeconds)
+    }
+
     /// Point in time from which the net work time should count up live.
     /// Equals "snapshot time minus already-accumulated net seconds", so a live
     /// timer anchored here always displays the correct, increasing net time.
@@ -120,18 +126,16 @@ struct WorktimeWidgetSmallView: View {
     }
 
     private var stateColor: Color {
-        let hours = entry.netTimeSeconds / 3600
-        if hours >= entry.redThreshold {
-            return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
-        }
-        if hours >= entry.orangeThreshold {
-            return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        }
-        switch entry.state {
-        case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
-        case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
-        default: return .secondary
+        switch entry.thresholdLevel {
+        case .critical: return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        case .normal:
+            switch entry.state {
+            case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
+            case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+            case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
+            default: return .secondary
+            }
         }
     }
 
@@ -225,18 +229,16 @@ struct WorktimeWidgetMediumView: View {
     }
 
     private var stateColor: Color {
-        let hours = entry.netTimeSeconds / 3600
-        if hours >= entry.redThreshold {
-            return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
-        }
-        if hours >= entry.orangeThreshold {
-            return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        }
-        switch entry.state {
-        case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
-        case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
-        default: return .secondary
+        switch entry.thresholdLevel {
+        case .critical: return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        case .normal:
+            switch entry.state {
+            case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
+            case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+            case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
+            default: return .secondary
+            }
         }
     }
 
@@ -250,14 +252,11 @@ struct WorktimeWidgetMediumView: View {
     }
 
     private var progressColor: Color {
-        let hours = entry.netTimeSeconds / 3600
-        if hours >= entry.redThreshold {
-            return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        switch entry.thresholdLevel {
+        case .critical: return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        case .normal: return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
         }
-        if hours >= entry.orangeThreshold {
-            return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        }
-        return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
     }
 }
 

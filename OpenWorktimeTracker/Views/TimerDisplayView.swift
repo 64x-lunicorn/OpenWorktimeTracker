@@ -77,10 +77,6 @@ struct TimerDisplayView: View {
     }
 
     private var thresholdColor: Color {
-        switch manager.menuBarColor {
-        case .normal: return DesignTokens.Colors.accentBlue
-        case .orange: return DesignTokens.Colors.accentOrange
-        case .red: return DesignTokens.Colors.accentRed
-        }
+        manager.thresholdLevel.accent
     }
 }

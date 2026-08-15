@@ -27,14 +27,17 @@
 		3C023C1963125F860E660730 /* BreakCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C14FD2343077B9FC533EAC07 /* BreakCalculator.swift */; };
 		3D60D0048DED858DE6BB52DA /* PersistenceManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0E2224DEF41A69EC1E92AA /* PersistenceManagerTests.swift */; };
 		44EFF479547F25448ADD540B /* WeekHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1089C3A7EF27586EB233E4B /* WeekHistoryView.swift */; };
+		4848E362C452EB5A63DB318E /* ThresholdLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E2CD75761D381C44EA86DA /* ThresholdLevel.swift */; };
 		485EAA20FC6AEEBF349564EC /* SharedDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCA465B8ABE2B90B1C03DF6 /* SharedDefaults.swift */; };
 		534225F52B177F08D7B9A813 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 03948982F36D08786005F7B3 /* Localizable.strings */; };
 		55E3067ACA31DF95588F7244 /* WorktimeWidgetExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 92ECFCF3E46C5163E13E2DBE /* WorktimeWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		62CA3C821F6C7FBC5AE5D390 /* AutoBreakRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE27F160308976C1903EB127 /* AutoBreakRules.swift */; };
 		68ACEAD4CBCEF8E71A25AD6D /* WorktimeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CEB27ED8F85FFCEC6C42FF7 /* WorktimeWidget.swift */; };
 		6B04E7D7384A3DC2FD19B4BF /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED914F58E92DF73CF1547A3 /* Color+Extensions.swift */; };
 		7110D8AB3463251F8307631E /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E9F0E6F30AAE618BE4982D /* CloudSyncManager.swift */; };
 		75653E72BEF543D3BB31CE37 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3636564F038D5714D3F2E9D /* AppSettings.swift */; };
 		775FBCFE7BCEEEACE8CD0C92 /* SharedDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCA465B8ABE2B90B1C03DF6 /* SharedDefaults.swift */; };
+		7D1AA8C747743D0DBCF47233 /* WorkdayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D92EF9892D12D3D1DEA3418 /* WorkdayTests.swift */; };
 		7F193BB5F12158FB4A228045 /* BreakCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBAF5148F3F5E30F02C437 /* BreakCalculatorTests.swift */; };
 		8FDF3B4B103BB741A36E13A7 /* IdleDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587CB7F059336B48B3DEE9CC /* IdleDetector.swift */; };
 		956F97E8ED6A08E13330D6A2 /* IdlePromptWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D365D24EC89B5F03E63743 /* IdlePromptWindowController.swift */; };
@@ -46,11 +49,14 @@
 		AEE1E6715AC00AE314B9D854 /* OpenWorktimeTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90A98A9F938927C616301EA5 /* OpenWorktimeTrackerApp.swift */; };
 		B2942C9DBBAD0D5F95307152 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B2CA010B0A3CBEDC5FA6F9 /* MenuBarView.swift */; };
 		BF24A802B731C7DB18835234 /* LogEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EEEFF607EEBE5390F88EB0B /* LogEditorWindowController.swift */; };
+		CB63BC5DE6E64B89F587BF8D /* Workday.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652C1192D957C6B1AA70B815 /* Workday.swift */; };
 		CFA636175CB967A129D45107 /* ActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032AEE83355F68A71F71365C /* ActionButton.swift */; };
 		D0BA8C03FE5E382A0104E788 /* WorkdayDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB71FDA60A573DB4F2C4E3D6 /* WorkdayDetector.swift */; };
 		D0C5E94C8A43326CE27D71E0 /* LogEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78CD4A8501FEDAAE565AEAC8 /* LogEditorView.swift */; };
 		D863CFEDBAC6400A74C1551F /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 8CF945626AE912CB62BC84CD /* AppIcon.svg */; };
+		E2776F062926941396F6798E /* DailyLogFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0534E968BFC7EE74714A15B /* DailyLogFormatTests.swift */; };
 		E7DB5A1B699217F6B7749C2E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7D8E211502FB3F2B407C29 /* SettingsView.swift */; };
+		EC00E2796568DA67817EE450 /* ThresholdLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E2CD75761D381C44EA86DA /* ThresholdLevel.swift */; };
 		F9CEAFEDD47DBEF79E904301 /* PersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F26F3D087AB990B78FB7094 /* PersistenceManager.swift */; };
 		FD9C3BA959F3FA91E9956165 /* MetricCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95771E351BA49672B02C68D /* MetricCardsView.swift */; };
 		FEBEC5FF73CDE0307ABF6FB6 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66D750410EAFCCE00D0FB84 /* Date+Extensions.swift */; };
@@ -99,9 +105,11 @@
 		2F26F3D087AB990B78FB7094 /* PersistenceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceManager.swift; sourceTree = "<group>"; };
 		5202C6AD0AF52C2D73DC6E17 /* SummaryStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryStatsView.swift; sourceTree = "<group>"; };
 		5351C1EB6221F54A7FC64A02 /* LogEntryEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEntryEditView.swift; sourceTree = "<group>"; };
+		54E2CD75761D381C44EA86DA /* ThresholdLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThresholdLevel.swift; sourceTree = "<group>"; };
 		587CB7F059336B48B3DEE9CC /* IdleDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleDetector.swift; sourceTree = "<group>"; };
 		58B2CA010B0A3CBEDC5FA6F9 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		5C9B60DDF61A20041E00A564 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		652C1192D957C6B1AA70B815 /* Workday.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workday.swift; sourceTree = "<group>"; };
 		65D365D24EC89B5F03E63743 /* IdlePromptWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdlePromptWindowController.swift; sourceTree = "<group>"; };
 		7255E8D3611E793FAB71F0AC /* MaxHoursPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaxHoursPromptView.swift; sourceTree = "<group>"; };
 		75C10AE9B003B0EC21B18010 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
@@ -113,6 +121,7 @@
 		8CEB27ED8F85FFCEC6C42FF7 /* WorktimeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorktimeWidget.swift; sourceTree = "<group>"; };
 		8CF945626AE912CB62BC84CD /* AppIcon.svg */ = {isa = PBXFileReference; path = AppIcon.svg; sourceTree = "<group>"; };
 		8D50E67E11943961E87A65F6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8D92EF9892D12D3D1DEA3418 /* WorkdayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayTests.swift; sourceTree = "<group>"; };
 		8F597F7658C3A59EB200E8F1 /* WorkdayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayManager.swift; sourceTree = "<group>"; };
 		90A98A9F938927C616301EA5 /* OpenWorktimeTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenWorktimeTrackerApp.swift; sourceTree = "<group>"; };
 		92CC8582D1A82A4ED0B8BE3D /* WorkdayDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayDetectorTests.swift; sourceTree = "<group>"; };
@@ -121,12 +130,14 @@
 		A3636564F038D5714D3F2E9D /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		A95771E351BA49672B02C68D /* MetricCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCardsView.swift; sourceTree = "<group>"; };
 		AC7D8E211502FB3F2B407C29 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B0534E968BFC7EE74714A15B /* DailyLogFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLogFormatTests.swift; sourceTree = "<group>"; };
 		B09158E1920D76D6EF7B3585 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B1089C3A7EF27586EB233E4B /* WeekHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekHistoryView.swift; sourceTree = "<group>"; };
 		B29478E5063B682E51F2E42A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B8D9EEEE4131C2BAE686DD5C /* WorktimeWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WorktimeWidget.entitlements; sourceTree = "<group>"; };
 		B96BF05DC18B804752127B67 /* IdlePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdlePromptView.swift; sourceTree = "<group>"; };
 		BC1763B590C81EB59DF0B300 /* ProgressBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBarView.swift; sourceTree = "<group>"; };
+		BE27F160308976C1903EB127 /* AutoBreakRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoBreakRules.swift; sourceTree = "<group>"; };
 		C14FD2343077B9FC533EAC07 /* BreakCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakCalculator.swift; sourceTree = "<group>"; };
 		C770EF5C2029076BF88AF474 /* WorkdayManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayManagerTests.swift; sourceTree = "<group>"; };
 		C8CBF6F9629F77799CD434AF /* GlassContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassContainer.swift; sourceTree = "<group>"; };
@@ -168,6 +179,7 @@
 			children = (
 				1ED914F58E92DF73CF1547A3 /* Color+Extensions.swift */,
 				FFCA465B8ABE2B90B1C03DF6 /* SharedDefaults.swift */,
+				54E2CD75761D381C44EA86DA /* ThresholdLevel.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -243,11 +255,13 @@
 			isa = PBXGroup;
 			children = (
 				D3FBAF5148F3F5E30F02C437 /* BreakCalculatorTests.swift */,
+				B0534E968BFC7EE74714A15B /* DailyLogFormatTests.swift */,
 				0E368E8701FFBF179A415BBF /* IdleDetectorTests.swift */,
 				CB0E2224DEF41A69EC1E92AA /* PersistenceManagerTests.swift */,
 				7C0158B151E8021863597395 /* TimeEntryTests.swift */,
 				92CC8582D1A82A4ED0B8BE3D /* WorkdayDetectorTests.swift */,
 				C770EF5C2029076BF88AF474 /* WorkdayManagerTests.swift */,
+				8D92EF9892D12D3D1DEA3418 /* WorkdayTests.swift */,
 			);
 			path = OpenWorktimeTrackerTests;
 			sourceTree = "<group>";
@@ -275,7 +289,9 @@
 			isa = PBXGroup;
 			children = (
 				A3636564F038D5714D3F2E9D /* AppSettings.swift */,
+				BE27F160308976C1903EB127 /* AutoBreakRules.swift */,
 				96852475F3CF42C080C27424 /* TimeEntry.swift */,
+				652C1192D957C6B1AA70B815 /* Workday.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -419,8 +435,8 @@
 			projectRoot = "";
 			targets = (
 				1B19B2A1D6A5647399CDA4ED /* OpenWorktimeTracker */,
-				909FAD7D79D8D51BD1E7E91C /* OpenWorktimeTrackerTests */,
 				673E693971C40FFE5AB5532B /* WorktimeWidgetExtension */,
+				909FAD7D79D8D51BD1E7E91C /* OpenWorktimeTrackerTests */,
 			);
 		};
 /* End PBXProject section */
@@ -452,11 +468,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				7F193BB5F12158FB4A228045 /* BreakCalculatorTests.swift in Sources */,
+				E2776F062926941396F6798E /* DailyLogFormatTests.swift in Sources */,
 				09742B896CA7EB3ED436018E /* IdleDetectorTests.swift in Sources */,
 				3D60D0048DED858DE6BB52DA /* PersistenceManagerTests.swift in Sources */,
 				330D1906DCAC60438162015F /* TimeEntryTests.swift in Sources */,
 				2E50C9C91938F36E479FAB46 /* WorkdayDetectorTests.swift in Sources */,
 				ADE593C4C405609F5F1B3894 /* WorkdayManagerTests.swift in Sources */,
+				7D1AA8C747743D0DBCF47233 /* WorkdayTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -467,6 +485,7 @@
 				CFA636175CB967A129D45107 /* ActionButton.swift in Sources */,
 				993CFEE746E242DC4FE7A44E /* AppDelegate.swift in Sources */,
 				75653E72BEF543D3BB31CE37 /* AppSettings.swift in Sources */,
+				62CA3C821F6C7FBC5AE5D390 /* AutoBreakRules.swift in Sources */,
 				3C023C1963125F860E660730 /* BreakCalculator.swift in Sources */,
 				7110D8AB3463251F8307631E /* CloudSyncManager.swift in Sources */,
 				3753A83912DE9247D4CA46CC /* Color+Extensions.swift in Sources */,
@@ -490,9 +509,11 @@
 				E7DB5A1B699217F6B7749C2E /* SettingsView.swift in Sources */,
 				775FBCFE7BCEEEACE8CD0C92 /* SharedDefaults.swift in Sources */,
 				15061C70D45A5BEF76336071 /* SummaryStatsView.swift in Sources */,
+				4848E362C452EB5A63DB318E /* ThresholdLevel.swift in Sources */,
 				253CF5BCF181B9CD0DF0734F /* TimeEntry.swift in Sources */,
 				01C8C4A1D1D00C2934B8A4A9 /* TimerDisplayView.swift in Sources */,
 				44EFF479547F25448ADD540B /* WeekHistoryView.swift in Sources */,
+				CB63BC5DE6E64B89F587BF8D /* Workday.swift in Sources */,
 				D0BA8C03FE5E382A0104E788 /* WorkdayDetector.swift in Sources */,
 				9DD01273C074913E95147CA4 /* WorkdayManager.swift in Sources */,
 			);
@@ -504,6 +525,7 @@
 			files = (
 				6B04E7D7384A3DC2FD19B4BF /* Color+Extensions.swift in Sources */,
 				485EAA20FC6AEEBF349564EC /* SharedDefaults.swift in Sources */,
+				EC00E2796568DA67817EE450 /* ThresholdLevel.swift in Sources */,
 				68ACEAD4CBCEF8E71A25AD6D /* WorktimeWidget.swift in Sources */,
 				2C62CB1A6DA628C4FB944F2C /* WorktimeWidgetBundle.swift in Sources */,
 			);

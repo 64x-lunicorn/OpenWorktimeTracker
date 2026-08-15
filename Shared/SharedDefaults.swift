@@ -38,15 +38,24 @@ enum SharedDefaults {
     static let orangeThresholdSettingKey = "orangeThresholdHours"
     static let redThresholdSettingKey = "redThresholdHours"
 
+    // Fallbacks for those same settings, for the same reason. AppDefaults
+    // references these rather than repeating the numbers.
+    static let normalHoursDefault: Double = 8.0
+    static let orangeThresholdDefault: Double = 8.0
+    static let redThresholdDefault: Double = 9.5
+
     static func update(
         state: String, netTime: TimeInterval, grossTime: TimeInterval, startTime: Date, date: String
     ) {
         let targetHours =
-            UserDefaults.standard.object(forKey: normalHoursSettingKey) as? Double ?? 8.0
+            UserDefaults.standard.object(forKey: normalHoursSettingKey) as? Double
+            ?? normalHoursDefault
         let orangeThreshold =
-            UserDefaults.standard.object(forKey: orangeThresholdSettingKey) as? Double ?? 8.0
+            UserDefaults.standard.object(forKey: orangeThresholdSettingKey) as? Double
+            ?? orangeThresholdDefault
         let redThreshold =
-            UserDefaults.standard.object(forKey: redThresholdSettingKey) as? Double ?? 9.5
+            UserDefaults.standard.object(forKey: redThresholdSettingKey) as? Double
+            ?? redThresholdDefault
 
         if let defaults = sharedDefaults {
             defaults.set(state, forKey: stateKey)
@@ -110,14 +119,14 @@ enum SharedDefaults {
     }
 
     static func readTargetHours() -> Double {
-        readValue(forKey: targetHoursKey) as? Double ?? 8.0
+        readValue(forKey: targetHoursKey) as? Double ?? normalHoursDefault
     }
 
     static func readOrangeThreshold() -> Double {
-        readValue(forKey: orangeThresholdKey) as? Double ?? 8.0
+        readValue(forKey: orangeThresholdKey) as? Double ?? orangeThresholdDefault
     }
 
     static func readRedThreshold() -> Double {
-        readValue(forKey: redThresholdKey) as? Double ?? 9.5
+        readValue(forKey: redThresholdKey) as? Double ?? redThresholdDefault
     }
 }

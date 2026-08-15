@@ -16,12 +16,15 @@ final class WorkdayManager {
     }
 
     private(set) var state: State = .notStarted
-    private(set) var currentEntry: TimeEntry?
+    private(set) var currentWorkday: Workday?
     private(set) var displayTime: TimeInterval = 0
     private(set) var grossTime: TimeInterval = 0
     private(set) var autoBreak: TimeInterval = 0
     private(set) var manualPause: TimeInterval = 0
     private(set) var netTime: TimeInterval = 0
+
+    /// The Daily Log payload behind the current Workday.
+    var currentEntry: TimeEntry? { currentWorkday?.payload }
 
     // MARK: - Services
 
@@ -29,15 +32,10 @@ final class WorkdayManager {
     let idleDetector = IdleDetector()
     private let notifications = NotificationManager.shared
 
-    private var breakCalculator: BreakCalculator {
-        BreakCalculator(
-            breakAfter6hMinutes: UserDefaults.standard.object(
-                forKey: AppSettingsKey.breakAfter6hMinutes) as? Int
-                ?? AppDefaults.breakAfter6hMinutes,
-            breakAfter9hMinutes: UserDefaults.standard.object(
-                forKey: AppSettingsKey.breakAfter9hMinutes) as? Int
-                ?? AppDefaults.breakAfter9hMinutes
-        )
+    /// Pairs a Daily Log payload with the configured Auto Break Rules and
+    /// Threshold Ladder. The one place configuration is resolved.
+    func workday(for entry: TimeEntry) -> Workday {
+        Workday(payload: entry)
     }
 
     private var timer: Timer?
@@ -79,8 +77,23 @@ final class WorkdayManager {
         }
         shortcuts.register()
 
+        registerForSettingsChanges()
         persistence.syncWithCloud()
         evaluateWorkday()
+    }
+
+    /// The held Workday carries resolved configuration, so a settings change has
+    /// to be pushed into it rather than picked up on the next derivation.
+    private func registerForSettingsChanges() {
+        sleepWakeObservers.append(
+            NotificationCenter.default.addObserver(
+                forName: UserDefaults.didChangeNotification, object: nil, queue: .main
+            ) { [weak self] _ in
+                guard let self, let workday = self.currentWorkday else { return }
+                self.currentWorkday = workday.reconfigured()
+                self.updateComputedValues()
+            }
+        )
     }
 
     // MARK: - Workday Detection
@@ -99,7 +112,7 @@ final class WorkdayManager {
 
         switch action {
         case .continueExisting(let entry):
-            currentEntry = entry
+            currentWorkday = workday(for: entry)
             switch entry.status {
             case .running:
                 state = .running
@@ -118,20 +131,13 @@ final class WorkdayManager {
             startNewDay()
 
         case .endPreviousAndStartNew(let previous, let suggestedEnd):
-            // Auto-end the previous day and start new
-            var ended = previous
-            // Finalize any pause that was still open so the net time stays correct
-            if let pauseStart = ended.pauseStartedAt {
-                ended.manualPauseSeconds += max(0, suggestedEnd.timeIntervalSince(pauseStart))
-                ended.pauseStartedAt = nil
-            }
-            ended.status = .ended
-            ended.endTime = suggestedEnd
-            persistence.save(ended)
+            // Auto-end the previous day and start new. `ended(at:)` closes any
+            // Pause that was still open so the Net Work Time stays correct.
+            persistence.save(workday(for: previous).ended(at: suggestedEnd).payload)
             startNewDay()
 
         case .dayAlreadyEnded(let entry):
-            currentEntry = entry
+            currentWorkday = workday(for: entry)
             state = .ended
             updateComputedValues()
         }
@@ -140,10 +146,10 @@ final class WorkdayManager {
     // MARK: - Actions
 
     func startNewDay() {
-        let entry = TimeEntry(startTime: Date())
-        currentEntry = entry
+        let started = workday(for: TimeEntry(startTime: Date()))
+        currentWorkday = started
         state = .running
-        persistence.save(entry)
+        persistence.save(started.payload)
         startTimer()
         idleDetector.startMonitoring()
         notifications.sendNewDayNotification()
@@ -151,42 +157,30 @@ final class WorkdayManager {
     }
 
     func pause() {
-        guard state == .running, var entry = currentEntry else { return }
-        entry.pauseStartedAt = Date()
-        entry.status = .paused
-        currentEntry = entry
+        guard state == .running, let current = currentWorkday else { return }
+        let paused = current.paused(at: Date())
+        currentWorkday = paused
         state = .paused
-        persistence.save(entry)
+        persistence.save(paused.payload)
         WidgetCenter.shared.reloadAllTimelines()
     }
 
     func resume() {
-        guard state == .paused, var entry = currentEntry else { return }
-        if let pauseStart = entry.pauseStartedAt {
-            entry.manualPauseSeconds += Date().timeIntervalSince(pauseStart)
-        }
-        entry.pauseStartedAt = nil
-        entry.status = .running
-        currentEntry = entry
+        guard state == .paused, let current = currentWorkday else { return }
+        let resumed = current.resumed(at: Date())
+        currentWorkday = resumed
         state = .running
-        persistence.save(entry)
+        persistence.save(resumed.payload)
         WidgetCenter.shared.reloadAllTimelines()
     }
 
     func endDay() {
-        guard var entry = currentEntry else { return }
+        guard let current = currentWorkday else { return }
 
-        // If paused, finalize the pause duration
-        if state == .paused, let pauseStart = entry.pauseStartedAt {
-            entry.manualPauseSeconds += Date().timeIntervalSince(pauseStart)
-            entry.pauseStartedAt = nil
-        }
-
-        entry.status = .ended
-        entry.endTime = Date()
-        currentEntry = entry
+        let ended = current.ended(at: Date())
+        currentWorkday = ended
         state = .ended
-        persistence.save(entry)
+        persistence.save(ended.payload)
         stopTimer()
         idleDetector.stopMonitoring()
         idleDetector.dismissPrompt()
@@ -195,50 +189,50 @@ final class WorkdayManager {
     }
 
     func restartDay() {
-        let entry = TimeEntry(startTime: Date())
-        currentEntry = entry
+        let restarted = workday(for: TimeEntry(startTime: Date()))
+        currentWorkday = restarted
         state = .running
-        persistence.save(entry)
+        persistence.save(restarted.payload)
         startTimer()
         idleDetector.startMonitoring()
         WidgetCenter.shared.reloadAllTimelines()
     }
 
     func updateNote(_ note: String) {
-        guard var entry = currentEntry else { return }
-        entry.note = note
-        currentEntry = entry
-        persistence.save(entry)
+        guard let current = currentWorkday else { return }
+        let updated = current.withNote(note)
+        currentWorkday = updated
+        persistence.save(updated.payload)
     }
 
     func updateStartTime(_ newStart: Date) {
-        guard var entry = currentEntry else { return }
-        if let end = entry.endTime {
+        guard let current = currentWorkday else { return }
+        if let end = current.endTime {
             if newStart > end { return }
         } else if newStart > Date() {
             // Running/paused day: the start must not be in the future
             return
         }
-        entry.startTime = newStart
-        currentEntry = entry
-        persistence.save(entry)
+        let updated = current.withStartTime(newStart)
+        currentWorkday = updated
+        persistence.save(updated.payload)
         updateComputedValues()
     }
 
     func updateEndTime(_ newEnd: Date) {
-        guard var entry = currentEntry, state == .ended else { return }
-        if newEnd < entry.startTime { return }
-        entry.endTime = newEnd
-        currentEntry = entry
-        persistence.save(entry)
+        guard let current = currentWorkday, state == .ended else { return }
+        if newEnd < current.startTime { return }
+        let updated = current.withEndTime(newEnd)
+        currentWorkday = updated
+        persistence.save(updated.payload)
         updateComputedValues()
     }
 
     func reloadCurrentEntry() {
-        guard let entry = currentEntry else { return }
+        guard let current = currentWorkday else { return }
         let today = TimeEntry.dateString(from: Date())
-        if entry.date == today, let reloaded = persistence.load(for: today) {
-            currentEntry = reloaded
+        if current.date == today, let reloaded = persistence.load(for: today) {
+            currentWorkday = workday(for: reloaded)
             state = State(rawValue: reloaded.status.rawValue) ?? .notStarted
             // Keep timer and idle monitoring in sync with the reloaded status
             switch state {
@@ -256,7 +250,7 @@ final class WorkdayManager {
     /// Estimated end time to reach a target of net work hours.
     /// Accounts for auto-break that will be added at 6h/9h thresholds.
     var estimatedEndTime: Date? {
-        guard let entry = currentEntry, state == .running || state == .paused else { return nil }
+        guard let current = currentWorkday, state == .running || state == .paused else { return nil }
         let targetHours =
             UserDefaults.standard.object(forKey: AppSettingsKey.normalNotificationHours)
             as? Double ?? AppDefaults.normalNotificationHours
@@ -265,17 +259,16 @@ final class WorkdayManager {
         // Calculate how much gross time is needed to reach targetSeconds net
         // Net = Gross - ManualPause - IdlePause - AutoBreak
         // AutoBreak depends on (Gross - ManualPause - IdlePause)
-        let alreadyPaused = entry.totalManualPause + entry.totalIdlePause
-        let calc = breakCalculator
+        let alreadyPaused = current.pause
 
         // Estimate: target net + pauses already taken + auto-break for the total
         let estimatedWorkTime = targetSeconds
-        let estimatedAutoBreak = calc.autoBreak(
+        let estimatedAutoBreak = current.autoBreakRules.autoBreak(
             forWorkTime: estimatedWorkTime,
             alreadyPaused: alreadyPaused
         )
         let neededGross = targetSeconds + alreadyPaused + estimatedAutoBreak
-        let currentGross = entry.grossTime
+        let currentGross = current.grossTime
         let remaining = neededGross - currentGross
 
         guard remaining > 0 else { return nil }
@@ -306,7 +299,7 @@ final class WorkdayManager {
     }
 
     private func updateComputedValues() {
-        guard let entry = currentEntry else {
+        guard let current = currentWorkday else {
             grossTime = 0
             manualPause = 0
             autoBreak = 0
@@ -322,24 +315,18 @@ final class WorkdayManager {
             return
         }
 
-        grossTime = entry.grossTime
-        manualPause = entry.totalPause
-
-        let calc = breakCalculator
-        let workBeforeAuto = entry.workTimeBeforeAutoBreak
-        autoBreak = calc.autoBreak(
-            forWorkTime: workBeforeAuto,
-            alreadyPaused: entry.totalPause
-        )
-        netTime = max(0, workBeforeAuto - autoBreak)
+        grossTime = current.grossTime
+        manualPause = current.pause
+        autoBreak = current.autoBreak
+        netTime = current.netWorkTime
         displayTime = netTime
 
         SharedDefaults.update(
             state: state.rawValue,
             netTime: netTime,
             grossTime: grossTime,
-            startTime: entry.startTime,
-            date: entry.date
+            startTime: current.startTime,
+            date: current.date
         )
     }
 
@@ -351,9 +338,10 @@ final class WorkdayManager {
     }
 
     private func checkThresholds() {
-        guard var entry = currentEntry, state == .running || state == .paused else { return }
+        guard let current = currentWorkday, state == .running || state == .paused else { return }
 
         let hours = netTime.inHours
+        let notified = current.payload.notifiedThresholds
 
         let milestoneH =
             UserDefaults.standard.object(forKey: AppSettingsKey.milestoneNotificationHours)
@@ -362,10 +350,10 @@ final class WorkdayManager {
 
         // The 10h milestone popup is a legal safeguard (ArbZG) and must appear
         // regardless of whether notifications are enabled.
-        if hours >= milestoneH && !entry.notifiedThresholds.contains("milestone") {
-            entry.notifiedThresholds.insert("milestone")
-            currentEntry = entry
-            persistence.save(entry)
+        if hours >= milestoneH && !notified.contains("milestone") {
+            let updated = current.markingNotified("milestone")
+            currentWorkday = updated
+            persistence.save(updated.payload)
             if notificationsEnabled {
                 notifications.sendThresholdNotification(type: .milestone(hours: hours))
             }
@@ -388,52 +376,45 @@ final class WorkdayManager {
             as? Double
             ?? AppDefaults.criticalNotificationHours
 
-        if hours >= criticalH && !entry.notifiedThresholds.contains("critical") {
+        if hours >= criticalH && !notified.contains("critical") {
             notifications.sendThresholdNotification(type: .critical(hours: hours))
-            entry.notifiedThresholds.insert("critical")
-            currentEntry = entry
-            persistence.save(entry)
-        } else if hours >= normalH && !entry.notifiedThresholds.contains("normal") {
+            let updated = current.markingNotified("critical")
+            currentWorkday = updated
+            persistence.save(updated.payload)
+        } else if hours >= normalH && !notified.contains("normal") {
             notifications.sendThresholdNotification(type: .normal(hours: hours))
-            entry.notifiedThresholds.insert("normal")
-            currentEntry = entry
-            persistence.save(entry)
+            let updated = current.markingNotified("normal")
+            currentWorkday = updated
+            persistence.save(updated.payload)
         }
     }
 
     // MARK: - Date Change Detection
 
     private func checkDateChange() {
-        guard let entry = currentEntry, state == .running || state == .paused else { return }
+        guard let current = currentWorkday, state == .running || state == .paused else { return }
         let detector = WorkdayDetector(
             newDayStartHour: UserDefaults.standard.object(forKey: AppSettingsKey.newDayStartHour)
                 as? Int
                 ?? AppDefaults.newDayStartHour
         )
         let effectiveDate = detector.effectiveDateString(for: Date())
-        if effectiveDate != entry.date {
+        if effectiveDate != current.date {
             // Dismiss any pending idle prompt — it references the old day
             idleDetector.dismissPrompt()
             IdlePromptWindowController.shared.dismiss()
 
             let wasPaused = (state == .paused)
 
-            // Day changed — end old day at midnight and finalize any open pause
-            var ended = entry
-            ended.status = .ended
+            // Day changed — end old day at midnight, closing any open Pause
             let midnight = Calendar.current.startOfDay(for: Date())
-            ended.endTime = midnight
-            if let pauseStart = ended.pauseStartedAt {
-                ended.manualPauseSeconds += max(0, midnight.timeIntervalSince(pauseStart))
-                ended.pauseStartedAt = nil
-            }
-            persistence.save(ended)
+            persistence.save(current.ended(at: midnight).payload)
 
             if wasPaused {
                 // The user was paused across midnight (not actively working) —
                 // don't auto-start a running day, which would wrongly count the
                 // night as work. Reset to a clean, idle slate instead.
-                currentEntry = nil
+                currentWorkday = nil
                 state = .notStarted
                 stopTimer()
                 idleDetector.stopMonitoring()
@@ -450,8 +431,8 @@ final class WorkdayManager {
     private func autoSave() {
         let now = Date()
         if let last = lastSaveTime, now.timeIntervalSince(last) < 30 { return }
-        if let entry = currentEntry {
-            persistence.save(entry)
+        if let current = currentWorkday {
+            persistence.save(current.payload)
             lastSaveTime = now
             WidgetCenter.shared.reloadAllTimelines()
         }
@@ -494,8 +475,8 @@ final class WorkdayManager {
 
     private func handleSleep() {
         // Save current state before sleep
-        if let entry = currentEntry {
-            persistence.save(entry)
+        if let current = currentWorkday {
+            persistence.save(current.payload)
         }
     }
 
@@ -527,22 +508,13 @@ final class WorkdayManager {
         }
     }
 
-    var menuBarColor: MenuBarColor {
-        let hours = netTime.inHours
-        let redThreshold =
-            UserDefaults.standard.object(forKey: AppSettingsKey.redThresholdHours) as? Double
-            ?? AppDefaults.redThresholdHours
-        let orangeThreshold =
-            UserDefaults.standard.object(forKey: AppSettingsKey.orangeThresholdHours) as? Double
-            ?? AppDefaults.orangeThresholdHours
-
-        if hours >= redThreshold { return .red }
-        if hours >= orangeThreshold { return .orange }
-        return .normal
+    var thresholdLevel: ThresholdLevel {
+        (currentWorkday?.thresholds ?? .resolved()).level(for: netTime)
     }
 
-    enum MenuBarColor {
-        case normal, orange, red
+    /// Exports every Daily Log, deriving Net Work Time with the configured rules.
+    func exportCSV() -> URL? {
+        persistence.exportCSV(autoBreakRules: .resolved(), thresholds: .resolved())
     }
 }
 
@@ -551,43 +523,34 @@ final class WorkdayManager {
 extension WorkdayManager {
 
     func handleIdleDecision(_ decision: IdleDecision.Decision) {
-        guard var entry = currentEntry,
+        guard let current = currentWorkday,
             let prompt = idleDetector.pendingPrompt
         else { return }
 
-        let idleDecision = IdleDecision(
-            idleStart: prompt.idleStart,
-            idleEnd: prompt.idleEnd,
-            decision: decision
+        let updated = current.recording(
+            IdleDecision(idleStart: prompt.idleStart, idleEnd: prompt.idleEnd, decision: decision)
         )
-        entry.idleDecisions.append(idleDecision)
-        currentEntry = entry
-        persistence.save(entry)
+        currentWorkday = updated
+        persistence.save(updated.payload)
         idleDetector.dismissPrompt()
         IdlePromptWindowController.shared.dismiss()
     }
 
     func handleIdleDecisionAndEndDay() {
-        guard var entry = currentEntry,
+        guard let current = currentWorkday,
             let prompt = idleDetector.pendingPrompt
         else { return }
 
         // Record idle time as pause, then end the day at idle start
-        let idleDecision = IdleDecision(
-            idleStart: prompt.idleStart,
-            idleEnd: prompt.idleEnd,
-            decision: .pause
-        )
-        entry.idleDecisions.append(idleDecision)
-        entry.status = .ended
-        entry.endTime = prompt.idleStart
-        if let pauseStart = entry.pauseStartedAt {
-            entry.manualPauseSeconds += prompt.idleStart.timeIntervalSince(pauseStart)
-            entry.pauseStartedAt = nil
-        }
-        currentEntry = entry
+        let ended =
+            current
+            .recording(
+                IdleDecision(idleStart: prompt.idleStart, idleEnd: prompt.idleEnd, decision: .pause)
+            )
+            .ended(at: prompt.idleStart)
+        currentWorkday = ended
         state = .ended
-        persistence.save(entry)
+        persistence.save(ended.payload)
         stopTimer()
         idleDetector.dismissPrompt()
         idleDetector.stopMonitoring()
@@ -596,42 +559,29 @@ extension WorkdayManager {
     }
 
     func handleIdleDecisionAndRestart() {
-        guard var entry = currentEntry,
+        guard let current = currentWorkday,
             let prompt = idleDetector.pendingPrompt
         else { return }
 
         // End current day at idle start, then start a new day
-        let idleDecision = IdleDecision(
-            idleStart: prompt.idleStart,
-            idleEnd: prompt.idleEnd,
-            decision: .pause
-        )
-        entry.idleDecisions.append(idleDecision)
-        entry.status = .ended
-        entry.endTime = prompt.idleStart
-        if let pauseStart = entry.pauseStartedAt {
-            entry.manualPauseSeconds += prompt.idleStart.timeIntervalSince(pauseStart)
-            entry.pauseStartedAt = nil
-        }
-        persistence.save(entry)
+        let ended =
+            current
+            .recording(
+                IdleDecision(idleStart: prompt.idleStart, idleEnd: prompt.idleEnd, decision: .pause)
+            )
+            .ended(at: prompt.idleStart)
+        persistence.save(ended.payload)
         idleDetector.dismissPrompt()
         IdlePromptWindowController.shared.dismiss()
         startNewDay()
     }
 
     func handleNewDayFromIdle(endYesterdayAt: Date) {
-        guard var entry = currentEntry,
+        guard let current = currentWorkday,
             idleDetector.pendingPrompt != nil
         else { return }
 
-        // End the old entry
-        entry.status = .ended
-        entry.endTime = endYesterdayAt
-        if let pauseStart = entry.pauseStartedAt {
-            entry.manualPauseSeconds += endYesterdayAt.timeIntervalSince(pauseStart)
-            entry.pauseStartedAt = nil
-        }
-        persistence.save(entry)
+        persistence.save(current.ended(at: endYesterdayAt).payload)
 
         // Start fresh
         idleDetector.dismissPrompt()

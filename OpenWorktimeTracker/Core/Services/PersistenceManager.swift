@@ -219,34 +219,27 @@ final class PersistenceManager {
         CloudSyncManager.shared.syncIfEnabled(localDirectory: logDirectory)
     }
 
-    func exportCSV() -> URL? {
+    func exportCSV(autoBreakRules: AutoBreakRules, thresholds: ThresholdLadder) -> URL? {
         let entries = loadAll()
         guard !entries.isEmpty else { return nil }
 
         var csv = "Date,Start,End,Gross (h),Manual Pause (h),Auto Break (h),Net (h),Note\n"
 
-        let calc = BreakCalculator()
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "HH:mm"
 
         for entry in entries {
+            let workday = Workday(
+                payload: entry,
+                autoBreakRules: autoBreakRules,
+                thresholds: thresholds
+            )
             let start = timeFormatter.string(from: entry.startTime)
             let end = entry.endTime.map { timeFormatter.string(from: $0) } ?? "-"
-            let gross = String(format: "%.2f", entry.grossTime.inHours)
-            let manual = String(format: "%.2f", entry.totalManualPause.inHours)
-            let net = calc.netWorkTime(
-                grossTime: entry.grossTime,
-                manualPause: entry.totalManualPause,
-                idlePause: entry.totalIdlePause
-            )
-            let autoBreak = String(
-                format: "%.2f",
-                calc.autoBreak(
-                    forWorkTime: entry.workTimeBeforeAutoBreak,
-                    alreadyPaused: entry.totalManualPause + entry.totalIdlePause
-                ).inHours
-            )
-            let netStr = String(format: "%.2f", net.inHours)
+            let gross = String(format: "%.2f", workday.grossTime.inHours)
+            let manual = String(format: "%.2f", workday.manualPause.inHours)
+            let autoBreak = String(format: "%.2f", workday.autoBreak.inHours)
+            let netStr = String(format: "%.2f", workday.netWorkTime.inHours)
             let note = entry.note.replacingOccurrences(of: ",", with: ";")
 
             csv +=

@@ -168,7 +168,7 @@ struct MenuBarView: View {
                     NSWorkspace.shared.open(manager.persistence.logDirectory)
                 }
                 Button(String(localized: "menubar.exportCSV")) {
-                    if let url = manager.persistence.exportCSV() {
+                    if let url = manager.exportCSV() {
                         NSWorkspace.shared.open(url)
                     }
                 }

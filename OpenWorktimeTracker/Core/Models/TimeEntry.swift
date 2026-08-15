@@ -63,14 +63,6 @@ struct TimeEntry: Codable, Identifiable {
             .reduce(0) { $0 + $1.duration }
     }
 
-    var totalPause: TimeInterval {
-        totalManualPause + totalIdlePause
-    }
-
-    var workTimeBeforeAutoBreak: TimeInterval {
-        max(0, grossTime - totalPause)
-    }
-
     private static let dateStringFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"

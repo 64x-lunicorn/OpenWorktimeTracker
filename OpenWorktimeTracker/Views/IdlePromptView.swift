@@ -70,16 +70,7 @@ struct IdlePromptView: View {
 
     /// Net work time if the day were ended at idle start.
     private var netTimeAtIdleStart: TimeInterval {
-        guard let entry = manager.currentEntry else { return 0 }
-        let gross = max(0, promptInfo.idleStart.timeIntervalSince(entry.startTime))
-        let pauses = entry.manualPauseSeconds + entry.totalIdlePause
-        let workBeforeAuto = max(0, gross - pauses)
-        let calc = BreakCalculator(
-            breakAfter6hMinutes: UserDefaults.standard.object(forKey: AppSettingsKey.breakAfter6hMinutes) as? Int ?? AppDefaults.breakAfter6hMinutes,
-            breakAfter9hMinutes: UserDefaults.standard.object(forKey: AppSettingsKey.breakAfter9hMinutes) as? Int ?? AppDefaults.breakAfter9hMinutes
-        )
-        let autoBreak = calc.autoBreak(forWorkTime: workBeforeAuto, alreadyPaused: pauses)
-        return max(0, workBeforeAuto - autoBreak)
+        manager.currentWorkday?.netWorkTime(endingAt: promptInfo.idleStart) ?? 0
     }
 
     private var sameDayActions: some View {

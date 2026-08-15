@@ -243,7 +243,7 @@ struct SettingsView: View {
 
             Section(String(localized: "settings.export")) {
                 Button(String(localized: "settings.exportCSV")) {
-                    if let url = manager.persistence.exportCSV() {
+                    if let url = manager.exportCSV() {
                         NSWorkspace.shared.open(url)
                     }
                 }

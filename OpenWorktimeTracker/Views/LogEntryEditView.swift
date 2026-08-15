@@ -258,15 +258,10 @@ struct LogEntryEditView: View {
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
 
-            let previewEntry = buildPreviewEntry()
-            let calc = BreakCalculator()
-            let gross = previewEntry.grossTime
-            let workBeforeAuto = previewEntry.workTimeBeforeAutoBreak
-            let autoBrk = calc.autoBreak(
-                forWorkTime: workBeforeAuto,
-                alreadyPaused: previewEntry.totalPause
-            )
-            let net = max(0, workBeforeAuto - autoBrk)
+            let preview = manager.workday(for: buildPreviewEntry())
+            let gross = preview.grossTime
+            let autoBrk = preview.autoBreak
+            let net = preview.netWorkTime
 
             HStack(spacing: 24) {
                 computedItem(
