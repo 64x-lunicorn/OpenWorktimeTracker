@@ -37,8 +37,8 @@ struct MetricCardsView: View {
                 MetricCard(
                     icon: "pause.circle",
                     label: String(localized: "metric.pause"),
-                    value: manager.manualPause.hoursMinutesFormatted,
-                    accent: manager.manualPause > 0 ? DesignTokens.Colors.accentOrange : nil
+                    value: manager.pauseTime.hoursMinutesFormatted,
+                    accent: manager.pauseTime > 0 ? DesignTokens.Colors.accentOrange : nil
                 )
 
                 if manager.state == .ended {

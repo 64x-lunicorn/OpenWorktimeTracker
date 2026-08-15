@@ -264,8 +264,6 @@ final class WorkdayTests: XCTestCase {
     }
 
     func testEndingBeforeAnOpenPauseStartedDoesNotSubtractPause() {
-        // The bug three end paths shared: no max(0, ...) guard, so ending at an
-        // instant before the Pause opened produced a negative Pause.
         let paused = runningWorkday().paused(at: epoch.addingTimeInterval(4 * 3600))
         let ended = paused.ended(at: epoch.addingTimeInterval(1 * 3600))
 

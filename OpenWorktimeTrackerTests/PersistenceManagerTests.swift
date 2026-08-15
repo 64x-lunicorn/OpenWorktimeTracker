@@ -248,10 +248,7 @@ final class PersistenceManagerTests: XCTestCase {
         manager.save(entry)
         manager.flush()
 
-        let csvURL = manager.exportCSV(
-            autoBreakRules: AutoBreakRules(after6hMinutes: 30, after9hMinutes: 45),
-            thresholds: ThresholdLadder(elevatedHours: 8.0, criticalHours: 9.5)
-        )
+        let csvURL = manager.exportCSV(workdayFor: testWorkday)
         XCTAssertNotNil(csvURL)
 
         if let url = csvURL {
@@ -262,13 +259,16 @@ final class PersistenceManagerTests: XCTestCase {
         }
     }
 
-    func testExportCSVEmpty() {
-        XCTAssertNil(
-            manager.exportCSV(
-                autoBreakRules: AutoBreakRules(after6hMinutes: 30, after9hMinutes: 45),
-                thresholds: ThresholdLadder(elevatedHours: 8.0, criticalHours: 9.5)
-            )
+    private func testWorkday(_ entry: TimeEntry) -> Workday {
+        Workday(
+            payload: entry,
+            autoBreakRules: AutoBreakRules(after6hMinutes: 30, after9hMinutes: 45),
+            thresholds: ThresholdLadder(elevatedHours: 8.0, criticalHours: 9.5)
         )
+    }
+
+    func testExportCSVEmpty() {
+        XCTAssertNil(manager.exportCSV(workdayFor: testWorkday))
     }
 
     // MARK: - Corrupt File Handling

@@ -20,7 +20,7 @@ final class WorkdayManager {
     private(set) var displayTime: TimeInterval = 0
     private(set) var grossTime: TimeInterval = 0
     private(set) var autoBreak: TimeInterval = 0
-    private(set) var manualPause: TimeInterval = 0
+    private(set) var pauseTime: TimeInterval = 0
     private(set) var netTime: TimeInterval = 0
 
     /// The Daily Log payload behind the current Workday.
@@ -41,7 +41,7 @@ final class WorkdayManager {
     private var timer: Timer?
     private var lastSaveTime: Date?
     private var hasBootstrapped = false
-    private var sleepWakeObservers: [Any] = []
+    private var observers: [Any] = []
 
     // MARK: - Initialization
 
@@ -84,10 +84,15 @@ final class WorkdayManager {
 
     /// The held Workday carries resolved configuration, so a settings change has
     /// to be pushed into it rather than picked up on the next derivation.
+    ///
+    /// Scoped to `.standard`: `SharedDefaults.update` writes to the app group
+    /// suite on every tick, and an unscoped observer would retrigger itself.
     private func registerForSettingsChanges() {
-        sleepWakeObservers.append(
+        observers.append(
             NotificationCenter.default.addObserver(
-                forName: UserDefaults.didChangeNotification, object: nil, queue: .main
+                forName: UserDefaults.didChangeNotification,
+                object: UserDefaults.standard,
+                queue: .main
             ) { [weak self] _ in
                 guard let self, let workday = self.currentWorkday else { return }
                 self.currentWorkday = workday.reconfigured()
@@ -301,7 +306,7 @@ final class WorkdayManager {
     private func updateComputedValues() {
         guard let current = currentWorkday else {
             grossTime = 0
-            manualPause = 0
+            pauseTime = 0
             autoBreak = 0
             netTime = 0
             displayTime = 0
@@ -316,7 +321,7 @@ final class WorkdayManager {
         }
 
         grossTime = current.grossTime
-        manualPause = current.pause
+        pauseTime = current.pause
         autoBreak = current.autoBreak
         netTime = current.netWorkTime
         displayTime = netTime
@@ -442,12 +447,12 @@ final class WorkdayManager {
 
     private func registerForSleepWake() {
         let wsnc = NSWorkspace.shared.notificationCenter
-        sleepWakeObservers.append(
+        observers.append(
             wsnc.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
                 self?.handleSleep()
             }
         )
-        sleepWakeObservers.append(
+        observers.append(
             wsnc.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
                 self?.handleWake()
             }
@@ -455,7 +460,7 @@ final class WorkdayManager {
 
         // Screen lock/unlock (covers lid close without sleep, fast user switching)
         let dnc = DistributedNotificationCenter.default()
-        sleepWakeObservers.append(
+        observers.append(
             dnc.addObserver(
                 forName: NSNotification.Name("com.apple.screenIsLocked"),
                 object: nil, queue: .main
@@ -463,7 +468,7 @@ final class WorkdayManager {
                 self?.handleSleep()  // save state on lock
             }
         )
-        sleepWakeObservers.append(
+        observers.append(
             dnc.addObserver(
                 forName: NSNotification.Name("com.apple.screenIsUnlocked"),
                 object: nil, queue: .main
@@ -514,7 +519,7 @@ final class WorkdayManager {
 
     /// Exports every Daily Log, deriving Net Work Time with the configured rules.
     func exportCSV() -> URL? {
-        persistence.exportCSV(autoBreakRules: .resolved(), thresholds: .resolved())
+        persistence.exportCSV(workdayFor: workday(for:))
     }
 }
 

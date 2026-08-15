@@ -3,9 +3,9 @@ import Foundation
 /// One person's tracked time for a single calendar date, paired with the
 /// configuration needed to make sense of it.
 ///
-/// The pairing is the point. A Workday cannot be constructed without Auto Break
+/// The pairing is the point: a Workday cannot be constructed without Auto Break
 /// Rules and a Threshold Ladder, so no caller can derive Net Work Time with the
-/// wrong ones — which is exactly what six call sites used to do.
+/// wrong ones.
 struct Workday {
 
     /// The Daily Log payload. Persisted verbatim; the on-disk JSON format is
@@ -65,11 +65,7 @@ struct Workday {
     }
 
     /// Idle Periods the user decided were a Pause.
-    var idlePause: TimeInterval {
-        payload.idleDecisions
-            .filter { $0.decision == .pause }
-            .reduce(0) { $0 + $1.duration }
-    }
+    var idlePause: TimeInterval { payload.totalIdlePause }
 
     /// Every Pause counted against the Workday.
     func pause(endingAt instant: Date) -> TimeInterval {
@@ -95,7 +91,7 @@ struct Workday {
         thresholds.level(for: netWorkTime(endingAt: instant))
     }
 
-    /// Idle Periods the user decided were a Pause.
+    /// Gross Time left after every Pause, before any Auto Break is owed.
     private func workBeforeAutoBreak(endingAt instant: Date, pause: TimeInterval) -> TimeInterval {
         max(0, grossTime(endingAt: instant) - pause)
     }

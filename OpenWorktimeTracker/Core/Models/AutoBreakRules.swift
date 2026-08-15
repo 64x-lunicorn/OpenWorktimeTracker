@@ -9,7 +9,7 @@ struct AutoBreakRules {
     let after6hMinutes: Int
     let after9hMinutes: Int
 
-    /// Resolved from user settings. The Settings module will take this over.
+    /// Resolved from user settings.
     static func resolved(from defaults: UserDefaults = .standard) -> AutoBreakRules {
         AutoBreakRules(
             after6hMinutes: defaults.object(forKey: AppSettingsKey.breakAfter6hMinutes) as? Int

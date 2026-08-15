@@ -447,7 +447,7 @@ extension WorkdayManagerTests {
 
         XCTAssertGreaterThanOrEqual(manager.grossTime, 0)
         XCTAssertGreaterThanOrEqual(manager.netTime, 0)
-        XCTAssertEqual(manager.manualPause, 0, accuracy: 1)
+        XCTAssertEqual(manager.pauseTime, 0, accuracy: 1)
         XCTAssertEqual(manager.autoBreak, 0)
     }
 

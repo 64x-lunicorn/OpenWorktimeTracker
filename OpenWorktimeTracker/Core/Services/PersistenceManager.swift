@@ -219,7 +219,9 @@ final class PersistenceManager {
         CloudSyncManager.shared.syncIfEnabled(localDirectory: logDirectory)
     }
 
-    func exportCSV(autoBreakRules: AutoBreakRules, thresholds: ThresholdLadder) -> URL? {
+    /// Exports every Daily Log. Persistence does not know how a Workday is
+    /// configured, so it asks the caller to pair each payload with its rules.
+    func exportCSV(workdayFor makeWorkday: (TimeEntry) -> Workday) -> URL? {
         let entries = loadAll()
         guard !entries.isEmpty else { return nil }
 
@@ -229,11 +231,7 @@ final class PersistenceManager {
         timeFormatter.dateFormat = "HH:mm"
 
         for entry in entries {
-            let workday = Workday(
-                payload: entry,
-                autoBreakRules: autoBreakRules,
-                thresholds: thresholds
-            )
+            let workday = makeWorkday(entry)
             let start = timeFormatter.string(from: entry.startTime)
             let end = entry.endTime.map { timeFormatter.string(from: $0) } ?? "-"
             let gross = String(format: "%.2f", workday.grossTime.inHours)

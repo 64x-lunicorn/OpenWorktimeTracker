@@ -66,6 +66,30 @@ final class DailyLogFormatTests: XCTestCase {
         XCTAssertEqual(workday.thresholdLevel, .elevated)
     }
 
+    func testAShippedDailyLogLoadsThroughPersistenceManager() throws {
+        // Goes through PersistenceManager's own coders, so changing its date
+        // strategy fails here rather than in users' files.
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let persistence = PersistenceManager(logDirectory: tempDir)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        try Data(fixture.utf8).write(
+            to: tempDir.appendingPathComponent("2026-03-17.json"),
+            options: .atomic
+        )
+
+        let loaded = try XCTUnwrap(persistence.load(for: "2026-03-17"))
+        XCTAssertEqual(loaded.status, .ended)
+        XCTAssertEqual(loaded.manualPauseSeconds, 1800)
+        XCTAssertEqual(loaded.idleDecisions.count, 1)
+
+        // Written back out, it still loads.
+        persistence.save(loaded)
+        persistence.flush()
+        XCTAssertNotNil(persistence.load(for: "2026-03-17"))
+    }
+
     func testEncodingKeepsTheShippedKeySet() throws {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601

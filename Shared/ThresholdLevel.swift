@@ -29,22 +29,13 @@ struct ThresholdLadder {
         level(forHours: netWorkTime / 3600.0)
     }
 
-    /// Resolved from user settings. The Settings module will take this over.
+    /// Resolved from user settings.
     static func resolved(from defaults: UserDefaults = .standard) -> ThresholdLadder {
         ThresholdLadder(
             elevatedHours: defaults.object(forKey: SharedDefaults.orangeThresholdSettingKey)
                 as? Double ?? SharedDefaults.orangeThresholdDefault,
             criticalHours: defaults.object(forKey: SharedDefaults.redThresholdSettingKey)
                 as? Double ?? SharedDefaults.redThresholdDefault
-        )
-    }
-
-    /// Resolved from the state the app hands to the widget, which cannot read
-    /// the app's own settings.
-    static var fromSharedState: ThresholdLadder {
-        ThresholdLadder(
-            elevatedHours: SharedDefaults.readOrangeThreshold(),
-            criticalHours: SharedDefaults.readRedThreshold()
         )
     }
 }

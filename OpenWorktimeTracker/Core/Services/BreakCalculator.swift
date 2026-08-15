@@ -1,17 +1,14 @@
 import Foundation
 
+/// The ArbZG §4 break ladder.
+///
+/// An internal seam: reached only through `AutoBreakRules`, and with no default
+/// arguments, so the ladder can never be applied without stating the configured
+/// minutes.
 struct BreakCalculator {
 
     let breakAfter6hMinutes: Int
     let breakAfter9hMinutes: Int
-
-    init(
-        breakAfter6hMinutes: Int = AppDefaults.breakAfter6hMinutes,
-        breakAfter9hMinutes: Int = AppDefaults.breakAfter9hMinutes
-    ) {
-        self.breakAfter6hMinutes = breakAfter6hMinutes
-        self.breakAfter9hMinutes = breakAfter9hMinutes
-    }
 
     /// Required break in seconds based on ArbZG §4.
     /// `workTime` is gross work time minus manual pauses and idle pauses (actual time spent working).
