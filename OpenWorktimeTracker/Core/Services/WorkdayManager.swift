@@ -502,7 +502,7 @@ final class WorkdayManager {
     ///
     /// Unconditional — every caller gets the full effect list, even one that
     /// immediately starts a new Workday and redoes half of it. That's cheap;
-    /// six near-identical, subtly-diverging copies of this list were not.
+    /// five near-identical, subtly-diverging copies of this list were not.
     private func finish(at instant: Date) {
         guard let current = currentWorkday else { return }
         let ended = current.ended(at: instant)

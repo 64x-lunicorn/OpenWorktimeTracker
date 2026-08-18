@@ -75,6 +75,16 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
         XCTAssertEqual(manager.state, .running)
     }
 
+    func testHandleIdleDecisionAndRestartWithNoPendingPromptIsNoOp() {
+        manager.startNewDay()
+        let originalID = manager.currentEntry?.id
+
+        manager.handleIdleDecisionAndRestart()
+
+        XCTAssertEqual(manager.currentEntry?.id, originalID)
+        XCTAssertEqual(manager.state, .running)
+    }
+
     func testHandleNewDayFromIdleWithNoPendingPromptIsNoOp() {
         manager.startNewDay()
         let originalID = manager.currentEntry?.id
