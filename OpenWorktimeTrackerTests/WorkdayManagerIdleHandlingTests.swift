@@ -20,7 +20,7 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
         super.tearDown()
     }
 
-    private func pendingPrompt(idleStart: Date, idleEnd: Date, spansMidnight: Bool = false) {
+    private func stagePendingIdlePeriod(idleStart: Date, idleEnd: Date, spansMidnight: Bool = false) {
         manager.pendingIdlePeriod = IdlePeriod(
             idleStart: idleStart,
             idleEnd: idleEnd,
@@ -31,7 +31,7 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
     func testHandleIdleDecisionAndEndDayEndsAtIdleStart() {
         manager.startNewDay()
         let idleStart = Date().addingTimeInterval(-1800)
-        pendingPrompt(idleStart: idleStart, idleEnd: Date())
+        stagePendingIdlePeriod(idleStart: idleStart, idleEnd: Date())
 
         manager.handleIdleDecisionAndEndDay()
 
@@ -45,7 +45,7 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
     func testHandleIdleDecisionAndRestartStartsANewEntry() {
         manager.startNewDay()
         let originalID = manager.currentEntry?.id
-        pendingPrompt(idleStart: Date().addingTimeInterval(-1800), idleEnd: Date())
+        stagePendingIdlePeriod(idleStart: Date().addingTimeInterval(-1800), idleEnd: Date())
 
         manager.handleIdleDecisionAndRestart()
 
@@ -58,7 +58,7 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
         manager.startNewDay()
         let originalID = manager.currentEntry?.id
         let idleStart = Date().addingTimeInterval(-3600)
-        pendingPrompt(idleStart: idleStart, idleEnd: Date(), spansMidnight: true)
+        stagePendingIdlePeriod(idleStart: idleStart, idleEnd: Date(), spansMidnight: true)
 
         manager.handleNewDayFromIdle(endYesterdayAt: idleStart)
 

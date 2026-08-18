@@ -28,6 +28,10 @@ final class WorkdayManager {
 
     /// The Idle Period awaiting a decision, if any. WorkdayManager owns this;
     /// IdleDetector only signals once and keeps no externally-visible state.
+    ///
+    /// Not `private(set)`: tests set this directly to stage a pending Idle
+    /// Period without going through `bootstrap()`, the same way `IdleDetector`'s
+    /// own `isIdle`/`idleStartTime` are poked directly by its tests.
     var pendingIdlePeriod: IdlePeriod?
 
     /// The Daily Log payload behind the current Workday.
