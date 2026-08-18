@@ -132,8 +132,7 @@ struct SummaryStatsView: View {
     }
 
     private var targetHoursPerDay: Double {
-        UserDefaults.standard.object(forKey: AppSettingsKey.normalNotificationHours) as? Double
-            ?? AppDefaults.normalNotificationHours
+        manager.notificationThresholds.normalHours
     }
 
     private var overtimeHours: Double {

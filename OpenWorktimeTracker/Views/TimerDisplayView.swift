@@ -29,6 +29,7 @@ struct TimerDisplayView: View {
             // Progress to daily goal
             ProgressBarView(
                 progress: goalProgress,
+                goalHours: manager.notificationThresholds.normalHours,
                 thresholdColor: thresholdColor
             )
         }
@@ -69,9 +70,7 @@ struct TimerDisplayView: View {
     }
 
     private var goalProgress: Double {
-        let goal =
-            (UserDefaults.standard.object(forKey: AppSettingsKey.normalNotificationHours) as? Double
-                ?? AppDefaults.normalNotificationHours) * 3600
+        let goal = manager.notificationThresholds.normalHours * 3600
         guard goal > 0 else { return 0 }
         return min(1.0, manager.displayTime / goal)
     }

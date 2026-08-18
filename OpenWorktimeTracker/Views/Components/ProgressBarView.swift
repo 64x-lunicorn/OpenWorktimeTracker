@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProgressBarView: View {
     let progress: Double
+    let goalHours: Double
     var thresholdColor: Color = DesignTokens.Colors.accentBlue
 
     var body: some View {
@@ -43,11 +44,8 @@ struct ProgressBarView: View {
     }
 
     private var goalText: String {
-        let hours =
-            UserDefaults.standard.object(forKey: AppSettingsKey.normalNotificationHours) as? Double
-            ?? AppDefaults.normalNotificationHours
-        let wholeHours = Int(hours)
-        let minutes = Int((hours - Double(wholeHours)) * 60)
+        let wholeHours = Int(goalHours)
+        let minutes = Int((goalHours - Double(wholeHours)) * 60)
         if minutes > 0 {
             return "\(wholeHours)h \(minutes)m"
         }

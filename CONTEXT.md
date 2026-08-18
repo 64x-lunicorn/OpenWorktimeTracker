@@ -47,15 +47,22 @@ _pause_ (a break). Recorded on the workday so the same question is never asked t
 _Avoid_: Idle choice, resolution
 
 **Threshold**:
-A configurable point in the day that triggers a notification and recolours the menu
-bar — for example 8 hours as normal and 10 hours as critical.
+A configurable point in a Workday's Net Work Time that something reacts to.
+Thresholds come in two independent forms — a Threshold Ladder recolours,
+Notification Thresholds notify — and a Workday can be past one but not the
+other.
 _Avoid_: Limit, alarm
 
 **Threshold Ladder**:
-The two Thresholds that recolour a Workday, held together as one value. Distinct
-from the notification Thresholds, which fire at their own points and are
-deliberately allowed to differ.
+The two Thresholds that recolour a Workday, held together as one value. Deliberately
+allowed to differ from Notification Thresholds, which fire at their own points.
 _Avoid_: Threshold settings, colour config
+
+**Notification Thresholds**:
+The Thresholds that fire a system notification as a Workday's Net Work Time grows —
+normal, critical, and the milestone that also prompts to end the day. Independent
+of the Threshold Ladder; a user can set them to disagree on purpose.
+_Avoid_: Notification settings, alert thresholds
 
 **Threshold Level**:
 Where a Workday's Net Work Time currently sits on the Threshold Ladder: _normal_,

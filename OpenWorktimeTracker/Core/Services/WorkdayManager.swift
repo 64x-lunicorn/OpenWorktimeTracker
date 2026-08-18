@@ -23,6 +23,9 @@ final class WorkdayManager {
     private(set) var pauseTime: TimeInterval = 0
     private(set) var netTime: TimeInterval = 0
 
+    private(set) var notificationThresholds: NotificationThresholds
+    private(set) var newDayStartHour: Int
+
     /// The Daily Log payload behind the current Workday.
     var currentEntry: TimeEntry? { currentWorkday?.payload }
 
@@ -31,11 +34,20 @@ final class WorkdayManager {
     let persistence = PersistenceManager()
     let idleDetector = IdleDetector()
     private let notifications = NotificationManager.shared
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        self.notificationThresholds = .resolved(from: defaults)
+        self.newDayStartHour =
+            defaults.object(forKey: AppSettingsKey.newDayStartHour) as? Int
+            ?? AppDefaults.newDayStartHour
+    }
 
     /// Pairs a Daily Log payload with the configured Auto Break Rules and
     /// Threshold Ladder. The one place configuration is resolved.
     func workday(for entry: TimeEntry) -> Workday {
-        Workday(payload: entry)
+        Workday(payload: entry, defaults: defaults)
     }
 
     private var timer: Timer?
@@ -94,8 +106,13 @@ final class WorkdayManager {
                 object: UserDefaults.standard,
                 queue: .main
             ) { [weak self] _ in
-                guard let self, let workday = self.currentWorkday else { return }
-                self.currentWorkday = workday.reconfigured()
+                guard let self else { return }
+                self.notificationThresholds = .resolved(from: self.defaults)
+                self.newDayStartHour =
+                    self.defaults.object(forKey: AppSettingsKey.newDayStartHour) as? Int
+                    ?? AppDefaults.newDayStartHour
+                guard let workday = self.currentWorkday else { return }
+                self.currentWorkday = workday.reconfigured(defaults: self.defaults)
                 self.updateComputedValues()
             }
         )
@@ -104,11 +121,7 @@ final class WorkdayManager {
     // MARK: - Workday Detection
 
     private func evaluateWorkday() {
-        let detector = WorkdayDetector(
-            newDayStartHour: UserDefaults.standard.object(forKey: AppSettingsKey.newDayStartHour)
-                as? Int
-                ?? AppDefaults.newDayStartHour
-        )
+        let detector = WorkdayDetector(newDayStartHour: newDayStartHour)
 
         let todayEntry = persistence.loadToday()
         let mostRecent = persistence.loadMostRecentEntry()
@@ -256,10 +269,7 @@ final class WorkdayManager {
     /// Accounts for auto-break that will be added at 6h/9h thresholds.
     var estimatedEndTime: Date? {
         guard let current = currentWorkday, state == .running || state == .paused else { return nil }
-        let targetHours =
-            UserDefaults.standard.object(forKey: AppSettingsKey.normalNotificationHours)
-            as? Double ?? AppDefaults.normalNotificationHours
-        let targetSeconds = targetHours * 3600
+        let targetSeconds = notificationThresholds.normalHours * 3600
 
         // Calculate how much gross time is needed to reach targetSeconds net
         // Net = Gross - ManualPause - IdlePause - AutoBreak
@@ -337,29 +347,20 @@ final class WorkdayManager {
 
     // MARK: - Threshold Notifications
 
-    private var notificationsEnabled: Bool {
-        UserDefaults.standard.object(forKey: AppSettingsKey.notificationsEnabled) as? Bool
-            ?? AppDefaults.notificationsEnabled
-    }
-
     private func checkThresholds() {
         guard let current = currentWorkday, state == .running || state == .paused else { return }
 
         let hours = netTime.inHours
         let notified = current.payload.notifiedThresholds
-
-        let milestoneH =
-            UserDefaults.standard.object(forKey: AppSettingsKey.milestoneNotificationHours)
-            as? Double
-            ?? AppDefaults.milestoneNotificationHours
+        let thresholds = notificationThresholds
 
         // The 10h milestone popup is a legal safeguard (ArbZG) and must appear
         // regardless of whether notifications are enabled.
-        if hours >= milestoneH && !notified.contains("milestone") {
+        if hours >= thresholds.milestoneHours && !notified.contains("milestone") {
             let updated = current.markingNotified("milestone")
             currentWorkday = updated
             persistence.save(updated.payload)
-            if notificationsEnabled {
+            if thresholds.enabled {
                 notifications.sendThresholdNotification(type: .milestone(hours: hours))
             }
             // Show popup asking to end the day
@@ -371,22 +372,14 @@ final class WorkdayManager {
         }
 
         // Normal and critical notifications are only sent when enabled.
-        guard notificationsEnabled else { return }
+        guard thresholds.enabled else { return }
 
-        let normalH =
-            UserDefaults.standard.object(forKey: AppSettingsKey.normalNotificationHours) as? Double
-            ?? AppDefaults.normalNotificationHours
-        let criticalH =
-            UserDefaults.standard.object(forKey: AppSettingsKey.criticalNotificationHours)
-            as? Double
-            ?? AppDefaults.criticalNotificationHours
-
-        if hours >= criticalH && !notified.contains("critical") {
+        if hours >= thresholds.criticalHours && !notified.contains("critical") {
             notifications.sendThresholdNotification(type: .critical(hours: hours))
             let updated = current.markingNotified("critical")
             currentWorkday = updated
             persistence.save(updated.payload)
-        } else if hours >= normalH && !notified.contains("normal") {
+        } else if hours >= thresholds.normalHours && !notified.contains("normal") {
             notifications.sendThresholdNotification(type: .normal(hours: hours))
             let updated = current.markingNotified("normal")
             currentWorkday = updated
@@ -398,11 +391,7 @@ final class WorkdayManager {
 
     private func checkDateChange() {
         guard let current = currentWorkday, state == .running || state == .paused else { return }
-        let detector = WorkdayDetector(
-            newDayStartHour: UserDefaults.standard.object(forKey: AppSettingsKey.newDayStartHour)
-                as? Int
-                ?? AppDefaults.newDayStartHour
-        )
+        let detector = WorkdayDetector(newDayStartHour: newDayStartHour)
         let effectiveDate = detector.effectiveDateString(for: Date())
         if effectiveDate != current.date {
             // Dismiss any pending idle prompt — it references the old day
