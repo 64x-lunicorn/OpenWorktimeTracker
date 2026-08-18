@@ -13,12 +13,12 @@ final class IdlePromptWindowController: NSObject, NSWindowDelegate {
         super.init()
     }
 
-    func show(promptInfo: IdlePromptInfo, manager: WorkdayManager) {
+    func show(idlePeriod: IdlePeriod, manager: WorkdayManager) {
         // Dismiss any existing panel first
         dismiss()
 
         let promptView = IdlePromptView(
-            promptInfo: promptInfo,
+            idlePeriod: idlePeriod,
             onDismiss: { [weak self] in
                 self?.dismiss()
             }
@@ -34,7 +34,7 @@ final class IdlePromptWindowController: NSObject, NSWindowDelegate {
             defer: false
         )
         panel.title =
-            promptInfo.spansMidnight
+            idlePeriod.spansMidnight
             ? String(localized: "idle.panel.newWorkday")
             : String(localized: "idle.panel.inactivity")
         panel.contentView = hostingView
@@ -136,7 +136,7 @@ final class IdlePromptWindowController: NSObject, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         // User manually closed via X button — clear pending prompt
-        manager?.idleDetector.dismissPrompt()
         panel = nil
+        manager?.dismissIdlePeriod()
     }
 }

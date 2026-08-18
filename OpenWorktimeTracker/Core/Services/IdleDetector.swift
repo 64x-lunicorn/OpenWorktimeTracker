@@ -8,22 +8,23 @@ final class IdleDetector {
 
     var isIdle = false
     var idleStartTime: Date?
-    var pendingPrompt: IdlePromptInfo?
+
+    /// De-dup guard, internal to detection: prevents a still-undecided Idle
+    /// Period from being reported twice. Not the source of truth for whether a
+    /// decision is pending — WorkdayManager owns that.
+    private var pendingPeriod: IdlePeriod?
+
     private var screenLocked = false
     private var lockTime: Date?
     private var isMonitoring = false
     private var observersRegistered = false
 
-    /// Called when a new idle prompt should be shown.
-    var onPromptReady: ((IdlePromptInfo) -> Void)?
+    /// Called once when an Idle Period ends and needs a decision.
+    var onPeriodEnded: ((IdlePeriod) -> Void)?
 
     // MARK: - Configuration
 
-    var idleThresholdSeconds: TimeInterval {
-        let minutes = UserDefaults.standard.object(forKey: AppSettingsKey.idleThresholdMinutes) as? Int
-            ?? AppDefaults.idleThresholdMinutes
-        return Double(minutes) * 60.0
-    }
+    var idleThreshold: IdleThreshold = .resolved()
 
     private var checkTimer: Timer?
 
@@ -49,7 +50,13 @@ final class IdleDetector {
         checkTimer = nil
         isIdle = false
         idleStartTime = nil
-        pendingPrompt = nil
+        pendingPeriod = nil
+    }
+
+    /// Tells the detector the Idle Period it last reported has been decided,
+    /// so a new one can be reported when the next idle stretch ends.
+    func periodResolved() {
+        pendingPeriod = nil
     }
 
     // MARK: - Screen Lock/Unlock
@@ -96,21 +103,17 @@ final class IdleDetector {
         screenLocked = false
         let unlockTime = Date()
 
-        if pendingPrompt == nil, let start = idleStartTime ?? lockTime {
+        if pendingPeriod == nil, let start = idleStartTime ?? lockTime {
             let duration = unlockTime.timeIntervalSince(start)
-            let threshold = idleThresholdSeconds > 0 ? idleThresholdSeconds : 300
 
-            if duration >= threshold {
-                let spansMidnight = !Calendar.current.isDate(start, inSameDayAs: unlockTime)
-                pendingPrompt = IdlePromptInfo(
+            if duration >= idleThreshold.seconds {
+                let period = IdlePeriod(
                     idleStart: start,
                     idleEnd: unlockTime,
-                    duration: duration,
-                    spansMidnight: spansMidnight
+                    spansMidnight: !Calendar.current.isDate(start, inSameDayAs: unlockTime)
                 )
-                if let prompt = pendingPrompt {
-                    onPromptReady?(prompt)
-                }
+                pendingPeriod = period
+                onPeriodEnded?(period)
             }
         }
         isIdle = false
@@ -130,9 +133,8 @@ final class IdleDetector {
         guard !screenLocked else { return }
 
         let idleSeconds = currentIdleTime()
-        let threshold = idleThresholdSeconds > 0 ? idleThresholdSeconds : 300  // default 5 min
 
-        if idleSeconds >= threshold {
+        if idleSeconds >= idleThreshold.seconds {
             // User is idle
             if !isIdle {
                 isIdle = true
@@ -141,19 +143,14 @@ final class IdleDetector {
         } else if isIdle {
             // User returned from idle
             let returnTime = Date()
-            if pendingPrompt == nil, let start = idleStartTime {
-                let duration = returnTime.timeIntervalSince(start)
-                let spansMidnight = !Calendar.current.isDate(start, inSameDayAs: returnTime)
-
-                pendingPrompt = IdlePromptInfo(
+            if pendingPeriod == nil, let start = idleStartTime {
+                let period = IdlePeriod(
                     idleStart: start,
                     idleEnd: returnTime,
-                    duration: duration,
-                    spansMidnight: spansMidnight
+                    spansMidnight: !Calendar.current.isDate(start, inSameDayAs: returnTime)
                 )
-                if let prompt = pendingPrompt {
-                    onPromptReady?(prompt)
-                }
+                pendingPeriod = period
+                onPeriodEnded?(period)
             }
             isIdle = false
             idleStartTime = nil
@@ -170,33 +167,5 @@ final class IdleDetector {
         let keyDown = CGEventSource.secondsSinceLastEventType(
             .combinedSessionState, eventType: .keyDown)
         return min(mouseMoved, mouseDown, keyDown)
-    }
-
-    func dismissPrompt() {
-        pendingPrompt = nil
-    }
-}
-
-// MARK: - Prompt Info
-
-struct IdlePromptInfo: Identifiable {
-    let id = UUID()
-    let idleStart: Date
-    let idleEnd: Date
-    let duration: TimeInterval
-    let spansMidnight: Bool
-
-    var formattedDuration: String {
-        let minutes = Int(duration) / 60
-        if minutes >= 60 {
-            let hours = minutes / 60
-            let mins = minutes % 60
-            return "\(hours)h \(mins)m"
-        }
-        return "\(minutes) Min"
-    }
-
-    var formattedRange: String {
-        "\(idleStart.hoursMinutesString) – \(idleEnd.hoursMinutesString)"
     }
 }

@@ -26,6 +26,10 @@ final class WorkdayManager {
     private(set) var notificationThresholds: NotificationThresholds
     private(set) var newDayStartHour: Int
 
+    /// The Idle Period awaiting a decision, if any. WorkdayManager owns this;
+    /// IdleDetector only signals once and keeps no externally-visible state.
+    var pendingIdlePeriod: IdlePeriod?
+
     /// The Daily Log payload behind the current Workday.
     var currentEntry: TimeEntry? { currentWorkday?.payload }
 
@@ -40,6 +44,7 @@ final class WorkdayManager {
         self.defaults = defaults
         self.notificationThresholds = .resolved(from: defaults)
         self.newDayStartHour = Self.resolvedNewDayStartHour(from: defaults)
+        self.idleDetector.idleThreshold = .resolved(from: defaults)
     }
 
     private static func resolvedNewDayStartHour(from defaults: UserDefaults) -> Int {
@@ -65,11 +70,12 @@ final class WorkdayManager {
         hasBootstrapped = true
         registerForSleepWake()
 
-        idleDetector.onPromptReady = { [weak self] prompt in
+        idleDetector.onPeriodEnded = { [weak self] period in
             guard let self else { return }
+            self.pendingIdlePeriod = period
             DispatchQueue.main.async {
                 guard self.state == .running || self.state == .paused else { return }
-                IdlePromptWindowController.shared.show(promptInfo: prompt, manager: self)
+                IdlePromptWindowController.shared.show(idlePeriod: period, manager: self)
             }
         }
 
@@ -112,6 +118,7 @@ final class WorkdayManager {
                 guard let self else { return }
                 self.notificationThresholds = .resolved(from: self.defaults)
                 self.newDayStartHour = Self.resolvedNewDayStartHour(from: self.defaults)
+                self.idleDetector.idleThreshold = .resolved(from: self.defaults)
                 guard let workday = self.currentWorkday else { return }
                 self.currentWorkday = workday.reconfigured(defaults: self.defaults)
                 self.updateComputedValues()
@@ -465,7 +472,7 @@ final class WorkdayManager {
             guard let self else { return }
             // If the idle detector raised a prompt, let the user's decision drive
             // the day transition instead of racing it with an auto-evaluation.
-            if self.idleDetector.pendingPrompt != nil { return }
+            if self.pendingIdlePeriod != nil { return }
             self.evaluateWorkday()
         }
     }
@@ -511,9 +518,17 @@ final class WorkdayManager {
         persistence.save(ended.payload)
         stopTimer()
         idleDetector.stopMonitoring()
-        idleDetector.dismissPrompt()
-        IdlePromptWindowController.shared.dismiss()
+        dismissIdlePeriod()
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Clears the pending Idle Period, tells the detector it's been resolved,
+    /// and closes its presentation. The single call every dismissal path uses
+    /// — no caller has to remember the pairing that used to be here.
+    func dismissIdlePeriod() {
+        pendingIdlePeriod = nil
+        idleDetector.periodResolved()
+        IdlePromptWindowController.shared.dismiss()
     }
 }
 
@@ -523,46 +538,45 @@ extension WorkdayManager {
 
     func handleIdleDecision(_ decision: IdleDecision.Decision) {
         guard let current = currentWorkday,
-            let prompt = idleDetector.pendingPrompt
+            let period = pendingIdlePeriod
         else { return }
 
         let updated = current.recording(
-            IdleDecision(idleStart: prompt.idleStart, idleEnd: prompt.idleEnd, decision: decision)
+            IdleDecision(idleStart: period.idleStart, idleEnd: period.idleEnd, decision: decision)
         )
         currentWorkday = updated
         persistence.save(updated.payload)
-        idleDetector.dismissPrompt()
-        IdlePromptWindowController.shared.dismiss()
+        dismissIdlePeriod()
     }
 
     func handleIdleDecisionAndEndDay() {
         guard let current = currentWorkday,
-            let prompt = idleDetector.pendingPrompt
+            let period = pendingIdlePeriod
         else { return }
 
         // Record idle time as pause, then end the day at idle start.
         currentWorkday = current.recording(
-            IdleDecision(idleStart: prompt.idleStart, idleEnd: prompt.idleEnd, decision: .pause)
+            IdleDecision(idleStart: period.idleStart, idleEnd: period.idleEnd, decision: .pause)
         )
-        finish(at: prompt.idleStart)
+        finish(at: period.idleStart)
     }
 
     func handleIdleDecisionAndRestart() {
         guard let current = currentWorkday,
-            let prompt = idleDetector.pendingPrompt
+            let period = pendingIdlePeriod
         else { return }
 
         // End current day at idle start, then start a new day.
         currentWorkday = current.recording(
-            IdleDecision(idleStart: prompt.idleStart, idleEnd: prompt.idleEnd, decision: .pause)
+            IdleDecision(idleStart: period.idleStart, idleEnd: period.idleEnd, decision: .pause)
         )
-        finish(at: prompt.idleStart)
+        finish(at: period.idleStart)
         startNewDay()
     }
 
     func handleNewDayFromIdle(endYesterdayAt: Date) {
         guard currentWorkday != nil,
-            idleDetector.pendingPrompt != nil
+            pendingIdlePeriod != nil
         else { return }
 
         finish(at: endYesterdayAt)

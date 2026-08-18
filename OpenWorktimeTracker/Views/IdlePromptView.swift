@@ -3,16 +3,16 @@ import SwiftUI
 struct IdlePromptView: View {
     @Environment(WorkdayManager.self) private var manager
 
-    let promptInfo: IdlePromptInfo
+    let idlePeriod: IdlePeriod
     var onDismiss: (() -> Void)?
 
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.xl) {
             // Icon
-            Image(systemName: promptInfo.spansMidnight ? "sunrise.fill" : "moon.zzz.fill")
+            Image(systemName: idlePeriod.spansMidnight ? "sunrise.fill" : "moon.zzz.fill")
                 .font(.system(size: 36))
                 .foregroundStyle(
-                    promptInfo.spansMidnight
+                    idlePeriod.spansMidnight
                         ? DesignTokens.Colors.accentOrange
                         : DesignTokens.Colors.accentBlue
                 )
@@ -20,7 +20,7 @@ struct IdlePromptView: View {
 
             // Title
             Text(
-                promptInfo.spansMidnight
+                idlePeriod.spansMidnight
                     ? String(localized: "idle.newWorkday")
                     : String(localized: "idle.inactivityDetected")
             )
@@ -32,12 +32,12 @@ struct IdlePromptView: View {
                 Text(
                     String(
                         format: String(localized: "idle.youWereInactive"),
-                        promptInfo.formattedDuration)
+                        idlePeriod.formattedDuration)
                 )
                 .font(DesignTokens.Typography.bodyMedium)
                 .foregroundStyle(DesignTokens.Colors.onSurface)
 
-                Text(promptInfo.formattedRange)
+                Text(idlePeriod.formattedRange)
                     .font(DesignTokens.Typography.bodySmall)
                     .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
                     .monospacedDigit()
@@ -48,7 +48,7 @@ struct IdlePromptView: View {
             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
 
             // Actions
-            if promptInfo.spansMidnight {
+            if idlePeriod.spansMidnight {
                 midnightActions
             } else {
                 sameDayActions
@@ -60,7 +60,7 @@ struct IdlePromptView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(
             Text(
-                promptInfo.spansMidnight
+                idlePeriod.spansMidnight
                     ? String(localized: "idle.newWorkday")
                     : String(localized: "idle.inactivityDetected")
             ))
@@ -70,7 +70,7 @@ struct IdlePromptView: View {
 
     /// Net work time if the day were ended at idle start.
     private var netTimeAtIdleStart: TimeInterval {
-        manager.currentWorkday?.netWorkTime(endingAt: promptInfo.idleStart) ?? 0
+        manager.currentWorkday?.netWorkTime(endingAt: idlePeriod.idleStart) ?? 0
     }
 
     private var sameDayActions: some View {
@@ -119,7 +119,7 @@ struct IdlePromptView: View {
                         Text(
                             String(
                                 format: String(localized: "idle.endDay.atTime"),
-                                promptInfo.idleStart.hoursMinutesString))
+                                idlePeriod.idleStart.hoursMinutesString))
                     }
                     .font(DesignTokens.Typography.labelLarge)
                     Text(
@@ -150,7 +150,7 @@ struct IdlePromptView: View {
                     Text(
                         String(
                             format: String(localized: "idle.restart.detail"),
-                            promptInfo.idleStart.hoursMinutesString))
+                            idlePeriod.idleStart.hoursMinutesString))
                     .font(DesignTokens.Typography.labelMicro)
                     .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
                 }
@@ -169,14 +169,14 @@ struct IdlePromptView: View {
     private var midnightActions: some View {
         VStack(spacing: DesignTokens.Spacing.sm) {
             Button {
-                manager.handleNewDayFromIdle(endYesterdayAt: promptInfo.idleStart)
+                manager.handleNewDayFromIdle(endYesterdayAt: idlePeriod.idleStart)
                 onDismiss?()
             } label: {
                 VStack(spacing: 2) {
                     Text(
                         String(
                             format: String(localized: "idle.endYesterday"),
-                            promptInfo.idleStart.hoursMinutesString))
+                            idlePeriod.idleStart.hoursMinutesString))
                     Text("idle.startToday")
                         .font(DesignTokens.Typography.labelMicro)
                         .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
@@ -204,5 +204,25 @@ struct IdlePromptView: View {
             }
             .buttonStyle(.plain)
         }
+    }
+}
+
+// MARK: - Formatting
+
+/// View-layer presentation for an IdlePeriod. Kept out of the domain type so
+/// Core/Models has no UI-facing concerns.
+private extension IdlePeriod {
+    var formattedDuration: String {
+        let minutes = Int(duration) / 60
+        if minutes >= 60 {
+            let hours = minutes / 60
+            let mins = minutes % 60
+            return "\(hours)h \(mins)m"
+        }
+        return "\(minutes) Min"
+    }
+
+    var formattedRange: String {
+        "\(idleStart.hoursMinutesString) – \(idleEnd.hoursMinutesString)"
     }
 }

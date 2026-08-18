@@ -21,10 +21,9 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
     }
 
     private func pendingPrompt(idleStart: Date, idleEnd: Date, spansMidnight: Bool = false) {
-        manager.idleDetector.pendingPrompt = IdlePromptInfo(
+        manager.pendingIdlePeriod = IdlePeriod(
             idleStart: idleStart,
             idleEnd: idleEnd,
-            duration: idleEnd.timeIntervalSince(idleStart),
             spansMidnight: spansMidnight
         )
     }
@@ -40,7 +39,7 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
         XCTAssertEqual(manager.currentEntry?.status, .ended)
         XCTAssertEqual(manager.currentEntry?.endTime, idleStart)
         XCTAssertEqual(manager.currentEntry?.idleDecisions.last?.decision, .pause)
-        XCTAssertNil(manager.idleDetector.pendingPrompt)
+        XCTAssertNil(manager.pendingIdlePeriod)
     }
 
     func testHandleIdleDecisionAndRestartStartsANewEntry() {
@@ -52,7 +51,7 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
 
         XCTAssertEqual(manager.state, .running)
         XCTAssertNotEqual(manager.currentEntry?.id, originalID)
-        XCTAssertNil(manager.idleDetector.pendingPrompt)
+        XCTAssertNil(manager.pendingIdlePeriod)
     }
 
     func testHandleNewDayFromIdleEndsYesterdayAndStartsToday() {
@@ -65,7 +64,7 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
 
         XCTAssertEqual(manager.state, .running)
         XCTAssertNotEqual(manager.currentEntry?.id, originalID)
-        XCTAssertNil(manager.idleDetector.pendingPrompt)
+        XCTAssertNil(manager.pendingIdlePeriod)
     }
 
     func testHandleIdleDecisionAndEndDayWithNoPendingPromptIsNoOp() {
