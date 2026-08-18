@@ -19,3 +19,12 @@ without changing call sites again.
 So: if `WorkdayManager.tick()` is passing `clock.now` into
 `Workday.netWorkTime(endingAt:)`, that's deliberate — the dependency lives one
 level up on purpose.
+
+`WorkdayManager` keeps a separately-typed `persistence: PersistenceManager`
+property alongside `store: DailyLogStore`, rather than replacing it outright.
+Several views reach `manager.persistence` directly for things `DailyLogStore`
+doesn't cover — log export, browsing the log folder, iCloud sync — and giving
+those views a Daily Log query interface of their own is a separate, later
+decision. `store` defaults to `persistence` itself, so production has one
+real instance; only `WorkdayManager`'s own load/save calls were moved onto
+`store`.

@@ -48,7 +48,7 @@ final class WorkdayManagerClockAndStoreTests: XCTestCase {
 
         manager.resume()
 
-        XCTAssertEqual(manager.currentEntry?.manualPauseSeconds ?? 0, 900, accuracy: 0.001)
+        XCTAssertEqual(manager.currentEntry?.manualPauseSeconds ?? 0, 900)
     }
 
     func testEndDayUsesTheInjectedClockExactly() {
