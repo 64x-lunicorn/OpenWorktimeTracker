@@ -194,17 +194,7 @@ final class WorkdayManager {
     }
 
     func endDay() {
-        guard let current = currentWorkday else { return }
-
-        let ended = current.ended(at: Date())
-        currentWorkday = ended
-        state = .ended
-        persistence.save(ended.payload)
-        stopTimer()
-        idleDetector.stopMonitoring()
-        idleDetector.dismissPrompt()
-        IdlePromptWindowController.shared.dismiss()
-        WidgetCenter.shared.reloadAllTimelines()
+        finish(at: Date())
     }
 
     func restartDay() {
@@ -394,30 +384,22 @@ final class WorkdayManager {
         guard let current = currentWorkday, state == .running || state == .paused else { return }
         let detector = WorkdayDetector(newDayStartHour: newDayStartHour)
         let effectiveDate = detector.effectiveDateString(for: Date())
-        if effectiveDate != current.date {
-            // Dismiss any pending idle prompt — it references the old day
-            idleDetector.dismissPrompt()
-            IdlePromptWindowController.shared.dismiss()
+        guard effectiveDate != current.date else { return }
 
-            let wasPaused = (state == .paused)
+        let wasPaused = (state == .paused)
 
-            // Day changed — end old day at midnight, closing any open Pause
-            let midnight = Calendar.current.startOfDay(for: Date())
-            persistence.save(current.ended(at: midnight).payload)
+        // Day changed — end the old day at midnight, closing any open Pause.
+        finish(at: Calendar.current.startOfDay(for: Date()))
 
-            if wasPaused {
-                // The user was paused across midnight (not actively working) —
-                // don't auto-start a running day, which would wrongly count the
-                // night as work. Reset to a clean, idle slate instead.
-                currentWorkday = nil
-                state = .notStarted
-                stopTimer()
-                idleDetector.stopMonitoring()
-                updateComputedValues()
-                WidgetCenter.shared.reloadAllTimelines()
-            } else {
-                startNewDay()
-            }
+        if wasPaused {
+            // The user was paused across midnight (not actively working) —
+            // don't auto-start a running day, which would wrongly count the
+            // night as work. Reset to a clean, idle slate instead.
+            currentWorkday = nil
+            state = .notStarted
+            updateComputedValues()
+        } else {
+            startNewDay()
         }
     }
 
@@ -511,6 +493,28 @@ final class WorkdayManager {
     func exportCSV() -> URL? {
         persistence.exportCSV(workdayFor: workday(for:))
     }
+
+    // MARK: - Ending a Workday
+
+    /// Ends the held Workday at `instant` and runs every effect that requires:
+    /// persisting, stopping the timer and Idle monitoring, dismissing any
+    /// prompt, and reloading the widget.
+    ///
+    /// Unconditional — every caller gets the full effect list, even one that
+    /// immediately starts a new Workday and redoes half of it. That's cheap;
+    /// six near-identical, subtly-diverging copies of this list were not.
+    private func finish(at instant: Date) {
+        guard let current = currentWorkday else { return }
+        let ended = current.ended(at: instant)
+        currentWorkday = ended
+        state = .ended
+        persistence.save(ended.payload)
+        stopTimer()
+        idleDetector.stopMonitoring()
+        idleDetector.dismissPrompt()
+        IdlePromptWindowController.shared.dismiss()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
 }
 
 // MARK: - Idle Handling
@@ -536,21 +540,11 @@ extension WorkdayManager {
             let prompt = idleDetector.pendingPrompt
         else { return }
 
-        // Record idle time as pause, then end the day at idle start
-        let ended =
-            current
-            .recording(
-                IdleDecision(idleStart: prompt.idleStart, idleEnd: prompt.idleEnd, decision: .pause)
-            )
-            .ended(at: prompt.idleStart)
-        currentWorkday = ended
-        state = .ended
-        persistence.save(ended.payload)
-        stopTimer()
-        idleDetector.dismissPrompt()
-        idleDetector.stopMonitoring()
-        IdlePromptWindowController.shared.dismiss()
-        WidgetCenter.shared.reloadAllTimelines()
+        // Record idle time as pause, then end the day at idle start.
+        currentWorkday = current.recording(
+            IdleDecision(idleStart: prompt.idleStart, idleEnd: prompt.idleEnd, decision: .pause)
+        )
+        finish(at: prompt.idleStart)
     }
 
     func handleIdleDecisionAndRestart() {
@@ -558,29 +552,20 @@ extension WorkdayManager {
             let prompt = idleDetector.pendingPrompt
         else { return }
 
-        // End current day at idle start, then start a new day
-        let ended =
-            current
-            .recording(
-                IdleDecision(idleStart: prompt.idleStart, idleEnd: prompt.idleEnd, decision: .pause)
-            )
-            .ended(at: prompt.idleStart)
-        persistence.save(ended.payload)
-        idleDetector.dismissPrompt()
-        IdlePromptWindowController.shared.dismiss()
+        // End current day at idle start, then start a new day.
+        currentWorkday = current.recording(
+            IdleDecision(idleStart: prompt.idleStart, idleEnd: prompt.idleEnd, decision: .pause)
+        )
+        finish(at: prompt.idleStart)
         startNewDay()
     }
 
     func handleNewDayFromIdle(endYesterdayAt: Date) {
-        guard let current = currentWorkday,
+        guard currentWorkday != nil,
             idleDetector.pendingPrompt != nil
         else { return }
 
-        persistence.save(current.ended(at: endYesterdayAt).payload)
-
-        // Start fresh
-        idleDetector.dismissPrompt()
-        IdlePromptWindowController.shared.dismiss()
+        finish(at: endYesterdayAt)
         startNewDay()
     }
 }

@@ -50,6 +50,7 @@
 		ADE593C4C405609F5F1B3894 /* WorkdayManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C770EF5C2029076BF88AF474 /* WorkdayManagerTests.swift */; };
 		AEE1E6715AC00AE314B9D854 /* OpenWorktimeTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90A98A9F938927C616301EA5 /* OpenWorktimeTrackerApp.swift */; };
 		B2942C9DBBAD0D5F95307152 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B2CA010B0A3CBEDC5FA6F9 /* MenuBarView.swift */; };
+		BA8452319FEBD0BB5443C7D1 /* WorkdayManagerIdleHandlingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5692F3320868828C600D08B4 /* WorkdayManagerIdleHandlingTests.swift */; };
 		BF24A802B731C7DB18835234 /* LogEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EEEFF607EEBE5390F88EB0B /* LogEditorWindowController.swift */; };
 		CB63BC5DE6E64B89F587BF8D /* Workday.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652C1192D957C6B1AA70B815 /* Workday.swift */; };
 		CFA636175CB967A129D45107 /* ActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032AEE83355F68A71F71365C /* ActionButton.swift */; };
@@ -108,6 +109,7 @@
 		5202C6AD0AF52C2D73DC6E17 /* SummaryStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryStatsView.swift; sourceTree = "<group>"; };
 		5351C1EB6221F54A7FC64A02 /* LogEntryEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEntryEditView.swift; sourceTree = "<group>"; };
 		54E2CD75761D381C44EA86DA /* ThresholdLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThresholdLevel.swift; sourceTree = "<group>"; };
+		5692F3320868828C600D08B4 /* WorkdayManagerIdleHandlingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayManagerIdleHandlingTests.swift; sourceTree = "<group>"; };
 		587CB7F059336B48B3DEE9CC /* IdleDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleDetector.swift; sourceTree = "<group>"; };
 		58B2CA010B0A3CBEDC5FA6F9 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		5C9B60DDF61A20041E00A564 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -264,6 +266,7 @@
 				CB0E2224DEF41A69EC1E92AA /* PersistenceManagerTests.swift */,
 				7C0158B151E8021863597395 /* TimeEntryTests.swift */,
 				92CC8582D1A82A4ED0B8BE3D /* WorkdayDetectorTests.swift */,
+				5692F3320868828C600D08B4 /* WorkdayManagerIdleHandlingTests.swift */,
 				99AEB2B7772C3768CB0B7B4B /* WorkdayManagerSettingsTests.swift */,
 				C770EF5C2029076BF88AF474 /* WorkdayManagerTests.swift */,
 				8D92EF9892D12D3D1DEA3418 /* WorkdayTests.swift */,
@@ -479,6 +482,7 @@
 				3D60D0048DED858DE6BB52DA /* PersistenceManagerTests.swift in Sources */,
 				330D1906DCAC60438162015F /* TimeEntryTests.swift in Sources */,
 				2E50C9C91938F36E479FAB46 /* WorkdayDetectorTests.swift in Sources */,
+				BA8452319FEBD0BB5443C7D1 /* WorkdayManagerIdleHandlingTests.swift in Sources */,
 				4352E3077EFA1D9BDA71E053 /* WorkdayManagerSettingsTests.swift in Sources */,
 				ADE593C4C405609F5F1B3894 /* WorkdayManagerTests.swift in Sources */,
 				7D1AA8C747743D0DBCF47233 /* WorkdayTests.swift in Sources */,
