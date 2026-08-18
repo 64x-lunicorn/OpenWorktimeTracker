@@ -39,8 +39,11 @@ final class WorkdayManager {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.notificationThresholds = .resolved(from: defaults)
-        self.newDayStartHour =
-            defaults.object(forKey: AppSettingsKey.newDayStartHour) as? Int
+        self.newDayStartHour = Self.resolvedNewDayStartHour(from: defaults)
+    }
+
+    private static func resolvedNewDayStartHour(from defaults: UserDefaults) -> Int {
+        defaults.object(forKey: AppSettingsKey.newDayStartHour) as? Int
             ?? AppDefaults.newDayStartHour
     }
 
@@ -108,9 +111,7 @@ final class WorkdayManager {
             ) { [weak self] _ in
                 guard let self else { return }
                 self.notificationThresholds = .resolved(from: self.defaults)
-                self.newDayStartHour =
-                    self.defaults.object(forKey: AppSettingsKey.newDayStartHour) as? Int
-                    ?? AppDefaults.newDayStartHour
+                self.newDayStartHour = Self.resolvedNewDayStartHour(from: self.defaults)
                 guard let workday = self.currentWorkday else { return }
                 self.currentWorkday = workday.reconfigured(defaults: self.defaults)
                 self.updateComputedValues()
