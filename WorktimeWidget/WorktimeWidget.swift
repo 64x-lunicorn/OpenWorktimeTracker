@@ -1,44 +1,32 @@
 import SwiftUI
 import WidgetKit
+import os.log
+
+private let logger = Logger(subsystem: "com.openworktimetracker.app.widget", category: "Snapshot")
 
 // MARK: - Timeline Entry
 
 struct WorktimeEntry: TimelineEntry {
     let date: Date
-    let state: String
-    let netTimeSeconds: TimeInterval
-    let grossTimeSeconds: TimeInterval
-    let startTime: Date?
-    let workDate: String
-    let targetHours: Double
-    let orangeThreshold: Double
-    let redThreshold: Double
-
-    var isRunning: Bool { state == "running" }
-
-    /// Point in time from which the net work time should count up live.
-    /// Equals "snapshot time minus already-accumulated net seconds", so a live
-    /// timer anchored here always displays the correct, increasing net time.
-    var liveNetStart: Date {
-        date.addingTimeInterval(-netTimeSeconds)
-    }
+    let snapshot: WidgetSnapshot?
 }
 
 // MARK: - Timeline Provider
 
 struct WorktimeProvider: TimelineProvider {
     func placeholder(in context: Context) -> WorktimeEntry {
-        WorktimeEntry(
-            date: Date(),
+        let now = Date()
+        return WorktimeEntry(date: now, snapshot: WidgetSnapshot(
+            measuredAt: now,
             state: "running",
-            netTimeSeconds: 5 * 3600 + 23 * 60,
-            grossTimeSeconds: 6 * 3600,
-            startTime: Calendar.current.date(bySettingHour: 8, minute: 30, second: 0, of: Date()),
+            netTime: 5 * 3600 + 23 * 60,
+            grossTime: 6 * 3600,
+            startTime: Calendar.current.date(bySettingHour: 8, minute: 30, second: 0, of: now),
             workDate: "2024-01-15",
             targetHours: 8.0,
             orangeThreshold: 8.0,
             redThreshold: 9.5
-        )
+        ))
     }
 
     func getSnapshot(in context: Context, completion: @escaping (WorktimeEntry) -> Void) {
@@ -47,7 +35,7 @@ struct WorktimeProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<WorktimeEntry>) -> Void) {
         let entry = createEntry()
-        let isRunning = entry.state == "running"
+        let isRunning = entry.snapshot?.isRunning == true
         // The running view counts up live via Text(timerInterval:), so timelines
         // only need occasional refreshes to update the progress ring and colors.
         // Refreshing every minute would exhaust WidgetKit's daily reload budget
@@ -61,24 +49,21 @@ struct WorktimeProvider: TimelineProvider {
     }
 
     private func createEntry() -> WorktimeEntry {
-        WorktimeEntry(
-            date: Date(),
-            state: SharedDefaults.readState(),
-            netTimeSeconds: SharedDefaults.readNetTime(),
-            grossTimeSeconds: SharedDefaults.readGrossTime(),
-            startTime: SharedDefaults.readStartTime(),
-            workDate: SharedDefaults.readDate(),
-            targetHours: SharedDefaults.readTargetHours(),
-            orangeThreshold: SharedDefaults.readOrangeThreshold(),
-            redThreshold: SharedDefaults.readRedThreshold()
-        )
+        do {
+            let snapshot = try SharedDefaults.shared.readSnapshot()
+            return WorktimeEntry(date: Date(), snapshot: snapshot)
+        } catch {
+            logger.error("Cannot read widget snapshot: \(error.localizedDescription)")
+            return WorktimeEntry(date: Date(), snapshot: nil)
+        }
     }
 }
 
 // MARK: - Small Widget View
 
 struct WorktimeWidgetSmallView: View {
-    let entry: WorktimeEntry
+    let snapshot: WidgetSnapshot
+    let date: Date
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -95,17 +80,17 @@ struct WorktimeWidgetSmallView: View {
             Spacer()
 
             Group {
-                if entry.isRunning {
-                    Text(timerInterval: entry.liveNetStart...Date.distantFuture, countsDown: false)
+                if snapshot.isRunning {
+                    Text(timerInterval: snapshot.liveNetStart...Date.distantFuture, countsDown: false)
                 } else {
-                    Text(formatTime(entry.netTimeSeconds))
+                    Text(formatTime(snapshot.netTime))
                 }
             }
             .font(.system(size: 28, weight: .medium, design: .rounded))
             .monospacedDigit()
             .foregroundStyle(.primary)
 
-            if let start = entry.startTime {
+            if let start = snapshot.startTime {
                 Text(
                     String(
                         format: String(localized: "widget.since"),
@@ -120,23 +105,21 @@ struct WorktimeWidgetSmallView: View {
     }
 
     private var stateColor: Color {
-        let hours = entry.netTimeSeconds / 3600
-        if hours >= entry.redThreshold {
-            return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
-        }
-        if hours >= entry.orangeThreshold {
-            return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        }
-        switch entry.state {
-        case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
-        case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
-        default: return .secondary
+        switch snapshot.thresholdLevel(at: date) {
+        case .critical: return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        case .normal:
+            switch snapshot.state {
+            case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
+            case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+            case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
+            default: return .secondary
+            }
         }
     }
 
     private var stateLabel: String {
-        switch entry.state {
+        switch snapshot.state {
         case "running": return String(localized: "widget.state.running")
         case "paused": return String(localized: "widget.state.paused")
         case "ended": return String(localized: "widget.state.ended")
@@ -148,7 +131,10 @@ struct WorktimeWidgetSmallView: View {
 // MARK: - Medium Widget View
 
 struct WorktimeWidgetMediumView: View {
-    let entry: WorktimeEntry
+    let snapshot: WidgetSnapshot
+    let date: Date
+
+    private var netTimeSeconds: TimeInterval { snapshot.netTime(at: date) }
 
     var body: some View {
         HStack(spacing: 16) {
@@ -166,19 +152,19 @@ struct WorktimeWidgetMediumView: View {
                 Spacer()
 
                 Group {
-                    if entry.isRunning {
+                    if snapshot.isRunning {
                         Text(
-                            timerInterval: entry.liveNetStart...Date.distantFuture,
+                            timerInterval: snapshot.liveNetStart...Date.distantFuture,
                             countsDown: false)
                     } else {
-                        Text(formatTime(entry.netTimeSeconds))
+                        Text(formatTime(snapshot.netTime))
                     }
                 }
                 .font(.system(size: 32, weight: .medium, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.primary)
 
-                if let start = entry.startTime {
+                if let start = snapshot.startTime {
                     Text(
                         String(
                             format: String(localized: "widget.since"),
@@ -197,14 +183,14 @@ struct WorktimeWidgetMediumView: View {
                         .stroke(.quaternary, lineWidth: 6)
                     Circle()
                         .trim(
-                            from: 0, to: min(1.0, entry.netTimeSeconds / (entry.targetHours * 3600))
+                            from: 0, to: min(1.0, netTimeSeconds / (snapshot.targetHours * 3600))
                         )
                         .stroke(progressColor, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                     Text(
                         String(
                             format: "%.0f%%",
-                            min(100, entry.netTimeSeconds / (entry.targetHours * 3600) * 100))
+                            min(100, netTimeSeconds / (snapshot.targetHours * 3600) * 100))
                     )
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .monospacedDigit()
@@ -214,7 +200,7 @@ struct WorktimeWidgetMediumView: View {
                 Text(
                     String(
                         format: String(localized: "widget.target"),
-                        Int(entry.targetHours))
+                        formatTime(snapshot.targetHours * 3600))
                 )
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
@@ -225,23 +211,21 @@ struct WorktimeWidgetMediumView: View {
     }
 
     private var stateColor: Color {
-        let hours = entry.netTimeSeconds / 3600
-        if hours >= entry.redThreshold {
-            return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
-        }
-        if hours >= entry.orangeThreshold {
-            return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        }
-        switch entry.state {
-        case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
-        case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
-        default: return .secondary
+        switch snapshot.thresholdLevel(at: date) {
+        case .critical: return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        case .normal:
+            switch snapshot.state {
+            case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
+            case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+            case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
+            default: return .secondary
+            }
         }
     }
 
     private var stateLabel: String {
-        switch entry.state {
+        switch snapshot.state {
         case "running": return String(localized: "widget.state.running")
         case "paused": return String(localized: "widget.state.paused")
         case "ended": return String(localized: "widget.state.ended")
@@ -250,14 +234,11 @@ struct WorktimeWidgetMediumView: View {
     }
 
     private var progressColor: Color {
-        let hours = entry.netTimeSeconds / 3600
-        if hours >= entry.redThreshold {
-            return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        switch snapshot.thresholdLevel(at: date) {
+        case .critical: return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        case .normal: return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
         }
-        if hours >= entry.orangeThreshold {
-            return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        }
-        return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
     }
 }
 
@@ -286,11 +267,18 @@ struct WorktimeWidgetEntryView: View {
     let entry: WorktimeEntry
 
     var body: some View {
-        switch family {
-        case .systemMedium:
-            WorktimeWidgetMediumView(entry: entry)
-        default:
-            WorktimeWidgetSmallView(entry: entry)
+        if let snapshot = entry.snapshot {
+            switch family {
+            case .systemMedium:
+                WorktimeWidgetMediumView(snapshot: snapshot, date: entry.date)
+            default:
+                WorktimeWidgetSmallView(snapshot: snapshot, date: entry.date)
+            }
+        } else {
+            Text(String(localized: "widget.state.unavailable"))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .containerBackground(.fill.tertiary, for: .widget)
         }
     }
 }
@@ -304,8 +292,8 @@ struct WorktimeWidget: Widget {
         StaticConfiguration(kind: kind, provider: WorktimeProvider()) { entry in
             WorktimeWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Work Time")
-        .description("Shows your current work time at a glance.")
+        .configurationDisplayName("widget.name")
+        .description("widget.description")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

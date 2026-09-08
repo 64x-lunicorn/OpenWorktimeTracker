@@ -22,23 +22,6 @@ final class IdleDetectorTests: XCTestCase {
     func testInitialState() {
         XCTAssertFalse(detector.isIdle)
         XCTAssertNil(detector.idleStartTime)
-        XCTAssertNil(detector.pendingPrompt)
-    }
-
-    // MARK: - Dismiss Prompt
-
-    func testDismissPromptClearsPendingPrompt() {
-        // Manually set a pending prompt for test
-        detector.pendingPrompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-600),
-            idleEnd: Date(),
-            duration: 600,
-            spansMidnight: false
-        )
-        XCTAssertNotNil(detector.pendingPrompt)
-
-        detector.dismissPrompt()
-        XCTAssertNil(detector.pendingPrompt)
     }
 
     // MARK: - Stop Monitoring
@@ -53,193 +36,126 @@ final class IdleDetectorTests: XCTestCase {
         XCTAssertNil(detector.idleStartTime)
     }
 
-    // MARK: - Callback
-
-    func testOnPromptReadyCallbackIsSet() {
-        var callbackCalled = false
-        detector.onPromptReady = { _ in
-            callbackCalled = true
-        }
-
-        // Verify callback is stored
-        XCTAssertNotNil(detector.onPromptReady)
-        // Invoke it manually
-        let prompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-600),
-            idleEnd: Date(),
-            duration: 600,
-            spansMidnight: false
-        )
-        detector.onPromptReady?(prompt)
-        XCTAssertTrue(callbackCalled)
-    }
-
-    // MARK: - IdlePromptInfo
-
-    func testIdlePromptInfoDurationFormatMinutes() {
-        let prompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-300),
-            idleEnd: Date(),
-            duration: 300,
-            spansMidnight: false
-        )
-        XCTAssertEqual(prompt.formattedDuration, "5 Min")
-    }
-
-    func testIdlePromptInfoDurationFormatHours() {
-        let prompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-5400),
-            idleEnd: Date(),
-            duration: 5400,
-            spansMidnight: false
-        )
-        XCTAssertEqual(prompt.formattedDuration, "1h 30m")
-    }
-
-    func testIdlePromptInfoSpansMidnight() {
-        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
-        let prompt = IdlePromptInfo(
-            idleStart: yesterday,
-            idleEnd: Date(),
-            duration: Date().timeIntervalSince(yesterday),
-            spansMidnight: true
-        )
-        XCTAssertTrue(prompt.spansMidnight)
-    }
-
-    func testIdlePromptInfoDoesNotSpanMidnight() {
-        let prompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-600),
-            idleEnd: Date(),
-            duration: 600,
-            spansMidnight: false
-        )
-        XCTAssertFalse(prompt.spansMidnight)
-    }
-
-    // MARK: - Duplicate Prompt Prevention
-
-    func testNoNewPromptWhilePendingExists() {
-        let existingPrompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-1200),
-            idleEnd: Date().addingTimeInterval(-600),
-            duration: 600,
-            spansMidnight: false
-        )
-        detector.pendingPrompt = existingPrompt
-        let existingID = existingPrompt.id
-
-        var callbackCount = 0
-        detector.onPromptReady = { _ in
-            callbackCount += 1
-        }
-
-        // A pending prompt must not be overwritten by a new idle cycle
+    func testStartingMonitoringAgainPreservesInFlightIdlePeriod() {
+        detector.startMonitoring()
+        let start = Date().addingTimeInterval(-600)
         detector.isIdle = true
-        detector.idleStartTime = Date().addingTimeInterval(-300)
+        detector.idleStartTime = start
 
-        XCTAssertNotNil(detector.pendingPrompt)
-        XCTAssertEqual(detector.pendingPrompt?.id, existingID)
-        XCTAssertEqual(callbackCount, 0)
+        detector.startMonitoring()
+
+        XCTAssertTrue(detector.isIdle)
+        XCTAssertEqual(detector.idleStartTime, start)
     }
 
-    func testDismissAllowsNewPrompt() {
-        let prompt1 = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-1200),
-            idleEnd: Date().addingTimeInterval(-600),
-            duration: 600,
-            spansMidnight: false
-        )
-        detector.pendingPrompt = prompt1
+    func testIdlePeriodCannotStartBeforeMonitoringAndIsReportedOnce() {
+        let clock = ManualClock(now: Date(timeIntervalSince1970: 1_700_000_000))
+        let start = clock.now
+        var idleSeconds: TimeInterval = 7200
+        detector = IdleDetector(clock: clock, idleTime: { idleSeconds })
+        var periods: [IdlePeriod] = []
+        detector.onPeriodEnded = { periods.append($0) }
+        detector.startMonitoring()
+        clock.now = clock.now.addingTimeInterval(600)
+        detector.checkIdleState()
+        idleSeconds = 0
+        detector.checkIdleState()
+        detector.checkIdleState()
 
-        detector.dismissPrompt()
-        XCTAssertNil(detector.pendingPrompt)
-
-        let prompt2 = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-300),
-            idleEnd: Date(),
-            duration: 300,
-            spansMidnight: false
-        )
-        detector.pendingPrompt = prompt2
-        XCTAssertNotNil(detector.pendingPrompt)
+        XCTAssertEqual(periods.count, 1)
+        XCTAssertEqual(periods.first?.idleStart, start)
+        XCTAssertEqual(periods.first?.duration, 600)
     }
 
-    func testStopMonitoringClearsPendingPrompt() {
-        detector.isIdle = true
-        detector.idleStartTime = Date()
-        detector.pendingPrompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-600),
-            idleEnd: Date(),
-            duration: 600,
-            spansMidnight: false
-        )
+    func testStoppingFromIdleCallbackDoesNotLeaveDetectorIdle() {
+        let clock = ManualClock(now: Date(timeIntervalSince1970: 1_700_000_000))
+        var idleSeconds: TimeInterval = 600
+        detector = IdleDetector(clock: clock, idleTime: { idleSeconds })
+        detector.startMonitoring()
+        clock.now = clock.now.addingTimeInterval(600)
+        detector.checkIdleState()
+        detector.onPeriodEnded = { [weak detector] _ in detector?.stopMonitoring() }
+        idleSeconds = 0
 
-        detector.stopMonitoring()
+        detector.checkIdleState()
 
         XCTAssertFalse(detector.isIdle)
         XCTAssertNil(detector.idleStartTime)
-        // stopMonitoring clears pendingPrompt so no stale prompt lingers after day ends
-        XCTAssertNil(detector.pendingPrompt)
+    }
+
+    // MARK: - Callback
+
+    func testOnPeriodEndedCallbackIsSet() {
+        var callbackCalled = false
+        detector.onPeriodEnded = { _ in
+            callbackCalled = true
+        }
+
+        XCTAssertNotNil(detector.onPeriodEnded)
+        let period = IdlePeriod(
+            idleStart: Date().addingTimeInterval(-600),
+            idleEnd: Date(),
+            spansMidnight: false
+        )
+        detector.onPeriodEnded?(period)
+        XCTAssertTrue(callbackCalled)
+    }
+
+    // MARK: - IdlePeriod
+
+    func testIdlePeriodDuration() {
+        let start = Date().addingTimeInterval(-300)
+        let end = Date()
+        let period = IdlePeriod(idleStart: start, idleEnd: end, spansMidnight: false)
+        XCTAssertEqual(period.duration, end.timeIntervalSince(start), accuracy: 0.01)
+    }
+
+    func testIdlePeriodSpansMidnight() {
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+        let period = IdlePeriod(idleStart: yesterday, idleEnd: Date(), spansMidnight: true)
+        XCTAssertTrue(period.spansMidnight)
+    }
+
+    func testIdlePeriodDoesNotSpanMidnight() {
+        let period = IdlePeriod(
+            idleStart: Date().addingTimeInterval(-600), idleEnd: Date(), spansMidnight: false)
+        XCTAssertFalse(period.spansMidnight)
+    }
+
+    func testIdlePeriodHasUniqueID() {
+        let period1 = IdlePeriod(idleStart: Date(), idleEnd: Date(), spansMidnight: false)
+        let period2 = IdlePeriod(idleStart: Date(), idleEnd: Date(), spansMidnight: false)
+        XCTAssertNotEqual(period1.id, period2.id)
     }
 
     // MARK: - Idle Threshold
 
-    func testIdleThresholdNonNegative() {
-        // With no UserDefaults value the code falls back rather than returning a
-        // negative or unusable threshold.
-        XCTAssertGreaterThanOrEqual(detector.idleThresholdSeconds, 0)
+    func testIdleThresholdDefaultsToAPositiveValue() {
+        XCTAssertGreaterThan(detector.idleThreshold.seconds, 0)
     }
 
-    // MARK: - IdlePromptInfo Formatting
-
-    func testFormattedDurationExactlyOneHour() {
-        let prompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-3600),
-            idleEnd: Date(),
-            duration: 3600,
-            spansMidnight: false
-        )
-        XCTAssertEqual(prompt.formattedDuration, "1h 0m")
+    func testIdleThresholdSecondsConvertsMinutes() {
+        XCTAssertEqual(IdleThreshold(minutes: 3).seconds, 180)
     }
 
-    func testFormattedDurationLessThanOneMinute() {
-        let prompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-30),
-            idleEnd: Date(),
-            duration: 30,
-            spansMidnight: false
-        )
-        XCTAssertEqual(prompt.formattedDuration, "0 Min")
+    func testIdleThresholdGuaranteesPositivityForAZeroOverride() {
+        XCTAssertEqual(IdleThreshold(minutes: 0).minutes, AppDefaults.idleThresholdMinutes)
     }
 
-    func testFormattedDurationMultipleHours() {
-        let prompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-7500),
-            idleEnd: Date(),
-            duration: 7500,  // 2h 5m
-            spansMidnight: false
-        )
-        XCTAssertEqual(prompt.formattedDuration, "2h 5m")
+    func testIdleThresholdGuaranteesPositivityForANegativeOverride() {
+        XCTAssertEqual(IdleThreshold(minutes: -5).minutes, AppDefaults.idleThresholdMinutes)
     }
 
-    func testFormattedRangeContainsDash() {
-        let prompt = IdlePromptInfo(
-            idleStart: Date().addingTimeInterval(-3600),
-            idleEnd: Date(),
-            duration: 3600,
-            spansMidnight: false
-        )
-        XCTAssertTrue(prompt.formattedRange.contains("–"))
+    func testIdleThresholdKeepsAPositiveOverride() {
+        XCTAssertEqual(IdleThreshold(minutes: 10).minutes, 10)
     }
 
-    // MARK: - Unique IDs
+    func testIdleThresholdResolvedFromInjectedDefaults() {
+        let suiteName = "idle-detector-tests-\(UUID())"
+        let suite = UserDefaults(suiteName: suiteName)!
+        addTeardownBlock { suite.removePersistentDomain(forName: suiteName) }
+        suite.set(15, forKey: AppSettingsKey.idleThresholdMinutes)
 
-    func testPromptInfoHasUniqueID() {
-        let prompt1 = IdlePromptInfo(
-            idleStart: Date(), idleEnd: Date(), duration: 0, spansMidnight: false)
-        let prompt2 = IdlePromptInfo(
-            idleStart: Date(), idleEnd: Date(), duration: 0, spansMidnight: false)
-        XCTAssertNotEqual(prompt1.id, prompt2.id)
+        XCTAssertEqual(IdleThreshold.resolved(from: suite).minutes, 15)
     }
 }

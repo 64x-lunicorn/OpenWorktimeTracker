@@ -4,43 +4,61 @@ import Foundation
 @Observable
 final class IdleDetector {
 
+    enum ActivityEvent {
+        case sleep, wake, lock, unlock
+    }
+
     // MARK: - State
 
     var isIdle = false
     var idleStartTime: Date?
-    var pendingPrompt: IdlePromptInfo?
+
+    /// De-dup guard, internal to detection: prevents a still-undecided Idle
+    /// Period from being reported twice. Not the source of truth for whether a
+    /// decision is pending — WorkdayManager owns that.
+    private var pendingPeriod: IdlePeriod?
+
     private var screenLocked = false
+    private var sleeping = false
     private var lockTime: Date?
     private var isMonitoring = false
-    private var observersRegistered = false
 
-    /// Called when a new idle prompt should be shown.
-    var onPromptReady: ((IdlePromptInfo) -> Void)?
+    /// Called once when an Idle Period ends and needs a decision.
+    var onPeriodEnded: ((IdlePeriod) -> Void)?
 
     // MARK: - Configuration
 
-    var idleThresholdSeconds: TimeInterval {
-        let minutes = UserDefaults.standard.object(forKey: AppSettingsKey.idleThresholdMinutes) as? Int
-            ?? AppDefaults.idleThresholdMinutes
-        return Double(minutes) * 60.0
-    }
+    var idleThreshold: IdleThreshold = .resolved()
 
     private var checkTimer: Timer?
+    private let clock: Clock
+    private let idleTime: () -> TimeInterval
+    private var monitoringStartedAt: Date?
+
+    init(clock: Clock = SystemClock(), idleTime: @escaping () -> TimeInterval = IdleDetector.systemIdleTime) {
+        self.clock = clock
+        self.idleTime = idleTime
+    }
+
+    var isSuspended: Bool { screenLocked || sleeping }
+    var hasRecentActivity: Bool { !isSuspended && idleTime() < idleThreshold.seconds }
+    var lastActivityTime: Date { clock.now.addingTimeInterval(-idleTime()) }
 
     // MARK: - Lifecycle
 
     func startMonitoring() {
-        // Restart only the polling timer; the lock/unlock observers stay alive
-        // for the object's lifetime so an in-flight unlock handler is never torn
-        // down mid-execution (e.g. when a new day starts during unlock).
+        guard !isMonitoring else { return }
+        // Repeated wake/evaluation events must not erase an ongoing idle period.
         checkTimer?.invalidate()
         isMonitoring = true
+        monitoringStartedAt = clock.now
         isIdle = false
         idleStartTime = nil
-        checkTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
-            self?.checkIdleState()
+        if isSuspended {
+            beginSuspension()
+        } else {
+            startPolling()
         }
-        registerScreenLockObservers()
     }
 
     func stopMonitoring() {
@@ -49,75 +67,78 @@ final class IdleDetector {
         checkTimer = nil
         isIdle = false
         idleStartTime = nil
-        pendingPrompt = nil
+        pendingPeriod = nil
+        lockTime = nil
+        monitoringStartedAt = nil
     }
 
-    // MARK: - Screen Lock/Unlock
+    /// Tells the detector the Idle Period it last reported has been decided,
+    /// so a new one can be reported when the next idle stretch ends.
+    func periodResolved() {
+        pendingPeriod = nil
+    }
 
-    private func registerScreenLockObservers() {
-        guard !observersRegistered else { return }
-        observersRegistered = true
-        let dnc = DistributedNotificationCenter.default()
+    // MARK: - Ordered activity events
 
-        dnc.addObserver(
-            self,
-            selector: #selector(screenDidLock),
-            name: NSNotification.Name("com.apple.screenIsLocked"),
-            object: nil
-        )
-        dnc.addObserver(
-            self,
-            selector: #selector(screenDidUnlock),
-            name: NSNotification.Name("com.apple.screenIsUnlocked"),
-            object: nil
-        )
+    func handle(_ event: ActivityEvent) {
+        let wasSuspended = isSuspended
+        switch event {
+        case .sleep: sleeping = true
+        case .wake: sleeping = false
+        case .lock: screenLocked = true
+        case .unlock: screenLocked = false
+        }
+        guard isMonitoring else { return }
+        if !wasSuspended && isSuspended {
+            beginSuspension()
+        } else if wasSuspended && !isSuspended {
+            endSuspension()
+        }
     }
 
     deinit {
-        DistributedNotificationCenter.default().removeObserver(self)
+        checkTimer?.invalidate()
     }
 
-    @objc private func screenDidLock() {
-        guard isMonitoring else { return }
-        screenLocked = true
-        lockTime = Date()
+    private func beginSuspension() {
+        lockTime = clock.now
         // Stop timer polling — lock/unlock handlers take over
         checkTimer?.invalidate()
         checkTimer = nil
         // Treat screen lock as start of idle
         if !isIdle {
             isIdle = true
-            idleStartTime = Date()
+            idleStartTime = clock.now
         }
     }
 
-    @objc private func screenDidUnlock() {
-        guard isMonitoring, screenLocked else { return }
-        screenLocked = false
-        let unlockTime = Date()
-
-        if pendingPrompt == nil, let start = idleStartTime ?? lockTime {
-            let duration = unlockTime.timeIntervalSince(start)
-            let threshold = idleThresholdSeconds > 0 ? idleThresholdSeconds : 300
-
-            if duration >= threshold {
-                let spansMidnight = !Calendar.current.isDate(start, inSameDayAs: unlockTime)
-                pendingPrompt = IdlePromptInfo(
-                    idleStart: start,
-                    idleEnd: unlockTime,
-                    duration: duration,
-                    spansMidnight: spansMidnight
-                )
-                if let prompt = pendingPrompt {
-                    onPromptReady?(prompt)
-                }
-            }
-        }
+    private func endSuspension() {
+        let unlockTime = clock.now
+        let start = idleStartTime ?? lockTime
         isIdle = false
         idleStartTime = nil
         lockTime = nil
 
-        // Restart timer polling after unlock
+        if pendingPeriod == nil, let start {
+            let duration = unlockTime.timeIntervalSince(start)
+
+            if duration >= idleThreshold.seconds {
+                let period = IdlePeriod(
+                    idleStart: start,
+                    idleEnd: unlockTime,
+                    spansMidnight: !Calendar.current.isDate(start, inSameDayAs: unlockTime)
+                )
+                pendingPeriod = period
+                onPeriodEnded?(period)
+            }
+        }
+        if isMonitoring && !isSuspended {
+            startPolling()
+        }
+    }
+
+    private func startPolling() {
+        checkTimer?.invalidate()
         checkTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             self?.checkIdleState()
         }
@@ -125,78 +146,40 @@ final class IdleDetector {
 
     // MARK: - Idle Check
 
-    private func checkIdleState() {
+    func checkIdleState() {
         // Skip polling when screen is locked — handled by lock/unlock observers
-        guard !screenLocked else { return }
+        guard isMonitoring, !isSuspended else { return }
 
-        let idleSeconds = currentIdleTime()
-        let threshold = idleThresholdSeconds > 0 ? idleThresholdSeconds : 300  // default 5 min
+        let idleSeconds = idleTime()
 
-        if idleSeconds >= threshold {
+        if idleSeconds >= idleThreshold.seconds {
             // User is idle
             if !isIdle {
                 isIdle = true
-                idleStartTime = Date().addingTimeInterval(-idleSeconds)
+                idleStartTime = max(
+                    monitoringStartedAt ?? clock.now, clock.now.addingTimeInterval(-idleSeconds))
             }
         } else if isIdle {
             // User returned from idle
-            let returnTime = Date()
-            if pendingPrompt == nil, let start = idleStartTime {
-                let duration = returnTime.timeIntervalSince(start)
-                let spansMidnight = !Calendar.current.isDate(start, inSameDayAs: returnTime)
-
-                pendingPrompt = IdlePromptInfo(
-                    idleStart: start,
-                    idleEnd: returnTime,
-                    duration: duration,
-                    spansMidnight: spansMidnight
-                )
-                if let prompt = pendingPrompt {
-                    onPromptReady?(prompt)
-                }
-            }
+            let returnTime = clock.now
+            let start = idleStartTime
             isIdle = false
             idleStartTime = nil
+            if pendingPeriod == nil, let start {
+                let period = IdlePeriod(
+                    idleStart: start,
+                    idleEnd: returnTime,
+                    spansMidnight: !Calendar.current.isDate(start, inSameDayAs: returnTime)
+                )
+                pendingPeriod = period
+                onPeriodEnded?(period)
+            }
         }
     }
 
-    private func currentIdleTime() -> TimeInterval {
-        // Check both mouse and keyboard events, return the smaller value
-        // (= time since last activity of any kind)
-        let mouseMoved = CGEventSource.secondsSinceLastEventType(
-            .combinedSessionState, eventType: .mouseMoved)
-        let mouseDown = CGEventSource.secondsSinceLastEventType(
-            .combinedSessionState, eventType: .leftMouseDown)
-        let keyDown = CGEventSource.secondsSinceLastEventType(
-            .combinedSessionState, eventType: .keyDown)
-        return min(mouseMoved, mouseDown, keyDown)
-    }
-
-    func dismissPrompt() {
-        pendingPrompt = nil
-    }
-}
-
-// MARK: - Prompt Info
-
-struct IdlePromptInfo: Identifiable {
-    let id = UUID()
-    let idleStart: Date
-    let idleEnd: Date
-    let duration: TimeInterval
-    let spansMidnight: Bool
-
-    var formattedDuration: String {
-        let minutes = Int(duration) / 60
-        if minutes >= 60 {
-            let hours = minutes / 60
-            let mins = minutes % 60
-            return "\(hours)h \(mins)m"
-        }
-        return "\(minutes) Min"
-    }
-
-    var formattedRange: String {
-        "\(idleStart.hoursMinutesString) – \(idleEnd.hoursMinutesString)"
+    static func systemIdleTime() -> TimeInterval {
+        // kCGAnyInputEventType is the all-events sentinel, not a Swift enum case.
+        CGEventSource.secondsSinceLastEventType(
+            .combinedSessionState, eventType: CGEventType(rawValue: UInt32.max)!)
     }
 }

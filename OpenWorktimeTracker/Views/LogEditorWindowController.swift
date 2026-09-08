@@ -15,10 +15,7 @@ final class LogEditorWindowController {
             return
         }
 
-        let editorView = LogEditorView(
-            persistence: manager.persistence,
-            manager: manager
-        )
+        let editorView = LogEditorView(manager: manager)
         let hostingView = NSHostingView(rootView: editorView)
 
         let window = NSWindow(

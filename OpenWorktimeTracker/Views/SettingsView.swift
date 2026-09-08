@@ -54,7 +54,7 @@ struct SettingsView: View {
                     Label("settings.data", systemImage: "folder")
                 }
         }
-        .frame(width: 450, height: 350)
+        .frame(width: 520, height: 520)
     }
 
     // MARK: - General Tab
@@ -65,7 +65,7 @@ struct SettingsView: View {
                 HStack {
                     Text("settings.orangeThreshold")
                     Spacer()
-                    TextField("", value: $orangeThreshold, format: .number)
+                    TextField("settings.orangeThreshold", value: $orangeThreshold, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: orangeThreshold) { _, newValue in
@@ -78,7 +78,7 @@ struct SettingsView: View {
                 HStack {
                     Text("settings.redThreshold")
                     Spacer()
-                    TextField("", value: $redThreshold, format: .number)
+                    TextField("settings.redThreshold", value: $redThreshold, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: redThreshold) { _, newValue in
@@ -94,17 +94,18 @@ struct SettingsView: View {
                 HStack {
                     Text("settings.breakAfter6h")
                     Spacer()
-                    TextField("", value: $break6h, format: .number)
+                    TextField("settings.breakAfter6h", value: $break6h, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: break6h) { _, newValue in
                             break6h = max(0, min(300, newValue))
+                            break9h = max(break9h, break6h)
                         }
                 }
                 HStack {
                     Text("settings.breakAfter9h")
                     Spacer()
-                    TextField("", value: $break9h, format: .number)
+                    TextField("settings.breakAfter9h", value: $break9h, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: break9h) { _, newValue in
@@ -120,7 +121,7 @@ struct SettingsView: View {
                 HStack {
                     Text("settings.idleThreshold")
                     Spacer()
-                    TextField("", value: $idleThreshold, format: .number)
+                    TextField("settings.idleThreshold", value: $idleThreshold, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: idleThreshold) { _, newValue in
@@ -152,7 +153,7 @@ struct SettingsView: View {
                 HStack {
                     Text("settings.normalHours")
                     Spacer()
-                    TextField("", value: $normalHours, format: .number)
+                    TextField("settings.normalHours", value: $normalHours, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: normalHours) { _, newValue in
@@ -168,7 +169,7 @@ struct SettingsView: View {
                 HStack {
                     Text("settings.criticalHours")
                     Spacer()
-                    TextField("", value: $criticalHours, format: .number)
+                    TextField("settings.criticalHours", value: $criticalHours, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: criticalHours) { _, newValue in
@@ -181,7 +182,7 @@ struct SettingsView: View {
                 HStack {
                     Text("settings.milestoneHours")
                     Spacer()
-                    TextField("", value: $milestoneHours, format: .number)
+                    TextField("settings.milestoneHours", value: $milestoneHours, format: .number)
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: milestoneHours) { _, newValue in
@@ -202,6 +203,12 @@ struct SettingsView: View {
     private var dataTab: some View {
         Form {
             Section(String(localized: "settings.logs")) {
+                Text(manager.persistence.logDirectory.path)
+                    .font(DesignTokens.Typography.bodySmall)
+                    .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 HStack {
                     Button(String(localized: "settings.openLogFolder")) {
                         NSWorkspace.shared.open(manager.persistence.logDirectory)
@@ -235,7 +242,7 @@ struct SettingsView: View {
                             String(localized: "settings.iCloudUnavailable"),
                             systemImage: "exclamationmark.icloud"
                         )
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(DesignTokens.Colors.accentOrange)
                         .font(.caption)
                     }
                 }
@@ -243,7 +250,7 @@ struct SettingsView: View {
 
             Section(String(localized: "settings.export")) {
                 Button(String(localized: "settings.exportCSV")) {
-                    if let url = manager.persistence.exportCSV() {
+                    if let url = manager.exportCSV() {
                         NSWorkspace.shared.open(url)
                     }
                 }

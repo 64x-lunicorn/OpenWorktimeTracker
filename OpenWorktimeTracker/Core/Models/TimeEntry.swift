@@ -11,6 +11,7 @@ struct TimeEntry: Codable, Identifiable {
     var idleDecisions: [IdleDecision]
     var notifiedThresholds: Set<String>
     var note: String
+    var lastActivityTime: Date?
 
     enum Status: String, Codable {
         case running
@@ -28,7 +29,8 @@ struct TimeEntry: Codable, Identifiable {
         pauseStartedAt: Date? = nil,
         idleDecisions: [IdleDecision] = [],
         notifiedThresholds: Set<String> = [],
-        note: String = ""
+        note: String = "",
+        lastActivityTime: Date? = nil
     ) {
         self.id = id
         self.date = date ?? Self.dateString(from: startTime)
@@ -40,6 +42,7 @@ struct TimeEntry: Codable, Identifiable {
         self.idleDecisions = idleDecisions
         self.notifiedThresholds = notifiedThresholds
         self.note = note
+        self.lastActivityTime = lastActivityTime
     }
 
     // MARK: - Computed Properties
@@ -58,17 +61,23 @@ struct TimeEntry: Codable, Identifiable {
     }
 
     var totalIdlePause: TimeInterval {
-        idleDecisions
+        idlePause(endingAt: endTime ?? Date())
+    }
+
+    func idlePause(endingAt instant: Date) -> TimeInterval {
+        let end = min(instant, endTime ?? instant)
+        let intervals = idleDecisions
             .filter { $0.decision == .pause }
-            .reduce(0) { $0 + $1.duration }
-    }
-
-    var totalPause: TimeInterval {
-        totalManualPause + totalIdlePause
-    }
-
-    var workTimeBeforeAutoBreak: TimeInterval {
-        max(0, grossTime - totalPause)
+            .map { (start: max(startTime, $0.idleStart), end: min(end, $0.idleEnd)) }
+            .filter { $0.end > $0.start }
+            .sorted { $0.start < $1.start }
+        var coveredUntil = startTime
+        var total: TimeInterval = 0
+        for interval in intervals {
+            total += max(0, interval.end.timeIntervalSince(max(coveredUntil, interval.start)))
+            coveredUntil = max(coveredUntil, interval.end)
+        }
+        return total
     }
 
     private static let dateStringFormatter: DateFormatter = {

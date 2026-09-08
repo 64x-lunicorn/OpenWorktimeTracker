@@ -110,19 +110,31 @@ final class PersistenceManager {
     func save(_ entry: TimeEntry) {
         ensureDirectoryExists()
         let fileURL = logDirectory.appendingPathComponent("\(entry.date).json")
-        let encoder = self.encoder
         saveQueue.async {
-            do {
-                let data = try encoder.encode(entry)
-                try data.write(to: fileURL, options: .atomic)
-                CloudSyncManager.shared.uploadEntry(at: fileURL)
-            } catch {
-                logger.error("Failed to save entry \(entry.date): \(error.localizedDescription)")
-            }
+            self.write(entry, to: fileURL)
         }
     }
 
-    /// Blocks until all pending saves complete. For testing only.
+    func saveAndWait(_ entry: TimeEntry) -> Bool {
+        ensureDirectoryExists()
+        let fileURL = logDirectory.appendingPathComponent("\(entry.date).json")
+        return saveQueue.sync { write(entry, to: fileURL) }
+    }
+
+    @discardableResult
+    private func write(_ entry: TimeEntry, to fileURL: URL) -> Bool {
+        do {
+            let data = try encoder.encode(entry)
+            try data.write(to: fileURL, options: .atomic)
+            CloudSyncManager.shared.uploadEntry(at: fileURL)
+            return true
+        } catch {
+            logger.error("Failed to save entry \(entry.date): \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Blocks until all pending local saves complete.
     func flush() {
         saveQueue.sync {}
     }
@@ -139,12 +151,23 @@ final class PersistenceManager {
         load(for: TimeEntry.dateString(from: Date()))
     }
 
-    func delete(for dateString: String) {
+    @discardableResult
+    func delete(for dateString: String) -> Bool {
         let fileURL = logDirectory.appendingPathComponent("\(dateString).json")
-        try? fileManager.removeItem(at: fileURL)
+        return saveQueue.sync {
+            guard fileManager.fileExists(atPath: fileURL.path) else { return true }
+            do {
+                try fileManager.removeItem(at: fileURL)
+                return true
+            } catch {
+                logger.error("Failed to delete entry \(dateString): \(error.localizedDescription)")
+                return false
+            }
+        }
     }
 
     func loadMostRecentEntry() -> TimeEntry? {
+        saveQueue.sync {}
         ensureDirectoryExists()
         let dir = logDirectory
         guard
@@ -170,6 +193,7 @@ final class PersistenceManager {
     }
 
     func loadAll() -> [TimeEntry] {
+        saveQueue.sync {}
         ensureDirectoryExists()
         let dir = logDirectory
         guard
@@ -191,6 +215,7 @@ final class PersistenceManager {
     }
 
     func loadLastDays(_ count: Int) -> [TimeEntry] {
+        saveQueue.sync {}
         ensureDirectoryExists()
         let dir = logDirectory
         guard
@@ -219,34 +244,25 @@ final class PersistenceManager {
         CloudSyncManager.shared.syncIfEnabled(localDirectory: logDirectory)
     }
 
-    func exportCSV() -> URL? {
+    /// Exports every Daily Log. Persistence does not know how a Workday is
+    /// configured, so it asks the caller to pair each payload with its rules.
+    func exportCSV(workdayFor makeWorkday: (TimeEntry) -> Workday) -> URL? {
         let entries = loadAll()
         guard !entries.isEmpty else { return nil }
 
         var csv = "Date,Start,End,Gross (h),Manual Pause (h),Auto Break (h),Net (h),Note\n"
 
-        let calc = BreakCalculator()
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "HH:mm"
 
         for entry in entries {
+            let workday = makeWorkday(entry)
             let start = timeFormatter.string(from: entry.startTime)
             let end = entry.endTime.map { timeFormatter.string(from: $0) } ?? "-"
-            let gross = String(format: "%.2f", entry.grossTime.inHours)
-            let manual = String(format: "%.2f", entry.totalManualPause.inHours)
-            let net = calc.netWorkTime(
-                grossTime: entry.grossTime,
-                manualPause: entry.totalManualPause,
-                idlePause: entry.totalIdlePause
-            )
-            let autoBreak = String(
-                format: "%.2f",
-                calc.autoBreak(
-                    forWorkTime: entry.workTimeBeforeAutoBreak,
-                    alreadyPaused: entry.totalManualPause + entry.totalIdlePause
-                ).inHours
-            )
-            let netStr = String(format: "%.2f", net.inHours)
+            let gross = String(format: "%.2f", workday.grossTime.inHours)
+            let manual = String(format: "%.2f", workday.manualPause.inHours)
+            let autoBreak = String(format: "%.2f", workday.autoBreak.inHours)
+            let netStr = String(format: "%.2f", workday.netWorkTime.inHours)
             let note = entry.note.replacingOccurrences(of: ",", with: ";")
 
             csv +=

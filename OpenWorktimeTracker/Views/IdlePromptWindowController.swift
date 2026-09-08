@@ -1,9 +1,15 @@
 import AppKit
 import SwiftUI
 
+protocol WorkdayPromptPresenting {
+    func show(idlePeriod: IdlePeriod, manager: WorkdayManager)
+    func showMaxHoursPrompt(hours: Double, manager: WorkdayManager)
+    func dismiss()
+}
+
 /// Manages a free-floating NSPanel for the idle prompt.
 /// Shown as a top-level window independent of the menu bar popover.
-final class IdlePromptWindowController: NSObject, NSWindowDelegate {
+final class IdlePromptWindowController: NSObject, NSWindowDelegate, WorkdayPromptPresenting {
     static let shared = IdlePromptWindowController()
 
     private var panel: NSPanel?
@@ -13,16 +19,11 @@ final class IdlePromptWindowController: NSObject, NSWindowDelegate {
         super.init()
     }
 
-    func show(promptInfo: IdlePromptInfo, manager: WorkdayManager) {
+    func show(idlePeriod: IdlePeriod, manager: WorkdayManager) {
         // Dismiss any existing panel first
         dismiss()
 
-        let promptView = IdlePromptView(
-            promptInfo: promptInfo,
-            onDismiss: { [weak self] in
-                self?.dismiss()
-            }
-        )
+        let promptView = IdlePromptView(idlePeriod: idlePeriod)
         .environment(manager)
 
         let hostingView = NSHostingView(rootView: promptView)
@@ -34,7 +35,7 @@ final class IdlePromptWindowController: NSObject, NSWindowDelegate {
             defer: false
         )
         panel.title =
-            promptInfo.spansMidnight
+            idlePeriod.spansMidnight
             ? String(localized: "idle.panel.newWorkday")
             : String(localized: "idle.panel.inactivity")
         panel.contentView = hostingView
@@ -75,12 +76,7 @@ final class IdlePromptWindowController: NSObject, NSWindowDelegate {
         // Dismiss any existing panel first
         dismiss()
 
-        let promptView = MaxHoursPromptView(
-            hours: hours,
-            onDismiss: { [weak self] in
-                self?.dismiss()
-            }
-        )
+        let promptView = MaxHoursPromptView(hours: hours)
         .environment(manager)
 
         let hostingView = NSHostingView(rootView: promptView)
@@ -136,7 +132,7 @@ final class IdlePromptWindowController: NSObject, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         // User manually closed via X button — clear pending prompt
-        manager?.idleDetector.dismissPrompt()
         panel = nil
+        manager?.dismissIdlePeriod()
     }
 }

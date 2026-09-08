@@ -5,11 +5,22 @@
 "menubar.pause" = "Pause";
 "menubar.resume" = "Fortsetzen";
 "menubar.endDay" = "Tag beenden";
-"menubar.restart" = "Neustart";
+"menubar.start" = "Tag starten";
+"menubar.restart" = "Fortsetzen";
 "menubar.openLogFolder" = "Log-Ordner öffnen";
 "menubar.exportCSV" = "CSV exportieren...";
 "menubar.settings" = "Einstellungen...";
 "menubar.quit" = "Beenden";
+"menu.edit" = "Bearbeiten";
+"menu.undo" = "Widerrufen";
+"menu.redo" = "Wiederholen";
+"menu.cut" = "Ausschneiden";
+"menu.copy" = "Kopieren";
+"menu.paste" = "Einsetzen";
+"menu.selectAll" = "Alles auswählen";
+"menu.window" = "Fenster";
+"menu.close" = "Schließen";
+"menubar.moreActions" = "Weitere Aktionen";
 
 /* State Labels */
 "state.notStarted" = "Nicht gestartet";
@@ -26,7 +37,8 @@
 "metric.autoBreak" = "Auto-Pause";
 "metric.pause" = "Pausen";
 "metric.end" = "Ende";
-"metric.eta" = "ETA 8h";
+"metric.eta" = "Ziel erreicht um";
+"metric.autoBreak.help" = "Zusätzlicher automatischer Abzug nach deinen Pausenregeln. Bereits erfasste Pausen werden angerechnet.";
 "metric.target" = "Ziel";
 "metric.reached" = "erreicht";
 "metric.editStartTime" = "Startzeit bearbeiten";
@@ -37,6 +49,7 @@
 /* WeekHistoryView */
 "history.last7days" = "LETZTE 7 TAGE";
 "history.noData" = "Noch keine Daten";
+"history.total" = "%@ gesamt";
 
 /* SummaryStatsView */
 "summary.title" = "ZUSAMMENFASSUNG";
@@ -47,13 +60,18 @@
 "summary.workDays" = "Arbeitstage";
 "summary.dailyAvg" = "Tagesschnitt";
 "summary.overtime" = "Überstunden";
+"summary.period" = "Auswertungszeitraum";
 
 /* IdlePromptView */
 "idle.newWorkday" = "Neuer Arbeitstag!";
 "idle.inactivityDetected" = "Inaktivität erkannt";
 "idle.youWereInactive" = "Du warst %@ inaktiv";
-"idle.wasWorkTime" = "War Arbeitszeit (Meeting/Testen)";
-"idle.wasPause" = "War Pause (abziehen)";
+"idle.wasWorkTime" = "Als Arbeitszeit zählen";
+"idle.wasPause" = "Als Pause erfassen";
+"idle.work.detail" = "Zum Beispiel ein Meeting. Die Zeit bleibt erhalten.";
+"idle.pause.detail" = "Diesen Zeitraum von der Arbeitszeit abziehen.";
+"idle.decisionHelp" = "Wie soll dieser Zeitraum erfasst werden?";
+"idle.dayActions" = "Arbeitstag anpassen";
 "idle.endYesterday" = "Gestern um %@ beenden";
 "idle.startToday" = "Heute jetzt starten";
 "idle.countAsWork" = "Alles als Arbeitszeit zählen";
@@ -61,8 +79,8 @@
 "idle.endDay" = "Tag beenden";
 "idle.endDay.atTime" = "Tag beenden um %@";
 "idle.endDay.afterHours" = "nach %@ Arbeitszeit";
-"idle.restart" = "Neustarten";
-"idle.restart.detail" = "Tag endet um %@, neuer Tag beginnt";
+"idle.restart" = "Arbeit fortsetzen";
+"idle.restart.detail" = "Unterbrechung seit %@ als Pause erfassen";
 
 /* IdlePromptWindowController */
 "idle.panel.newWorkday" = "Neuer Arbeitstag";
@@ -104,10 +122,10 @@
 "settings.launchAtLogin" = "Beim Anmelden starten";
 "settings.enableNotifications" = "Mitteilungen aktivieren";
 "settings.thresholds" = "Schwellwerte";
-"settings.normalHours" = "Normal (h)";
+"settings.normalHours" = "Tagesziel / reguläre Arbeitszeit (h)";
 "settings.criticalHours" = "Kritisch (h)";
 "settings.milestoneHours" = "Maximum (h)";
-"settings.notificationHelp" = "Mitteilungen werden einmal pro Tag gesendet, wenn die Nettozeit einen Schwellwert überschreitet.";
+"settings.notificationHelp" = "Mitteilungen werden einmal pro Tag je Schwellwert gesendet. Das Tagesziel steuert auch den Fortschritt und die voraussichtliche Endzeit – unabhängig davon, ob Mitteilungen aktiviert sind.";
 "settings.logs" = "Protokolle";
 "settings.openLogFolder" = "Log-Ordner öffnen";
 "settings.chooseLogFolder" = "Log-Ordner wählen...";
@@ -131,6 +149,11 @@
 /* LogEditor */
 "logEditor.title" = "Arbeitszeit-Protokoll";
 "logEditor.noEntries" = "Keine Einträge vorhanden";
+"logEditor.selectEntry" = "Wähle einen Arbeitstag";
+"logEditor.unsavedChanges" = "Ungespeicherte Änderungen";
+"logEditor.discardChanges" = "Verwerfen";
+"logEditor.pauseHours" = "Pausendauer in Stunden";
+"logEditor.pauseMinutes" = "Pausendauer in Minuten";
 "logEditor.times" = "Zeiten";
 "logEditor.start" = "Startzeit";
 "logEditor.end" = "Endzeit";
@@ -147,3 +170,9 @@
 "logEditor.delete" = "Eintrag löschen";
 "logEditor.deleteConfirm" = "Möchten Sie diesen Eintrag wirklich löschen?";
 "menubar.logEditor" = "Protokoll bearbeiten...";
+"logEditor.error.title" = "Protokoll konnte nicht geändert werden";
+"logEditor.error.dismiss" = "OK";
+"logEditor.error.missingEntry" = "Dieser Eintrag wurde gelöscht oder ersetzt. Schließen und öffnen Sie den Protokolleditor erneut, um ihn neu zu laden.";
+"logEditor.error.invalidTimes" = "Bitte prüfen Sie die Start-, End- und Pausenzeiten.";
+"logEditor.error.saveFailed" = "Der Eintrag konnte nicht lokal gespeichert werden. Ihre Änderungen bleiben im Editor erhalten. Prüfen Sie den Protokollordner und versuchen Sie es erneut.";
+"logEditor.error.deleteFailed" = "Der Eintrag konnte nicht gelöscht werden. Die Zeiterfassung bleibt unverändert. Prüfen Sie den Protokollordner und versuchen Sie es erneut.";

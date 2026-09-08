@@ -19,12 +19,13 @@ enum AppSettingsKey {
 }
 
 enum AppDefaults {
-    static let orangeThresholdHours: Double = 8.0
-    static let redThresholdHours: Double = 9.5
+    // Defined once in SharedDefaults for the settings the widget also reads.
+    static let orangeThresholdHours = SharedDefaults.orangeThresholdDefault
+    static let redThresholdHours = SharedDefaults.redThresholdDefault
+    static let normalNotificationHours = SharedDefaults.normalHoursDefault
     static let breakAfter6hMinutes: Int = 30
     static let breakAfter9hMinutes: Int = 45
     static let notificationsEnabled: Bool = true
-    static let normalNotificationHours: Double = 8.0
     static let criticalNotificationHours: Double = 9.83
     static let milestoneNotificationHours: Double = 10.0
     static let launchAtLogin: Bool = true

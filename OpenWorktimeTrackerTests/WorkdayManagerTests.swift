@@ -8,7 +8,7 @@ final class WorkdayManagerTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        manager = WorkdayManager()
+        manager = WorkdayManager(store: InMemoryDailyLogStore())
     }
 
     override func tearDown() {
@@ -129,7 +129,7 @@ final class WorkdayManagerTests: XCTestCase {
 
     // MARK: - Restart Day
 
-    func testRestartDayCreatesNewEntry() {
+    func testRestartDayPreservesEntry() {
         manager.startNewDay()
         let originalID = manager.currentEntry?.id
         manager.endDay()
@@ -137,7 +137,7 @@ final class WorkdayManagerTests: XCTestCase {
         manager.restartDay()
 
         XCTAssertEqual(manager.state, .running)
-        XCTAssertNotEqual(manager.currentEntry?.id, originalID)
+        XCTAssertEqual(manager.currentEntry?.id, originalID)
         XCTAssertEqual(manager.currentEntry?.status, .running)
     }
 
@@ -230,15 +230,14 @@ final class WorkdayManagerTests: XCTestCase {
         XCTAssertEqual(manager.state, .ended)
     }
 
-    func testDoubleStartCreatesNewEntry() {
+    func testDoubleStartPreservesEntry() {
         manager.startNewDay()
         let firstID = manager.currentEntry?.id
 
         manager.startNewDay()
         let secondID = manager.currentEntry?.id
 
-        // Each start creates a new entry with new ID
-        XCTAssertNotEqual(firstID, secondID)
+        XCTAssertEqual(firstID, secondID)
         XCTAssertEqual(manager.state, .running)
     }
 
@@ -348,7 +347,7 @@ final class WorkdayManagerTests: XCTestCase {
         manager.restartDay()
 
         XCTAssertEqual(manager.state, .running)
-        XCTAssertNotEqual(manager.currentEntry?.id, endedEntryID)
+        XCTAssertEqual(manager.currentEntry?.id, endedEntryID)
         XCTAssertNil(manager.currentEntry?.endTime)
     }
 
@@ -447,7 +446,7 @@ extension WorkdayManagerTests {
 
         XCTAssertGreaterThanOrEqual(manager.grossTime, 0)
         XCTAssertGreaterThanOrEqual(manager.netTime, 0)
-        XCTAssertEqual(manager.manualPause, 0, accuracy: 1)
+        XCTAssertEqual(manager.pauseTime, 0, accuracy: 1)
         XCTAssertEqual(manager.autoBreak, 0)
     }
 

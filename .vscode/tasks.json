@@ -1,0 +1,32 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build OpenWorktimeTracker (Debug)",
+			"detail": "Local ad-hoc build without provisioning-only entitlements. Release signing is unchanged.",
+			"type": "shell",
+			"command": "xcodebuild",
+			"args": [
+				"-project",
+				"OpenWorktimeTracker.xcodeproj",
+				"-scheme",
+				"OpenWorktimeTracker",
+				"-configuration",
+				"Debug",
+				"-derivedDataPath",
+				"build",
+				"-destination",
+				"platform=macOS",
+				"-disableAutomaticPackageResolution",
+				"CODE_SIGNING_ALLOWED=YES",
+				"CODE_SIGN_IDENTITY=-",
+				"CODE_SIGN_STYLE=Manual",
+				"DEVELOPMENT_TEAM=",
+				"CODE_SIGN_ENTITLEMENTS=",
+				"build"
+			],
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

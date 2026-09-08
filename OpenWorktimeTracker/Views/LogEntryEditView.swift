@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct LogEntryEditView: View {
-    @Binding var entry: TimeEntry
-    let persistence: PersistenceManager
+    let entry: TimeEntry
     let manager: WorkdayManager
     let onSave: (TimeEntry) -> Void
     let onDelete: (String) -> Void
@@ -14,22 +13,19 @@ struct LogEntryEditView: View {
     @State private var editedNote: String
     @State private var editedIdleDecisions: [IdleDecision]
     @State private var showDeleteConfirmation = false
-    @State private var hasChanges = false
 
     init(
-        entry: Binding<TimeEntry>,
-        persistence: PersistenceManager,
+        entry: TimeEntry,
         manager: WorkdayManager,
         onSave: @escaping (TimeEntry) -> Void,
         onDelete: @escaping (String) -> Void
     ) {
-        self._entry = entry
-        self.persistence = persistence
+        self.entry = entry
         self.manager = manager
         self.onSave = onSave
         self.onDelete = onDelete
 
-        let wrapped = entry.wrappedValue
+        let wrapped = entry
         self._editedStart = State(initialValue: wrapped.startTime)
         self._editedEnd = State(initialValue: wrapped.endTime ?? Date())
         self._editedPauseHours = State(initialValue: Int(wrapped.manualPauseSeconds) / 3600)
@@ -54,13 +50,27 @@ struct LogEntryEditView: View {
                 noteSection
                 Divider()
                 computedSection
-                Divider()
-                actionSection
             }
             .padding(20)
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+                if !isValid {
+                    Label("logEditor.error.invalidTimes", systemImage: "exclamationmark.triangle")
+                        .font(DesignTokens.Typography.bodySmall)
+                        .foregroundStyle(DesignTokens.Colors.accentRed)
+                } else if hasChanges {
+                    Text("logEditor.unsavedChanges")
+                        .font(DesignTokens.Typography.bodySmall)
+                        .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
+                }
+                actionSection
+            }
+            .padding(DesignTokens.Spacing.lg)
+            .background(DesignTokens.Colors.surfaceContainer)
+        }
         .onChange(of: entry.id) {
-            resetFields()
+            resetFields(from: entry)
         }
     }
 
@@ -116,17 +126,16 @@ struct LogEntryEditView: View {
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
 
-            HStack(spacing: 20) {
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(String(localized: "logEditor.start"))
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                     DatePicker(
-                        "", selection: $editedStart,
+                        "logEditor.start", selection: $editedStart,
                         displayedComponents: [.date, .hourAndMinute]
                     )
                     .labelsHidden()
-                    .onChange(of: editedStart) { _, _ in hasChanges = true }
                 }
 
                 if entry.endTime != nil {
@@ -135,12 +144,11 @@ struct LogEntryEditView: View {
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                         DatePicker(
-                            "", selection: $editedEnd,
+                            "logEditor.end", selection: $editedEnd,
                             in: editedStart...,
                             displayedComponents: [.date, .hourAndMinute]
                         )
                         .labelsHidden()
-                        .onChange(of: editedEnd) { _, _ in hasChanges = true }
                     }
                 }
             }
@@ -163,7 +171,7 @@ struct LogEntryEditView: View {
                             .monospacedDigit()
                             .frame(width: 30, alignment: .trailing)
                     }
-                    .onChange(of: editedPauseHours) { _, _ in hasChanges = true }
+                    .accessibilityLabel(Text("logEditor.pauseHours"))
                 }
 
                 HStack(spacing: 4) {
@@ -172,7 +180,7 @@ struct LogEntryEditView: View {
                             .monospacedDigit()
                             .frame(width: 35, alignment: .trailing)
                     }
-                    .onChange(of: editedPauseMinutes) { _, _ in hasChanges = true }
+                    .accessibilityLabel(Text("logEditor.pauseMinutes"))
                 }
             }
         }
@@ -203,17 +211,15 @@ struct LogEntryEditView: View {
 
                     Spacer()
 
-                    Picker("", selection: $editedIdleDecisions[index].decision) {
+                    Picker("logEditor.idleDecisions", selection: $editedIdleDecisions[index].decision) {
                         Text(String(localized: "logEditor.work"))
                             .tag(IdleDecision.Decision.work)
                         Text(String(localized: "logEditor.pause"))
                             .tag(IdleDecision.Decision.pause)
                     }
                     .pickerStyle(.segmented)
+                    .labelsHidden()
                     .frame(width: 140)
-                    .onChange(of: editedIdleDecisions[index].decision) { _, _ in
-                        hasChanges = true
-                    }
                 }
                 .padding(8)
                 .background(
@@ -238,6 +244,7 @@ struct LogEntryEditView: View {
                 .foregroundStyle(.secondary)
 
             TextEditor(text: $editedNote)
+                .accessibilityLabel(Text("logEditor.note"))
                 .font(.system(size: 13))
                 .frame(minHeight: 60, maxHeight: 100)
                 .padding(4)
@@ -245,7 +252,6 @@ struct LogEntryEditView: View {
                     RoundedRectangle(cornerRadius: 6)
                         .stroke(Color.secondary.opacity(0.2))
                 )
-                .onChange(of: editedNote) { _, _ in hasChanges = true }
         }
     }
 
@@ -258,15 +264,10 @@ struct LogEntryEditView: View {
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
 
-            let previewEntry = buildPreviewEntry()
-            let calc = BreakCalculator()
-            let gross = previewEntry.grossTime
-            let workBeforeAuto = previewEntry.workTimeBeforeAutoBreak
-            let autoBrk = calc.autoBreak(
-                forWorkTime: workBeforeAuto,
-                alreadyPaused: previewEntry.totalPause
-            )
-            let net = max(0, workBeforeAuto - autoBrk)
+            let preview = manager.workday(for: buildPreviewEntry())
+            let gross = preview.grossTime
+            let autoBrk = preview.autoBreak
+            let net = preview.netWorkTime
 
             HStack(spacing: 24) {
                 computedItem(
@@ -318,21 +319,35 @@ struct LogEntryEditView: View {
 
             Spacer()
 
+            Button(String(localized: "logEditor.discardChanges")) {
+                resetFields(from: entry)
+            }
+            .disabled(!hasChanges)
+
             Button(String(localized: "logEditor.save")) {
                 save()
             }
             .buttonStyle(.borderedProminent)
+            .keyboardShortcut("s", modifiers: .command)
             .disabled(!hasChanges || !isValid)
         }
     }
 
     // MARK: - Helpers
 
+    private var hasChanges: Bool {
+        editedStart != entry.startTime
+            || (entry.endTime != nil && editedEnd != entry.endTime)
+            || editedPauseHours != Int(entry.manualPauseSeconds) / 3600
+            || editedPauseMinutes != (Int(entry.manualPauseSeconds) % 3600) / 60
+            || editedNote != entry.note
+            || editedIdleDecisions.contains { edited in
+                entry.idleDecisions.first(where: { $0.id == edited.id })?.decision != edited.decision
+            }
+    }
+
     private var isValid: Bool {
-        if entry.endTime != nil {
-            return editedStart < editedEnd
-        }
-        return true
+        manager.hasValidLogTimes(buildPreviewEntry())
     }
 
     private var weekdayString: String {
@@ -351,34 +366,28 @@ struct LogEntryEditView: View {
         if entry.endTime != nil {
             preview.endTime = editedEnd
         }
-        preview.manualPauseSeconds = TimeInterval(editedPauseHours * 3600 + editedPauseMinutes * 60)
+        if editedPauseHours != Int(entry.manualPauseSeconds) / 3600
+            || editedPauseMinutes != (Int(entry.manualPauseSeconds) % 3600) / 60 {
+            preview.manualPauseSeconds = TimeInterval(editedPauseHours * 3600 + editedPauseMinutes * 60)
+        }
         preview.idleDecisions = editedIdleDecisions
         return preview
     }
 
     private func save() {
-        var updated = entry
-        updated.startTime = editedStart
-        if entry.endTime != nil {
-            updated.endTime = editedEnd
-        }
-        updated.manualPauseSeconds = TimeInterval(
-            editedPauseHours * 3600 + editedPauseMinutes * 60)
-        updated.idleDecisions = editedIdleDecisions
+        var updated = buildPreviewEntry()
         updated.note = editedNote
-        persistence.save(updated)
-        entry = updated
-        hasChanges = false
-        onSave(updated)
+        guard let saved = manager.saveEdits(updated, original: entry) else { return }
+        onSave(saved)
+        resetFields(from: saved)
     }
 
-    private func resetFields() {
+    private func resetFields(from entry: TimeEntry) {
         editedStart = entry.startTime
         editedEnd = entry.endTime ?? Date()
         editedPauseHours = Int(entry.manualPauseSeconds) / 3600
         editedPauseMinutes = (Int(entry.manualPauseSeconds) % 3600) / 60
         editedNote = entry.note
         editedIdleDecisions = entry.idleDecisions
-        hasChanges = false
     }
 }

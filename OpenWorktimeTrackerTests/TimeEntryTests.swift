@@ -20,7 +20,7 @@ final class TimeEntryTests: XCTestCase {
     }
 
     func testTotalIdlePauseOnlyCountsPauses() {
-        var entry = TimeEntry(startTime: Date())
+        var entry = TimeEntry(startTime: Date().addingTimeInterval(-3600))
         entry.idleDecisions = [
             IdleDecision(
                 idleStart: Date().addingTimeInterval(-1200),
@@ -37,15 +37,6 @@ final class TimeEntryTests: XCTestCase {
         XCTAssertEqual(entry.totalIdlePause, 600, accuracy: 1)
     }
 
-    func testWorkTimeBeforeAutoBreak() {
-        let start = Date()
-        var entry = TimeEntry(startTime: start, endTime: start.addingTimeInterval(8 * 3600))
-        entry.manualPauseSeconds = 900  // 15 min
-
-        let expected = 8 * 3600.0 - 900.0
-        XCTAssertEqual(entry.workTimeBeforeAutoBreak, expected, accuracy: 1)
-    }
-
     // MARK: - Edge Cases
 
     func testGrossTimeNeverNegative() {
@@ -53,28 +44,6 @@ final class TimeEntryTests: XCTestCase {
         let start = Date()
         let entry = TimeEntry(startTime: start, endTime: start.addingTimeInterval(-100))
         XCTAssertEqual(entry.grossTime, 0)
-    }
-
-    func testWorkTimeBeforeAutoBreakNeverNegative() {
-        let start = Date()
-        var entry = TimeEntry(startTime: start, endTime: start.addingTimeInterval(1800))
-        entry.manualPauseSeconds = 3600  // More pause than gross time
-        XCTAssertGreaterThanOrEqual(entry.workTimeBeforeAutoBreak, 0)
-    }
-
-    func testTotalPauseCombinesManualAndIdle() {
-        let start = Date()
-        var entry = TimeEntry(startTime: start, endTime: start.addingTimeInterval(8 * 3600))
-        entry.manualPauseSeconds = 600
-        entry.idleDecisions = [
-            IdleDecision(
-                idleStart: start.addingTimeInterval(3600),
-                idleEnd: start.addingTimeInterval(4200),
-                decision: .pause  // 10 min
-            )
-        ]
-
-        XCTAssertEqual(entry.totalPause, 1200, accuracy: 1)  // 600 manual + 600 idle
     }
 
     func testNoIdleDecisionsMeansZeroIdlePause() {
@@ -239,9 +208,9 @@ final class TimeEntryTests: XCTestCase {
         XCTAssertLessThan(entry.grossTime, 3700)
     }
 
-    // MARK: - totalPause Edge Cases
+    // MARK: - Pause Edge Cases
 
-    func testTotalPauseWithMultipleIdleDecisions() {
+    func testIdlePauseWithMultipleIdleDecisions() {
         let start = Date()
         var entry = TimeEntry(
             startTime: start,
@@ -266,10 +235,9 @@ final class TimeEntryTests: XCTestCase {
             )
         ]
 
-        // Manual: 600 + Idle pause: 900 + 600 = 1500, total = 2100
+        // Manual: 600 + Idle pause: 900 + 600 = 1500
         XCTAssertEqual(entry.totalManualPause, 600)
         XCTAssertEqual(entry.totalIdlePause, 1500, accuracy: 1)
-        XCTAssertEqual(entry.totalPause, 2100, accuracy: 1)
     }
 
     // MARK: - dateString
@@ -287,20 +255,6 @@ final class TimeEntryTests: XCTestCase {
         let regex = try NSRegularExpression(pattern: "^\\d{4}-\\d{2}-\\d{2}$")
         let range = NSRange(str.startIndex..., in: str)
         XCTAssertNotNil(regex.firstMatch(in: str, range: range))
-    }
-
-    // MARK: - workTimeBeforeAutoBreak
-
-    func testWorkTimeBeforeAutoBreakWithLargePause() {
-        let start = Date()
-        var entry = TimeEntry(
-            startTime: start,
-            endTime: start.addingTimeInterval(3600)  // 1h
-        )
-        entry.manualPauseSeconds = 7200  // 2h (more than gross)
-
-        // Should be max(0, ...) = 0
-        XCTAssertEqual(entry.workTimeBeforeAutoBreak, 0)
     }
 
     // MARK: - Status raw values
