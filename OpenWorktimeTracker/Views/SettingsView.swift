@@ -59,13 +59,14 @@ struct SettingsView: View {
 
     // MARK: - General Tab
 
-    private var generalTab: some View {
+    var generalTab: some View {
         Form {
             Section(String(localized: "settings.appearance")) {
                 HStack {
                     Text("settings.orangeThreshold")
                     Spacer()
                     TextField("settings.orangeThreshold", value: $orangeThreshold, format: .number)
+                        .labelsHidden()
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: orangeThreshold) { _, newValue in
@@ -79,6 +80,7 @@ struct SettingsView: View {
                     Text("settings.redThreshold")
                     Spacer()
                     TextField("settings.redThreshold", value: $redThreshold, format: .number)
+                        .labelsHidden()
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: redThreshold) { _, newValue in
@@ -95,6 +97,7 @@ struct SettingsView: View {
                     Text("settings.breakAfter6h")
                     Spacer()
                     TextField("settings.breakAfter6h", value: $break6h, format: .number)
+                        .labelsHidden()
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: break6h) { _, newValue in
@@ -106,6 +109,7 @@ struct SettingsView: View {
                     Text("settings.breakAfter9h")
                     Spacer()
                     TextField("settings.breakAfter9h", value: $break9h, format: .number)
+                        .labelsHidden()
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: break9h) { _, newValue in
@@ -122,6 +126,7 @@ struct SettingsView: View {
                     Text("settings.idleThreshold")
                     Spacer()
                     TextField("settings.idleThreshold", value: $idleThreshold, format: .number)
+                        .labelsHidden()
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: idleThreshold) { _, newValue in
@@ -142,7 +147,7 @@ struct SettingsView: View {
 
     // MARK: - Notifications Tab
 
-    private var notificationsTab: some View {
+    var notificationsTab: some View {
         Form {
             Section {
                 Toggle(
@@ -154,6 +159,7 @@ struct SettingsView: View {
                     Text("settings.normalHours")
                     Spacer()
                     TextField("settings.normalHours", value: $normalHours, format: .number)
+                        .labelsHidden()
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: normalHours) { _, newValue in
@@ -170,6 +176,7 @@ struct SettingsView: View {
                     Text("settings.criticalHours")
                     Spacer()
                     TextField("settings.criticalHours", value: $criticalHours, format: .number)
+                        .labelsHidden()
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: criticalHours) { _, newValue in
@@ -183,6 +190,7 @@ struct SettingsView: View {
                     Text("settings.milestoneHours")
                     Spacer()
                     TextField("settings.milestoneHours", value: $milestoneHours, format: .number)
+                        .labelsHidden()
                         .frame(width: 60)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: milestoneHours) { _, newValue in

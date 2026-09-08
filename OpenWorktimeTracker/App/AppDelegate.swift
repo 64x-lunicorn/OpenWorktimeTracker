@@ -181,11 +181,14 @@ final class MenuBarController: NSObject {
             case .ended: icon = "checkmark.circle"
             }
             button?.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil)
-            let color: NSColor = manager.thresholdLevel == .normal
-                ? .labelColor : NSColor(manager.thresholdLevel.accent)
+            button?.image?.isTemplate = true
+            // Native status-bar foregrounds follow the wallpaper, not the app's appearance.
+            let color: NSColor? = manager.thresholdLevel == .normal
+                ? nil : NSColor(manager.thresholdLevel.accent)
             button?.contentTintColor = color
             button?.attributedTitle = NSAttributedString(
-                string: manager.menuBarTitle, attributes: [.foregroundColor: color])
+                string: manager.menuBarTitle,
+                attributes: color.map { [.foregroundColor: $0] } ?? [:])
             button?.toolTip = String(localized: "timer.accessibility.netWorkTime")
                 + ": " + manager.menuBarTitle + " - " + manager.state.localizedLabel
             button?.setAccessibilityLabel(button?.toolTip)

@@ -1,10 +1,127 @@
 import AppKit
 import SwiftUI
+import Vision
 import XCTest
 
 @testable import OpenWorktimeTracker
 
 final class ViewLayoutTests: XCTestCase {
+    @MainActor
+    func testNormalStatusUsesNativeAdaptiveForeground() throws {
+        let manager = WorkdayManager(store: InMemoryDailyLogStore())
+        let controller = MenuBarController(manager: manager)
+        let button = try XCTUnwrap(controller.statusItem.button)
+        for appearance in [NSAppearance.Name.aqua, .darkAqua] {
+            button.appearance = NSAppearance(named: appearance)
+            XCTAssertNil(button.contentTintColor, "Let the status bar choose its contrasting foreground")
+            XCTAssertNil(
+                button.attributedTitle.attribute(.foregroundColor, at: 0, effectiveRange: nil),
+                "An explicit label color overrides the menu bar's wallpaper-aware text color")
+            XCTAssertTrue(try XCTUnwrap(button.image).isTemplate)
+            XCTAssertEqual(button.title, manager.menuBarTitle)
+        }
+    }
+
+    @MainActor
+    func testStatusRestoresNativeForegroundAfterThresholdColors() async throws {
+        let suiteName = "status-colors-\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let clock = ManualClock(now: Date(timeIntervalSince1970: 1_800_000_000))
+        let manager = WorkdayManager(
+            defaults: defaults, clock: clock, store: InMemoryDailyLogStore(),
+            idleDetector: IdleDetector(clock: clock, idleTime: { 0 }),
+            widgetStore: SharedDefaults(defaults: defaults))
+        let controller = MenuBarController(manager: manager)
+        let button = try XCTUnwrap(controller.statusItem.button)
+        manager.startNewDay()
+        for (hours, level) in [(9.0, ThresholdLevel.elevated), (11.0, .critical), (1.0, .normal)] {
+            manager.updateStartTime(clock.now.addingTimeInterval(-hours * 3600))
+            try await Task.sleep(for: .milliseconds(100))
+            XCTAssertEqual(manager.thresholdLevel, level)
+            let expected: NSColor? = level == .normal ? nil : NSColor(level.accent)
+            XCTAssertEqual(button.contentTintColor, expected)
+            XCTAssertEqual(
+                button.attributedTitle.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? NSColor,
+                expected)
+            XCTAssertEqual(button.title, manager.menuBarTitle)
+        }
+        manager.endDay()
+        try await Task.sleep(for: .milliseconds(100))
+        XCTAssertNil(button.contentTintColor)
+        XCTAssertNil(button.attributedTitle.attribute(.foregroundColor, at: 0, effectiveRange: nil))
+        XCTAssertTrue(try XCTUnwrap(button.image).isTemplate)
+    }
+
+    @MainActor
+    func testSettingsRowsRemainReadableInBothLanguagesAndAppearances() async throws {
+        for language in ["de", "en"] {
+            for dark in [false, true] {
+                for (content, labels) in [
+                    (AnyView(SettingsView().generalTab), [
+                        "settings.orangeThreshold", "settings.redThreshold",
+                        "settings.breakAfter6h", "settings.breakAfter9h", "settings.idleThreshold"
+                    ]),
+                    (AnyView(SettingsView().notificationsTab), [
+                        "settings.normalHours", "settings.criticalHours", "settings.milestoneHours"
+                    ])
+                ] {
+                    let host = NSHostingView(rootView: content.frame(width: 520, height: 480)
+                        .environment(\.locale, Locale(identifier: language))
+                        .environment(\.colorScheme, dark ? .dark : .light))
+                    let window = NSWindow(
+                        contentRect: NSRect(x: 0, y: 0, width: 520, height: 480),
+                        styleMask: [.titled], backing: .buffered, defer: false)
+                    window.isReleasedWhenClosed = false
+                    window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+                    window.contentView = host
+                    window.orderFront(nil)
+                    defer { window.close() }
+                    try await Task.sleep(for: .milliseconds(100))
+                    host.layoutSubtreeIfNeeded()
+                    let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+                    host.cacheDisplay(in: host.bounds, to: bitmap)
+                    let data = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+                    let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.png")
+                    attachment.name = "settings-\(labels.count)-\(language)-\(dark)"
+                    attachment.lifetime = .keepAlways
+                    add(attachment)
+
+                    try assertSettingsContents(image: XCTUnwrap(bitmap.cgImage), labels: labels, language: language)
+                }
+            }
+        }
+    }
+
+    private func assertSettingsContents(image: CGImage, labels: [String], language: String) throws {
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.recognitionLanguages = [language]
+        try VNImageRequestHandler(cgImage: image).perform([request])
+        let observations = request.results ?? []
+        let bundlePath = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"))
+        let bundle = try XCTUnwrap(Bundle(path: bundlePath))
+        for key in labels {
+            let label = bundle.localizedString(forKey: key, value: nil, table: nil)
+            let normalized = label.filter(\.isLetter).lowercased()
+            let row = try XCTUnwrap(observations.first {
+                $0.topCandidates(1).first?.string.filter(\.isLetter).lowercased().contains(normalized) == true
+            }, "Every settings row must remain readable: \(label)")
+            request.recognitionLevel = .fast
+            request.usesLanguageCorrection = false
+            request.regionOfInterest = CGRect(
+                x: 0.86, y: row.boundingBox.minY - 0.01, width: 0.12, height: row.boundingBox.height + 0.02)
+            try VNImageRequestHandler(cgImage: image).perform([request])
+            let values = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+            XCTAssertEqual(values.count, 1, "One readable value beside \(label): \(values)")
+            for value in values {
+                XCTAssertNotNil(
+                    value.range(of: #"^\d+([.,]\d+)?$"#, options: .regularExpression),
+                    "No duplicate label fragments in the value column: \(value)")
+            }
+        }
+    }
+
     @MainActor
     func testNativeApplicationPreservesEditingShortcuts() throws {
         let delegate = AppDelegate()
