@@ -9,10 +9,13 @@ import XCTest
 final class WorkdayManagerIdleHandlingTests: XCTestCase {
 
     private var manager: WorkdayManager!
+    private var clock: ManualClock!
 
     override func setUp() {
         super.setUp()
-        manager = WorkdayManager()
+        clock = ManualClock(now: Calendar.current.date(
+            from: DateComponents(year: 2026, month: 9, day: 14, hour: 8))!)
+        manager = WorkdayManager(clock: clock, store: InMemoryDailyLogStore())
     }
 
     override func tearDown() {
@@ -30,8 +33,10 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
 
     func testHandleIdleDecisionAndEndDayEndsAtIdleStart() {
         manager.startNewDay()
-        let idleStart = Date().addingTimeInterval(-1800)
-        stagePendingIdlePeriod(idleStart: idleStart, idleEnd: Date())
+        clock.now = clock.now.addingTimeInterval(3600)
+        let idleStart = clock.now
+        clock.now = clock.now.addingTimeInterval(1800)
+        stagePendingIdlePeriod(idleStart: idleStart, idleEnd: clock.now)
 
         manager.handleIdleDecisionAndEndDay()
 
@@ -42,23 +47,25 @@ final class WorkdayManagerIdleHandlingTests: XCTestCase {
         XCTAssertNil(manager.pendingIdlePeriod)
     }
 
-    func testHandleIdleDecisionAndRestartStartsANewEntry() {
+    func testHandleIdleDecisionAndRestartPreservesEntry() {
         manager.startNewDay()
         let originalID = manager.currentEntry?.id
-        stagePendingIdlePeriod(idleStart: Date().addingTimeInterval(-1800), idleEnd: Date())
+        clock.now = clock.now.addingTimeInterval(3600)
+        stagePendingIdlePeriod(idleStart: clock.now.addingTimeInterval(-1800), idleEnd: clock.now)
 
         manager.handleIdleDecisionAndRestart()
 
         XCTAssertEqual(manager.state, .running)
-        XCTAssertNotEqual(manager.currentEntry?.id, originalID)
+        XCTAssertEqual(manager.currentEntry?.id, originalID)
         XCTAssertNil(manager.pendingIdlePeriod)
     }
 
     func testHandleNewDayFromIdleEndsYesterdayAndStartsToday() {
         manager.startNewDay()
         let originalID = manager.currentEntry?.id
-        let idleStart = Date().addingTimeInterval(-3600)
-        stagePendingIdlePeriod(idleStart: idleStart, idleEnd: Date(), spansMidnight: true)
+        let idleStart = clock.now.addingTimeInterval(8 * 3600)
+        clock.now = clock.now.addingTimeInterval(24 * 3600)
+        stagePendingIdlePeriod(idleStart: idleStart, idleEnd: clock.now, spansMidnight: true)
 
         manager.handleNewDayFromIdle(endYesterdayAt: idleStart)
 

@@ -3,5 +3,8 @@
 "widget.state.paused" = "Pausiert";
 "widget.state.ended" = "Fertig";
 "widget.state.idle" = "Inaktiv";
+"widget.state.unavailable" = "Keine aktuellen Daten. OpenWorktimeTracker öffnen.";
 "widget.since" = "seit %@";
-"widget.target" = "von %dh Ziel";
+"widget.target" = "Ziel %@";
+"widget.name" = "Arbeitszeit";
+"widget.description" = "Deine aktuelle Arbeitszeit auf einen Blick.";

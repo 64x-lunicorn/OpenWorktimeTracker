@@ -36,6 +36,53 @@ final class IdleDetectorTests: XCTestCase {
         XCTAssertNil(detector.idleStartTime)
     }
 
+    func testStartingMonitoringAgainPreservesInFlightIdlePeriod() {
+        detector.startMonitoring()
+        let start = Date().addingTimeInterval(-600)
+        detector.isIdle = true
+        detector.idleStartTime = start
+
+        detector.startMonitoring()
+
+        XCTAssertTrue(detector.isIdle)
+        XCTAssertEqual(detector.idleStartTime, start)
+    }
+
+    func testIdlePeriodCannotStartBeforeMonitoringAndIsReportedOnce() {
+        let clock = ManualClock(now: Date(timeIntervalSince1970: 1_700_000_000))
+        let start = clock.now
+        var idleSeconds: TimeInterval = 7200
+        detector = IdleDetector(clock: clock, idleTime: { idleSeconds })
+        var periods: [IdlePeriod] = []
+        detector.onPeriodEnded = { periods.append($0) }
+        detector.startMonitoring()
+        clock.now = clock.now.addingTimeInterval(600)
+        detector.checkIdleState()
+        idleSeconds = 0
+        detector.checkIdleState()
+        detector.checkIdleState()
+
+        XCTAssertEqual(periods.count, 1)
+        XCTAssertEqual(periods.first?.idleStart, start)
+        XCTAssertEqual(periods.first?.duration, 600)
+    }
+
+    func testStoppingFromIdleCallbackDoesNotLeaveDetectorIdle() {
+        let clock = ManualClock(now: Date(timeIntervalSince1970: 1_700_000_000))
+        var idleSeconds: TimeInterval = 600
+        detector = IdleDetector(clock: clock, idleTime: { idleSeconds })
+        detector.startMonitoring()
+        clock.now = clock.now.addingTimeInterval(600)
+        detector.checkIdleState()
+        detector.onPeriodEnded = { [weak detector] _ in detector?.stopMonitoring() }
+        idleSeconds = 0
+
+        detector.checkIdleState()
+
+        XCTAssertFalse(detector.isIdle)
+        XCTAssertNil(detector.idleStartTime)
+    }
+
     // MARK: - Callback
 
     func testOnPeriodEndedCallbackIsSet() {

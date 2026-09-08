@@ -26,13 +26,14 @@ struct SummaryStatsView: View {
                     .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
                     .tracking(1.5)
                 Spacer()
-                Picker("", selection: $period) {
+                Picker("summary.period", selection: $period) {
                     ForEach(Period.allCases, id: \.self) { option in
                         Text(option.label).tag(option)
                     }
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 120)
+                .labelsHidden()
+                .frame(width: 150)
             }
 
             if entries.isEmpty {
@@ -51,7 +52,7 @@ struct SummaryStatsView: View {
                 ) {
                     StatCard(
                         label: String(localized: "summary.totalHours"),
-                        value: String(format: "%.1fh", totalHours),
+                        value: totalTime.hoursMinutesFormatted,
                         icon: "clock",
                         color: DesignTokens.Colors.accentBlue
                     )
@@ -63,15 +64,15 @@ struct SummaryStatsView: View {
                     )
                     StatCard(
                         label: String(localized: "summary.dailyAvg"),
-                        value: String(format: "%.1fh", dailyAverage),
+                        value: dailyAverage.hoursMinutesFormatted,
                         icon: "chart.bar",
                         color: DesignTokens.Colors.accentOrange
                     )
                     StatCard(
                         label: String(localized: "summary.overtime"),
                         value: overtimeFormatted,
-                        icon: overtimeHours >= 0 ? "arrow.up.right" : "arrow.down.right",
-                        color: overtimeHours >= 0
+                        icon: overtimeTime >= 0 ? "arrow.up.right" : "arrow.down.right",
+                        color: overtimeTime >= 0
                             ? DesignTokens.Colors.accentRed : DesignTokens.Colors.accentGreen
                     )
                 }
@@ -79,6 +80,7 @@ struct SummaryStatsView: View {
         }
         .onAppear { loadEntries() }
         .onChange(of: period) { _, _ in loadEntries() }
+        .onChange(of: manager.logRevision) { _, _ in loadEntries() }
     }
 
     // MARK: - Data Loading
@@ -118,38 +120,33 @@ struct SummaryStatsView: View {
 
     // MARK: - Computed Stats
 
-    private var totalHours: Double {
-        entries.reduce(0) { $0 + netHours(for: $1) }
+    private var totalTime: TimeInterval {
+        entries.reduce(0) { $0 + manager.workday(for: $1).netWorkTime }
     }
 
     private var workDays: Int {
         entries.count
     }
 
-    private var dailyAverage: Double {
+    private var dailyAverage: TimeInterval {
         guard workDays > 0 else { return 0 }
-        return totalHours / Double(workDays)
+        return totalTime / Double(workDays)
     }
 
     private var targetHoursPerDay: Double {
         manager.notificationThresholds.normalHours
     }
 
-    private var overtimeHours: Double {
-        totalHours - (Double(workDays) * targetHoursPerDay)
+    private var overtimeTime: TimeInterval {
+        totalTime - (Double(workDays) * targetHoursPerDay * 3600)
     }
 
     private var overtimeFormatted: String {
-        let abs = abs(overtimeHours)
-        let sign = overtimeHours >= 0 ? "+" : "-"
-        return String(format: "%@%.1fh", sign, abs)
+        let sign = overtimeTime >= 0 ? "+" : "-"
+        return sign + abs(overtimeTime).hoursMinutesFormatted
     }
 
     // MARK: - Helpers
-
-    private func netHours(for entry: TimeEntry) -> Double {
-        manager.workday(for: entry).netWorkTime.inHours
-    }
 
     private func parseDate(_ dateString: String) -> Date? {
         let formatter = DateFormatter()
@@ -176,8 +173,6 @@ private struct StatCard: View {
                 Text(label)
                     .font(DesignTokens.Typography.labelMicro)
                     .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
-                    .textCase(.uppercase)
-                    .tracking(0.8)
             }
 
             Text(value)
@@ -189,5 +184,6 @@ private struct StatCard: View {
         .padding(.vertical, DesignTokens.Spacing.sm)
         .background(DesignTokens.Colors.surfaceContainerLow)
         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
+        .accessibilityElement(children: .combine)
     }
 }

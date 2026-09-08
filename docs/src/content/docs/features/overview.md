@@ -45,7 +45,32 @@ Daily work logs stored as human-readable JSON files. Export to CSV anytime.
 
 [Learn more about data and export](/features/data/)
 
+### Desktop Widget
+The app publishes status, times, targets, and color thresholds together with
+their measurement timestamp. The widget reads this as one snapshot, so it cannot
+combine fields from different updates. Running timers count from the original
+measurement, not from when WidgetKit eventually reads it; paused and ended times
+remain fixed. Progress and colors catch up when the timeline refreshes.
+
+Between refreshes, a running timer extrapolates the last measured Net Work Time;
+new Auto Break deductions or Idle Decisions appear with the next app snapshot
+and widget refresh. If no readable snapshot exists, the widget asks you to open
+the app rather than inventing a running state. After upgrading from the old
+per-field format, launch the app once to publish the new format.
+
 ## Design
+
+### Everyday Controls
+
+- Pause, resume, and end-day actions stay visible below the scrollable menu bar content.
+- History and summary durations use `HH:MM`, matching the main timer.
+- Any additional Auto Break deduction is shown separately from recorded pauses.
+- Idle prompts explain what each choice does and include dates for overnight periods.
+- Start and end times use native time fields with keyboard-friendly save and cancel actions.
+- The log editor keeps Save and Discard visible while scrolling, marks unsaved changes,
+  and explains invalid time entries. Use **Command-S** to save.
+- The regular-hours setting also defines the daily goal and estimated end time,
+  even when notifications are disabled. Fractional-hour goals are preserved in the widget.
 
 OpenWorktimeTracker follows the **Ethereal Chronometer** design system:
 - Glassmorphism with tonal depth
@@ -59,7 +84,7 @@ OpenWorktimeTracker follows the **Ethereal Chronometer** design system:
 |-----------|---------|
 | SwiftUI + AppKit | Hybrid UI framework |
 | `@Observable` | Swift 5.9 state management |
-| `MenuBarExtra` | Native menu bar integration |
+| AppKit lifecycle + `NSStatusItem` / `NSPopover` | Native menu bar event handling with SwiftUI dashboard and settings views |
 | `SMAppService` | Login Item (no helper app) |
 | `CGEventSource` | Hardware-level idle detection |
 | `UNUserNotificationCenter` | Native notifications |

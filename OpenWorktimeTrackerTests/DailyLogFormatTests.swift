@@ -48,6 +48,7 @@ final class DailyLogFormatTests: XCTestCase {
         XCTAssertEqual(entry.idleDecisions.first?.decision, .pause)
         XCTAssertTrue(entry.notifiedThresholds.contains("normal"))
         XCTAssertNil(entry.pauseStartedAt)
+        XCTAssertNil(entry.lastActivityTime)
     }
 
     func testAShippedDailyLogDerivesTheExpectedNetWorkTime() throws {
@@ -106,5 +107,20 @@ final class DailyLogFormatTests: XCTestCase {
                 "idleDecisions", "notifiedThresholds", "note"
             ]
         )
+    }
+
+    func testOptionalLastActivityRoundTripsWithoutChangingOtherFields() throws {
+        var entry = try decodeFixture()
+        entry.lastActivityTime = entry.startTime.addingTimeInterval(3600)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        let decoded = try decoder.decode(TimeEntry.self, from: encoder.encode(entry))
+
+        XCTAssertEqual(decoded.lastActivityTime, entry.lastActivityTime)
+        XCTAssertEqual(decoded.id, entry.id)
+        XCTAssertEqual(decoded.endTime, entry.endTime)
     }
 }

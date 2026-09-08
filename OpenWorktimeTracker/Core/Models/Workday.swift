@@ -52,24 +52,24 @@ struct Workday {
     var thresholdLevel: ThresholdLevel { thresholds.level(for: netWorkTime) }
 
     func grossTime(endingAt instant: Date) -> TimeInterval {
-        max(0, instant.timeIntervalSince(payload.startTime))
+        max(0, min(instant, payload.endTime ?? instant).timeIntervalSince(payload.startTime))
     }
 
     /// Pause the user took deliberately, including one still open at `instant`.
     func manualPause(endingAt instant: Date) -> TimeInterval {
         var total = payload.manualPauseSeconds
         if payload.status == .paused, let openedAt = payload.pauseStartedAt {
-            total += max(0, instant.timeIntervalSince(openedAt))
+            total += max(0, instant.timeIntervalSince(max(openedAt, startTime)))
         }
         return total
     }
 
     /// Idle Periods the user decided were a Pause.
-    var idlePause: TimeInterval { payload.totalIdlePause }
+    var idlePause: TimeInterval { payload.idlePause(endingAt: measuredTo) }
 
     /// Every Pause counted against the Workday.
     func pause(endingAt instant: Date) -> TimeInterval {
-        manualPause(endingAt: instant) + idlePause
+        manualPause(endingAt: instant) + payload.idlePause(endingAt: instant)
     }
 
     func autoBreak(endingAt instant: Date) -> TimeInterval {
@@ -122,11 +122,24 @@ struct Workday {
     /// Workday is a no-op, so a second call cannot overwrite the recorded end.
     func ended(at instant: Date) -> Workday {
         guard payload.status != .ended else { return self }
+        let end = max(startTime, instant)
         return mutating {
-            $0.manualPauseSeconds += closingOpenPause(at: instant)
+            $0.manualPauseSeconds += closingOpenPause(at: end)
             $0.pauseStartedAt = nil
             $0.status = .ended
-            $0.endTime = instant
+            $0.endTime = end
+        }
+    }
+
+    func reopened(at instant: Date) -> Workday {
+        guard payload.status == .ended, let end = endTime else { return self }
+        return mutating {
+            if instant > end {
+                $0.idleDecisions.append(
+                    IdleDecision(idleStart: end, idleEnd: instant, decision: .pause))
+            }
+            $0.endTime = nil
+            $0.status = .running
         }
     }
 
@@ -150,6 +163,11 @@ struct Workday {
         mutating { $0.notifiedThresholds.insert(threshold) }
     }
 
+    func recordingActivity(at instant: Date) -> Workday {
+        guard status == .running else { return self }
+        return mutating { $0.lastActivityTime = max(startTime, instant) }
+    }
+
     /// Re-resolves configuration so a settings change reaches a Workday that is
     /// already being held.
     func reconfigured(defaults: UserDefaults = .standard) -> Workday {
@@ -160,7 +178,7 @@ struct Workday {
     /// instant before the Pause opened never subtracts time.
     private func closingOpenPause(at instant: Date) -> TimeInterval {
         guard let openedAt = payload.pauseStartedAt else { return 0 }
-        return max(0, instant.timeIntervalSince(openedAt))
+        return max(0, instant.timeIntervalSince(max(openedAt, startTime)))
     }
 
     private func mutating(_ change: (inout TimeEntry) -> Void) -> Workday {

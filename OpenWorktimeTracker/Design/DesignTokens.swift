@@ -15,7 +15,7 @@ enum DesignTokens {
         // Adaptive fallbacks using system colors
         static let accentBlue = Color(light: .init(hex: 0x0058BC), dark: .init(hex: 0x007AFF))
         static let accentGreen = Color(light: .init(hex: 0x006B27), dark: .init(hex: 0x34C759))
-        static let accentOrange = Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+        static let accentOrange = Color(light: .init(hex: 0x995000), dark: .init(hex: 0xFF9500))
         static let accentRed = Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
 
         static let surface = Color(light: .init(hex: 0xF9F9FE), dark: .init(hex: 0x1A1C1F))
@@ -28,6 +28,7 @@ enum DesignTokens {
             light: .init(hex: 0xE2E2E7), dark: .init(hex: 0x33353A))
 
         static let onSurface = Color(light: .init(hex: 0x1A1C1F), dark: .init(hex: 0xE2E2E7))
+        static let onAccent = Color.white
         static let onSurfaceVariant = Color(light: .init(hex: 0x414755), dark: .init(hex: 0xC1C6D7))
         static let outlineVariant = Color(light: .init(hex: 0xC1C6D7), dark: .init(hex: 0x44474E))
 
@@ -49,9 +50,9 @@ enum DesignTokens {
         static let titleMedium = Font.system(size: 14, weight: .semibold)
         static let bodyMedium = Font.system(size: 13, weight: .regular)
         static let bodySmall = Font.system(size: 12, weight: .regular)
-        static let labelLarge = Font.system(size: 11, weight: .semibold)
-        static let labelSmall = Font.system(size: 10, weight: .bold)
-        static let labelMicro = Font.system(size: 9, weight: .medium)
+        static let labelLarge = Font.system(size: 13, weight: .semibold)
+        static let labelSmall = Font.system(size: 11, weight: .semibold)
+        static let labelMicro = Font.system(size: 11, weight: .medium)
     }
 
     // MARK: - Spacing
@@ -76,8 +77,9 @@ enum DesignTokens {
 
     // MARK: - Popover
 
-    static let popoverWidth: CGFloat = 340
-    static let popoverMinHeight: CGFloat = 680
+    static let popoverWidth: CGFloat = 380
+    static let popoverMinHeight: CGFloat = 640
+    static let promptWidth: CGFloat = 380
 }
 
 extension ThresholdLevel {

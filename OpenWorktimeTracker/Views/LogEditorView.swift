@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct LogEditorView: View {
-    let persistence: PersistenceManager
     let manager: WorkdayManager
 
     @State private var entries: [TimeEntry] = []
@@ -17,47 +16,48 @@ struct LogEditorView: View {
             .onAppear { loadEntries() }
         } detail: {
             if let date = selectedDate,
-                let binding = bindingForEntry(date: date) {
+                let entry = entries.first(where: { $0.date == date }) {
                 LogEntryEditView(
-                    entry: binding,
-                    persistence: persistence,
+                    entry: entry,
                     manager: manager,
                     onSave: { savedEntry in
                         if let i = entries.firstIndex(where: { $0.date == savedEntry.date }) {
                             entries[i] = savedEntry
                         }
-                        if savedEntry.date == TimeEntry.dateString(from: Date()) {
-                            manager.reloadCurrentEntry()
-                        }
                     },
                     onDelete: { dateString in
-                        persistence.delete(for: dateString)
+                        guard manager.deleteLog(entry) else { return }
                         entries.removeAll { $0.date == dateString }
                         selectedDate = entries.first?.date
-                        if dateString == TimeEntry.dateString(from: Date()) {
-                            manager.reloadCurrentEntry()
-                        }
                     }
                 )
+                .id(entry.id)
             } else {
-                Text(String(localized: "logEditor.noEntries"))
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(
+                    entries.isEmpty ? String(localized: "logEditor.noEntries")
+                        : String(localized: "logEditor.selectEntry"),
+                    systemImage: "calendar"
+                )
             }
         }
         .frame(minWidth: 650, minHeight: 450)
-    }
-
-    private func bindingForEntry(date: String) -> Binding<TimeEntry>? {
-        guard let index = entries.firstIndex(where: { $0.date == date }) else { return nil }
-        return Binding(
-            get: { entries[index] },
-            set: { entries[index] = $0 }
-        )
+        .alert(
+            String(localized: "logEditor.error.title"),
+            isPresented: Binding(
+                get: { manager.logMutationError != nil },
+                set: { if !$0 { manager.clearLogMutationError() } }
+            )
+        ) {
+            Button(String(localized: "logEditor.error.dismiss")) {
+                manager.clearLogMutationError()
+            }
+        } message: {
+            Text(manager.logMutationError?.localizedDescription ?? "")
+        }
     }
 
     private func loadEntries() {
-        entries = persistence.loadAll()
+        entries = manager.loadDailyLogs()
         if selectedDate == nil {
             selectedDate = entries.first?.date
         }

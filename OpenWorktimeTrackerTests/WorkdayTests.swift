@@ -279,6 +279,28 @@ final class WorkdayTests: XCTestCase {
         XCTAssertEqual(again.endTime, first)
     }
 
+    func testOverlappingIdlePausesAreOnlyCountedOnceAndClippedToWorkday() {
+        let workday = runningWorkday()
+            .recording(IdleDecision(
+                idleStart: epoch.addingTimeInterval(-3600),
+                idleEnd: epoch.addingTimeInterval(3600), decision: .pause))
+            .recording(IdleDecision(
+                idleStart: epoch,
+                idleEnd: epoch.addingTimeInterval(7200), decision: .pause))
+            .ended(at: epoch.addingTimeInterval(5400))
+
+        XCTAssertEqual(workday.idlePause, 5400)
+        XCTAssertEqual(workday.netWorkTime, 0)
+        XCTAssertEqual(workday.grossTime(endingAt: epoch.addingTimeInterval(10_000)), 5400)
+    }
+
+    func testEndingBeforeStartClampsEndToStart() {
+        let ended = runningWorkday().ended(at: epoch.addingTimeInterval(-3600))
+
+        XCTAssertEqual(ended.endTime, epoch)
+        XCTAssertEqual(ended.netWorkTime, 0)
+    }
+
     func testResumingAccumulatesPause() {
         let resumed = runningWorkday()
             .paused(at: epoch.addingTimeInterval(1 * 3600))

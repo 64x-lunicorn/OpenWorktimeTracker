@@ -23,7 +23,7 @@ The `WorkdayDetector` evaluates the current state and returns one of four action
 The workday detector is evaluated at these points:
 
 1. **App launch** -- when the app starts or restarts
-2. **Wake from sleep** -- when the Mac wakes from sleep/lid open
+2. **Wake and unlock** -- once the Mac is both awake and unlocked
 3. **Timer tick** -- periodically checks if the date has changed
 4. **Idle return** -- when the user returns from an idle period that crosses midnight
 
@@ -36,6 +36,26 @@ The app uses a configurable **new day start hour** (default: 4:00 AM) to determi
 - Opening at 5 AM? New workday starts
 
 This prevents accidental day splits for people who occasionally work late.
+
+The same effective date is used for creating, loading, and updating Daily Logs.
+Active work crossing the boundary is split at that hour, not at midnight.
+An unresolved idle period postpones the split until the user decides how to count it.
+
+## Ending and Continuing
+
+- Tracking starts when the app launches; opening the menu is not required.
+- Ending a day immediately freezes its displayed totals at the recorded end time.
+- **Continue** reopens the same Daily Log, preserving its start, notes, and pauses.
+  The interval between ending and continuing is counted as a pause.
+- A repeated start does not overwrite an existing day.
+- After a completed day, the next effective day starts on activity or wake.
+- An explicitly paused day is not turned into work merely because the clock crosses
+  the boundary. Use **Start day** or **Resume** when returning to work.
+
+New logs also record an optional `lastActivityTime`. After an app restart on a
+later day, an unfinished day can be closed using that saved activity instead of
+guessing 18:00. Older logs remain readable and retain the legacy estimate when
+no activity timestamp is available.
 
 ## Scenarios
 
@@ -60,9 +80,10 @@ This prevents accidental day splits for people who occasionally work late.
 
 1. You close your Mac lid at 18:00
 2. You open it at 8:00 the next morning
-3. `AppDelegate` receives the wake notification
-4. WorkdayDetector evaluates: previous day running, new date
-5. **Action**: `endPreviousAndStartNew`
+3. `WorkdayManager` processes sleep/wake and lock/unlock in order, without a timed delay
+4. Once awake and unlocked, the overnight Idle Period is presented before any day transition
+5. Your Idle Decision determines whether that interval was work, a pause, or the end of yesterday
+6. Duplicate wake/unlock notifications do not discard or duplicate the prompt
 
 ### Scenario 4: Working Past Midnight
 
@@ -81,3 +102,11 @@ This prevents accidental day splits for people who occasionally work late.
 ## Configuration
 
 The new day start hour is currently set to 4:00 AM. This will be configurable in a future release.
+
+## Editing Daily Logs
+
+The log editor validates and merges changes through `WorkdayManager`, preserving
+newer tracking updates. Saving is confirmed only after the local file write
+finishes. A failed save leaves the draft available and displays an error.
+Deletion updates tracking and history only after the file adapter confirms it;
+deleting an older Daily Log does not dismiss a current Idle Decision.

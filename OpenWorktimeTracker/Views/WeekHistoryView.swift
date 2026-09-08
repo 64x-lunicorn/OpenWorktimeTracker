@@ -33,6 +33,7 @@ struct WeekHistoryView: View {
             }
         }
         .onAppear { loadHistory() }
+        .onChange(of: manager.logRevision) { _, _ in loadHistory() }
     }
 
     private func loadHistory() {
@@ -44,8 +45,10 @@ struct WeekHistoryView: View {
     }
 
     private var weekTotal: String {
-        let total = entries.reduce(0.0) { $0 + netHours(for: $1) }
-        return String(format: "%.1fh total", total)
+        let total = entries.reduce(0.0) { $0 + manager.workday(for: $1).netWorkTime }
+        return String(
+            format: String(localized: "history.total"),
+            total.hoursMinutesFormatted)
     }
 
     private func netHours(for entry: TimeEntry) -> Double {
@@ -67,13 +70,13 @@ private struct DayRow: View {
             Text(weekdayAbbr)
                 .font(DesignTokens.Typography.labelMicro)
                 .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
-                .frame(width: 24, alignment: .leading)
+                .frame(width: 28, alignment: .leading)
 
             // Date
             Text(shortDate)
                 .font(DesignTokens.Typography.labelMicro)
                 .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
-                .frame(width: 36, alignment: .leading)
+                .frame(width: 40, alignment: .leading)
                 .monospacedDigit()
 
             // Bar
@@ -87,13 +90,16 @@ private struct DayRow: View {
             .frame(height: 16)
 
             // Hours
-            Text(String(format: "%.1fh", netHours))
+            Text(workday.netWorkTime.hoursMinutesFormatted)
                 .font(DesignTokens.Typography.labelMicro)
                 .foregroundStyle(DesignTokens.Colors.onSurface)
                 .monospacedDigit()
-                .frame(width: 32, alignment: .trailing)
+                .frame(width: 44, alignment: .trailing)
         }
-        .padding(.vertical, 1)
+        .padding(.vertical, DesignTokens.Spacing.xs)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(weekdayAbbr), \(entry.date)"))
+        .accessibilityValue(Text(workday.netWorkTime.hoursMinutesFormatted))
     }
 
     private var netHours: Double {

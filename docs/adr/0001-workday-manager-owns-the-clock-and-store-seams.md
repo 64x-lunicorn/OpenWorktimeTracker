@@ -22,9 +22,23 @@ level up on purpose.
 
 `WorkdayManager` keeps a separately-typed `persistence: PersistenceManager`
 property alongside `store: DailyLogStore`, rather than replacing it outright.
-Several views reach `manager.persistence` directly for things `DailyLogStore`
-doesn't cover — log export, browsing the log folder, iCloud sync — and giving
-those views a Daily Log query interface of their own is a separate, later
-decision. `store` defaults to `persistence` itself, so production has one
-real instance; only `WorkdayManager`'s own load/save calls were moved onto
-`store`.
+`store` defaults to `persistence` itself, so production has one real instance.
+The concrete property remains for filesystem settings, folder navigation, and
+existing history queries.
+
+The initially deferred editor scope is now owned by `WorkdayManager` too:
+editor queries, draft validation, stale-edit merging, acknowledged local writes,
+and deletion all cross its interface. Callers no longer delete through the
+file adapter and then request a separate reload. Failed mutations leave tracking
+and history revisions unchanged and expose an error to the editor. Autosave
+remains queued; editor writes wait on that same queue so a successful response
+means the local Daily Log was actually written, not that iCloud confirmed it.
+Sleep and termination also flush through `DailyLogStore`, including in tests.
+
+The same ownership rule applies to Idle Period sequencing: `WorkdayManager`
+receives macOS sleep/wake and lock/unlock events, updates `IdleDetector` first,
+and only then evaluates the Workday. Sleep and lock are independent conditions;
+both must clear before an Idle Period ends. This replaces observer-order
+assumptions and a timed wake delay. A prompt-presenting seam has the existing
+panel adapter and a recording test adapter; decisions and window closure share
+manager-owned cleanup.

@@ -303,7 +303,7 @@ Daily logs stored as JSON in:
 
 ## Tech Stack
 
-- **SwiftUI** + AppKit hybrid — `MenuBarExtra` for menu bar, native macOS feel
+- **SwiftUI** + AppKit hybrid — AppKit application lifecycle with `NSStatusItem` and `NSPopover`, hosting SwiftUI views
 - **`@Observable`** — Modern Swift 5.9 state management (no ObservableObject)
 - **`SMAppService`** — Native Login Item (no helper app needed)
 - **`CGEventSource`** — Hardware-level idle detection

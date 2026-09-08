@@ -24,6 +24,8 @@ struct MetricCardsView: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .disabled(manager.currentEntry == nil)
+                .help(Text("metric.editStartTime"))
 
                 MetricCard(
                     icon: "clock",
@@ -55,6 +57,13 @@ struct MetricCardsView: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .help(Text("metric.editEndTime"))
+                } else if manager.state == .notStarted {
+                    MetricCard(
+                        icon: "target",
+                        label: String(localized: "metric.target"),
+                        value: "--:--"
+                    )
                 } else if let eta = manager.estimatedEndTime {
                     MetricCard(
                         icon: "target",
@@ -70,90 +79,60 @@ struct MetricCardsView: View {
                     )
                 }
             }
+
+            if manager.autoBreak > 0 {
+                LabeledContent {
+                    Text(manager.autoBreak.hoursMinutesFormatted)
+                        .monospacedDigit()
+                } label: {
+                    Label("metric.autoBreak", systemImage: "cup.and.saucer")
+                }
+                .font(DesignTokens.Typography.bodySmall)
+                .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
+                .help(Text("metric.autoBreak.help"))
+            }
         }
         .popover(isPresented: $isEditingStart, arrowEdge: .bottom) {
-            timeEditor(title: String(localized: "metric.editStartTime"), date: $editedStartTime) {
+            timeEditor(
+                title: String(localized: "metric.editStartTime"),
+                date: $editedStartTime,
+                range: Date.distantPast...(manager.currentEntry?.endTime ?? Date())
+            ) {
                 manager.updateStartTime(editedStartTime)
                 isEditingStart = false
             }
         }
         .popover(isPresented: $isEditingEnd, arrowEdge: .bottom) {
-            timeEditor(title: String(localized: "metric.editEndTime"), date: $editedEndTime) {
+            timeEditor(
+                title: String(localized: "metric.editEndTime"),
+                date: $editedEndTime,
+                range: (manager.currentEntry?.startTime ?? Date())...Date.distantFuture
+            ) {
                 manager.updateEndTime(editedEndTime)
                 isEditingEnd = false
             }
         }
     }
 
-    private func timeEditor(title: String, date: Binding<Date>, onSave: @escaping () -> Void)
+    private func timeEditor(
+        title: String, date: Binding<Date>, range: ClosedRange<Date>, onSave: @escaping () -> Void
+    )
         -> some View {
-        let hours = Binding<Int>(
-            get: { Calendar.current.component(.hour, from: date.wrappedValue) },
-            set: { newHour in
-                var comps = Calendar.current.dateComponents(
-                    [.year, .month, .day, .minute, .second], from: date.wrappedValue)
-                comps.hour = newHour
-                if let newDate = Calendar.current.date(from: comps) {
-                    date.wrappedValue = newDate
-                }
-            }
-        )
-        let minutes = Binding<Int>(
-            get: { Calendar.current.component(.minute, from: date.wrappedValue) },
-            set: { newMinute in
-                var comps = Calendar.current.dateComponents(
-                    [.year, .month, .day, .hour, .second], from: date.wrappedValue)
-                comps.minute = newMinute
-                if let newDate = Calendar.current.date(from: comps) {
-                    date.wrappedValue = newDate
-                }
-            }
-        )
-
-        return VStack(spacing: DesignTokens.Spacing.md) {
+        VStack(spacing: DesignTokens.Spacing.md) {
             Text(title)
                 .font(DesignTokens.Typography.labelLarge)
                 .foregroundStyle(DesignTokens.Colors.onSurface)
 
-            HStack(spacing: 4) {
-                // Hours stepper
-                VStack(spacing: 2) {
-                    Text("H")
-                        .font(DesignTokens.Typography.labelMicro)
-                        .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
-                    Stepper(value: hours, in: 0...23) {
-                        Text(String(format: "%02d", hours.wrappedValue))
-                            .font(DesignTokens.Typography.displaySmall)
-                            .monospacedDigit()
-                            .frame(width: 40)
-                    }
-                }
-
-                Text(":")
-                    .font(DesignTokens.Typography.displaySmall)
-                    .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
-                    .padding(.top, 14)
-
-                // Minutes stepper
-                VStack(spacing: 2) {
-                    Text("M")
-                        .font(DesignTokens.Typography.labelMicro)
-                        .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
-                    Stepper(value: minutes, in: 0...59) {
-                        Text(String(format: "%02d", minutes.wrappedValue))
-                            .font(DesignTokens.Typography.displaySmall)
-                            .monospacedDigit()
-                            .frame(width: 40)
-                    }
-                }
-            }
+            DatePicker(title, selection: date, in: range, displayedComponents: .hourAndMinute)
+                .labelsHidden()
+                .datePickerStyle(.field)
 
             HStack {
                 Button(String(localized: "metric.cancel")) {
                     isEditingStart = false
+                    isEditingEnd = false
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
+                .keyboardShortcut(.cancelAction)
 
                 Spacer()
 
@@ -161,10 +140,11 @@ struct MetricCardsView: View {
                     onSave()
                 }
                 .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
             }
         }
         .padding(DesignTokens.Spacing.lg)
-        .frame(width: 200)
+        .frame(width: 240)
     }
 }
 
@@ -182,9 +162,8 @@ private struct MetricCard: View {
             HStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.system(size: 10))
-                Text(label.uppercased())
+                Text(label)
                     .font(DesignTokens.Typography.labelMicro)
-                    .tracking(1)
                 if isEditable {
                     Spacer()
                     Image(systemName: "pencil")

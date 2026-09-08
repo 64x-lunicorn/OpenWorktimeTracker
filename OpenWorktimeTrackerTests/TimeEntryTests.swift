@@ -20,7 +20,7 @@ final class TimeEntryTests: XCTestCase {
     }
 
     func testTotalIdlePauseOnlyCountsPauses() {
-        var entry = TimeEntry(startTime: Date())
+        var entry = TimeEntry(startTime: Date().addingTimeInterval(-3600))
         entry.idleDecisions = [
             IdleDecision(
                 idleStart: Date().addingTimeInterval(-1200),

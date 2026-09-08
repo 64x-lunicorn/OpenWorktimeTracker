@@ -1,46 +1,20 @@
-import Sparkle
-import SwiftUI
+import AppKit
 
 @main
-struct OpenWorktimeTrackerApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @State private var workdayManager = WorkdayManager()
-
-    var body: some Scene {
-        MenuBarExtra {
-            MenuBarView()
-                .environment(workdayManager)
-        } label: {
-            HStack(spacing: 4) {
-                Image(systemName: menuBarIcon)
-                    .symbolEffect(.pulse, isActive: workdayManager.state == .running)
-                Text(workdayManager.menuBarTitle)
-                    .monospacedDigit()
-            }
-            .foregroundStyle(menuBarForeground)
+enum OpenWorktimeTrackerApp {
+    @MainActor
+    static func main() {
+        let app = NSApplication.shared
+        let delegate = AppDelegate()
+        let manager = WorkdayManager()
+        delegate.workdayManager = manager
+        app.delegate = delegate
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+            manager.bootstrap()
         }
-        .menuBarExtraStyle(.window)
-
-        Settings {
-            SettingsView()
-                .environment(workdayManager)
-        }
-    }
-
-    private var menuBarIcon: String {
-        switch workdayManager.state {
-        case .notStarted: return "clock"
-        case .running: return "clock.fill"
-        case .paused: return "pause.circle"
-        case .ended: return "checkmark.circle"
-        }
-    }
-
-    private var menuBarForeground: some ShapeStyle {
-        switch workdayManager.thresholdLevel {
-        case .normal: return AnyShapeStyle(.primary)
-        case .elevated: return AnyShapeStyle(DesignTokens.Colors.accentOrange)
-        case .critical: return AnyShapeStyle(DesignTokens.Colors.accentRed)
+        withExtendedLifetime(delegate) {
+            // Keep status-item mouse routing independent of SwiftUI's scene lifecycle.
+            app.run()
         }
     }
 }

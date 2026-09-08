@@ -7,7 +7,7 @@ struct WorkdayDetector {
         case continueExisting(TimeEntry)
         /// Start a brand-new workday (no entry today, no stale running entry)
         case startFreshDay
-        /// A previous day's entry is still running — needs user confirmation to end it
+        /// A previous day's entry is still running and must be closed before starting today
         case endPreviousAndStartNew(previous: TimeEntry, suggestedEndTime: Date)
         /// Today's entry was already ended (day is done)
         case dayAlreadyEnded(TimeEntry)
@@ -17,16 +17,16 @@ struct WorkdayDetector {
     private let calendar = Calendar.current
 
     init(newDayStartHour: Int = AppDefaults.newDayStartHour) {
-        self.newDayStartHour = newDayStartHour
+        self.newDayStartHour = (0...23).contains(newDayStartHour) ? newDayStartHour : AppDefaults.newDayStartHour
     }
 
     /// Determines what action should be taken on app launch or wake.
-    func evaluate(todayEntry: TimeEntry?, mostRecentEntry: TimeEntry?) -> Action {
-        let now = Date()
+    func evaluate(todayEntry: TimeEntry?, mostRecentEntry: TimeEntry?, now: Date = Date()) -> Action {
         let effectiveDay = effectiveDateString(for: now)
 
         // Check if there's an entry matching today's effective date
-        if let today = todayEntry, today.date == effectiveDay {
+        if let today = [todayEntry, mostRecentEntry].compactMap({ $0 })
+            .first(where: { $0.date == effectiveDay }) {
             switch today.status {
             case .running, .paused:
                 return .continueExisting(today)
@@ -36,7 +36,7 @@ struct WorkdayDetector {
         }
 
         // Check the most recent entry from any day
-        if let recent = mostRecentEntry {
+        if let recent = mostRecentEntry, recent.date < effectiveDay {
             switch recent.status {
             case .running, .paused:
                 // Still running from a previous day — need to end it
@@ -61,17 +61,34 @@ struct WorkdayDetector {
             guard let yesterday = calendar.date(byAdding: .day, value: -1, to: date) else {
                 return TimeEntry.dateString(from: date)
             }
+
             return TimeEntry.dateString(from: yesterday)
         }
         return TimeEntry.dateString(from: date)
     }
 
+    func startOfEffectiveDay(for date: Date) -> Date {
+        let midnight = calendar.startOfDay(for: date)
+        let boundary = calendar.date(bySettingHour: newDayStartHour, minute: 0, second: 0, of: midnight)!
+        if date < boundary {
+            let yesterday = calendar.date(byAdding: .day, value: -1, to: midnight)!
+            return calendar.date(bySettingHour: newDayStartHour, minute: 0, second: 0, of: yesterday)!
+        }
+        return boundary
+    }
+
     /// Suggests when the previous day's entry should end.
     /// Uses the last idle decision's end time or a reasonable estimate.
     private func suggestEndTime(for entry: TimeEntry) -> Date {
+        if let pauseStart = entry.pauseStartedAt, entry.status == .paused {
+            return max(entry.startTime, pauseStart)
+        }
+        if let lastActivity = entry.lastActivityTime {
+            return max(entry.startTime, lastActivity)
+        }
         // If there are idle decisions, use the start of the last big idle as the end
-        if let lastIdle = entry.idleDecisions.last {
-            return lastIdle.idleStart
+        if let lastIdle = entry.idleDecisions.last, lastIdle.decision == .pause {
+            return max(entry.startTime, lastIdle.idleStart)
         }
 
         // Default: end of the day the entry was created (18:00 or start time, whichever is later)
@@ -80,7 +97,7 @@ struct WorkdayDetector {
         components.minute = 0
         if let fallback = calendar.date(from: components) {
             // Ensure suggested end is not before start time
-            return max(fallback, entry.startTime)
+            return max(fallback, entry.startTime, entry.idleDecisions.last?.idleEnd ?? entry.startTime)
         }
         return entry.startTime
     }

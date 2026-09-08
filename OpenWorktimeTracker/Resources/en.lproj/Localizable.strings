@@ -5,11 +5,22 @@
 "menubar.pause" = "Pause";
 "menubar.resume" = "Resume";
 "menubar.endDay" = "End Day";
-"menubar.restart" = "Restart";
+"menubar.start" = "Start day";
+"menubar.restart" = "Continue";
 "menubar.openLogFolder" = "Open Log Folder";
 "menubar.exportCSV" = "Export CSV...";
 "menubar.settings" = "Settings...";
 "menubar.quit" = "Quit";
+"menu.edit" = "Edit";
+"menu.undo" = "Undo";
+"menu.redo" = "Redo";
+"menu.cut" = "Cut";
+"menu.copy" = "Copy";
+"menu.paste" = "Paste";
+"menu.selectAll" = "Select All";
+"menu.window" = "Window";
+"menu.close" = "Close";
+"menubar.moreActions" = "More actions";
 
 /* State Labels */
 "state.notStarted" = "Not Started";
@@ -26,7 +37,8 @@
 "metric.autoBreak" = "Auto Break";
 "metric.pause" = "Pauses";
 "metric.end" = "End";
-"metric.eta" = "ETA 8h";
+"metric.eta" = "Goal reached at";
+"metric.autoBreak.help" = "Additional automatic deduction under your break rules. Recorded pauses are already taken into account.";
 "metric.target" = "Target";
 "metric.reached" = "reached";
 "metric.editStartTime" = "Edit Start Time";
@@ -37,6 +49,7 @@
 /* WeekHistoryView */
 "history.last7days" = "LAST 7 DAYS";
 "history.noData" = "No history yet";
+"history.total" = "%@ total";
 
 /* SummaryStatsView */
 "summary.title" = "SUMMARY";
@@ -47,13 +60,18 @@
 "summary.workDays" = "Work Days";
 "summary.dailyAvg" = "Daily Avg";
 "summary.overtime" = "Overtime";
+"summary.period" = "Summary period";
 
 /* IdlePromptView */
 "idle.newWorkday" = "New Workday!";
 "idle.inactivityDetected" = "Inactivity Detected";
 "idle.youWereInactive" = "You were inactive for %@";
-"idle.wasWorkTime" = "Was work time (meeting/testing)";
-"idle.wasPause" = "Was a break (deduct)";
+"idle.wasWorkTime" = "Count as work time";
+"idle.wasPause" = "Record as a pause";
+"idle.work.detail" = "For example, a meeting. Keep this time.";
+"idle.pause.detail" = "Deduct this period from work time.";
+"idle.decisionHelp" = "How should this period be recorded?";
+"idle.dayActions" = "Adjust workday";
 "idle.endYesterday" = "End yesterday at %@";
 "idle.startToday" = "Start today now";
 "idle.countAsWork" = "Count all as work time";
@@ -61,8 +79,8 @@
 "idle.endDay" = "End Day";
 "idle.endDay.atTime" = "End day at %@";
 "idle.endDay.afterHours" = "after %@ work time";
-"idle.restart" = "Restart";
-"idle.restart.detail" = "Day ends at %@, new day begins";
+"idle.restart" = "Continue working";
+"idle.restart.detail" = "Count time since %@ as a pause";
 
 /* IdlePromptWindowController */
 "idle.panel.newWorkday" = "New Workday";
@@ -104,10 +122,10 @@
 "settings.launchAtLogin" = "Launch at Login";
 "settings.enableNotifications" = "Enable notifications";
 "settings.thresholds" = "Thresholds";
-"settings.normalHours" = "Normal (h)";
+"settings.normalHours" = "Daily goal / regular hours (h)";
 "settings.criticalHours" = "Critical (h)";
 "settings.milestoneHours" = "Milestone (h)";
-"settings.notificationHelp" = "Notifications are sent once per day when net time crosses a threshold.";
+"settings.notificationHelp" = "Notifications are sent once per day for each threshold. The daily goal also controls progress and the estimated end time, even when notifications are disabled.";
 "settings.logs" = "Logs";
 "settings.openLogFolder" = "Open Log Folder";
 "settings.chooseLogFolder" = "Choose Log Folder...";
@@ -131,6 +149,11 @@
 /* LogEditor */
 "logEditor.title" = "Work Time Log";
 "logEditor.noEntries" = "No entries available";
+"logEditor.selectEntry" = "Select a workday";
+"logEditor.unsavedChanges" = "Unsaved changes";
+"logEditor.discardChanges" = "Discard";
+"logEditor.pauseHours" = "Pause duration in hours";
+"logEditor.pauseMinutes" = "Pause duration in minutes";
 "logEditor.times" = "Times";
 "logEditor.start" = "Start Time";
 "logEditor.end" = "End Time";
@@ -147,3 +170,9 @@
 "logEditor.delete" = "Delete Entry";
 "logEditor.deleteConfirm" = "Are you sure you want to delete this entry?";
 "menubar.logEditor" = "Edit Log...";
+"logEditor.error.title" = "Log could not be changed";
+"logEditor.error.dismiss" = "OK";
+"logEditor.error.missingEntry" = "This entry was deleted or replaced. Close and reopen the log editor to reload it.";
+"logEditor.error.invalidTimes" = "Check the start, end and pause times.";
+"logEditor.error.saveFailed" = "The entry could not be saved locally. Your edits are still available. Check the log folder and try again.";
+"logEditor.error.deleteFailed" = "The entry could not be deleted. Tracking is unchanged. Check the log folder and try again.";

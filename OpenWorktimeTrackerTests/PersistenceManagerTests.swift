@@ -16,11 +16,39 @@ final class PersistenceManagerTests: XCTestCase {
     }
 
     override func tearDown() {
+        manager.flush()
         try? FileManager.default.removeItem(at: tempDir)
         super.tearDown()
     }
 
     // MARK: - Round-Trip
+
+    func testAcknowledgedSaveWaitsForOlderQueuedWrites() {
+        var entry = TimeEntry(date: "2099-01-01", startTime: Date())
+        entry.note = String(repeating: "queued", count: 100_000)
+        manager.save(entry)
+        entry.note = "Confirmed edit"
+
+        XCTAssertTrue(manager.saveAndWait(entry))
+        XCTAssertEqual(manager.load(for: entry.date)?.note, "Confirmed edit")
+    }
+
+    func testAcknowledgedSaveReportsEncodingFailureWithoutReplacingLog() {
+        var entry = TimeEntry(date: "2099-01-01", startTime: Date())
+        XCTAssertTrue(manager.saveAndWait(entry))
+        entry.manualPauseSeconds = .nan
+
+        XCTAssertFalse(manager.saveAndWait(entry))
+        XCTAssertEqual(manager.load(for: entry.date)?.manualPauseSeconds, 0)
+    }
+
+    func testAcknowledgedSaveReportsUnwritableDestination() throws {
+        let entry = TimeEntry(date: "2099-01-01", startTime: Date())
+        let destination = tempDir.appendingPathComponent("\(entry.date).json")
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
+
+        XCTAssertFalse(manager.saveAndWait(entry))
+    }
 
     func testSaveAndLoadEntry() {
         let entry = TimeEntry(
@@ -135,6 +163,31 @@ final class PersistenceManagerTests: XCTestCase {
     }
 
     // MARK: - Delete
+
+    func testDeleteWaitsForPendingSave() {
+        let entry = TimeEntry(date: "2099-03-01", note: String(repeating: "pending", count: 100_000))
+        manager.save(entry)
+
+        manager.delete(for: entry.date)
+        manager.flush()
+
+        XCTAssertNil(manager.load(for: entry.date))
+    }
+
+    func testHistoryReadsWaitForPendingSaves() {
+        let entry = TimeEntry(date: "2099-03-01", note: String(repeating: "pending", count: 100_000))
+        manager.save(entry)
+        XCTAssertEqual(manager.loadAll().first?.id, entry.id)
+
+        var updated = entry
+        updated.note = "Latest version"
+        manager.save(updated)
+        XCTAssertEqual(manager.loadMostRecentEntry()?.note, updated.note)
+
+        updated.note = "Last days version"
+        manager.save(updated)
+        XCTAssertEqual(manager.loadLastDays(1).first?.note, updated.note)
+    }
 
     func testDeleteRemovesFile() {
         let entry = TimeEntry(date: "2099-03-01", startTime: Date(), note: "To delete")

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct MenuBarView: View {
     @Environment(WorkdayManager.self) private var manager
-    @Environment(\.openSettings) private var openSettings
+    let onOpenSettings: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -25,21 +25,20 @@ struct MenuBarView: View {
                     // Summary Statistics
                     SummaryStatsView()
 
-                    // Note
-                    noteSection
-
-                    // Actions
-                    actionButtons
+                    if manager.currentEntry != nil {
+                        noteSection
+                    }
                 }
                 .padding(DesignTokens.Spacing.lg)
             }
+
+            actionButtons
+                .padding(DesignTokens.Spacing.lg)
+                .background(DesignTokens.Colors.surfaceContainer)
         }
         .frame(width: DesignTokens.popoverWidth, height: DesignTokens.popoverMinHeight)
         .background(DesignTokens.Colors.surface)
         .environment(manager)
-        .onAppear {
-            manager.bootstrap()
-        }
     }
 
     // MARK: - Header
@@ -55,11 +54,9 @@ struct MenuBarView: View {
                 .font(DesignTokens.Typography.headlineSmall)
                 .foregroundStyle(DesignTokens.Colors.onSurface)
 
-                Text(manager.state.localizedLabel)
+                Text("timer.accessibility.netWorkTime")
                     .font(DesignTokens.Typography.labelSmall)
-                    .textCase(.uppercase)
-                    .tracking(1.5)
-                    .foregroundStyle(stateColor)
+                    .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
             }
 
             Spacer()
@@ -68,21 +65,19 @@ struct MenuBarView: View {
         }
         .padding(DesignTokens.Spacing.lg)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text("menubar.accessibility.header"))
-        .accessibilityValue(Text(manager.state.localizedLabel))
     }
 
     private var statusBadge: some View {
         HStack(spacing: 4) {
             if manager.state == .running {
-                Circle()
-                    .fill(DesignTokens.Colors.accentGreen)
-                    .frame(width: 6, height: 6)
+                Image(systemName: "record.circle")
+                    .accessibilityHidden(true)
+            } else if manager.state == .paused {
+                Image(systemName: "pause.circle")
+                    .accessibilityHidden(true)
             }
             Text(manager.state.localizedLabel)
                 .font(DesignTokens.Typography.labelMicro)
-                .textCase(.uppercase)
-                .tracking(1)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
@@ -107,6 +102,7 @@ struct MenuBarView: View {
                 String(localized: "menubar.note.placeholder"), text: $noteText, axis: .vertical
             )
             .textFieldStyle(.plain)
+            .accessibilityLabel(Text("menubar.note"))
             .font(DesignTokens.Typography.bodySmall)
             .lineLimit(2...4)
             .padding(DesignTokens.Spacing.sm)
@@ -118,7 +114,7 @@ struct MenuBarView: View {
             .onAppear {
                 noteText = manager.currentEntry?.note ?? ""
             }
-            .onChange(of: manager.currentEntry?.id) { _, _ in
+            .onChange(of: manager.currentEntry?.note) { _, _ in
                 noteText = manager.currentEntry?.note ?? ""
             }
         }
@@ -128,17 +124,24 @@ struct MenuBarView: View {
 
     private var actionButtons: some View {
         HStack(spacing: DesignTokens.Spacing.sm) {
-            if manager.state == .running {
+            if manager.state == .notStarted {
+                ActionButton(
+                    title: String(localized: "menubar.start"), icon: "play.fill",
+                    style: .primary
+                ) {
+                    manager.startNewDay()
+                }
+            } else if manager.state == .running {
                 ActionButton(
                     title: String(localized: "menubar.pause"), icon: "pause.fill",
-                    style: .secondary
+                    style: .primary
                 ) {
                     manager.pause()
                 }
             } else if manager.state == .paused {
                 ActionButton(
                     title: String(localized: "menubar.resume"), icon: "play.fill",
-                    style: .secondary
+                    style: .primary
                 ) {
                     manager.resume()
                 }
@@ -154,7 +157,7 @@ struct MenuBarView: View {
             if manager.state == .running || manager.state == .paused {
                 ActionButton(
                     title: String(localized: "menubar.endDay"), icon: "stop.fill",
-                    style: .primary
+                    style: .secondary
                 ) {
                     manager.endDay()
                 }
@@ -174,7 +177,7 @@ struct MenuBarView: View {
                 }
                 Divider()
                 Button(String(localized: "menubar.settings")) {
-                    openSettings()
+                    onOpenSettings()
                 }
                 .keyboardShortcut(",", modifiers: .command)
                 Divider()
@@ -195,6 +198,9 @@ struct MenuBarView: View {
                 .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
             }
             .menuStyle(.borderlessButton)
+            .fixedSize()
+            .accessibilityLabel(Text("menubar.moreActions"))
+            .help(Text("menubar.moreActions"))
         }
     }
 

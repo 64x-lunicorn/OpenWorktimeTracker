@@ -1,9 +1,15 @@
 import AppKit
 import SwiftUI
 
+protocol WorkdayPromptPresenting {
+    func show(idlePeriod: IdlePeriod, manager: WorkdayManager)
+    func showMaxHoursPrompt(hours: Double, manager: WorkdayManager)
+    func dismiss()
+}
+
 /// Manages a free-floating NSPanel for the idle prompt.
 /// Shown as a top-level window independent of the menu bar popover.
-final class IdlePromptWindowController: NSObject, NSWindowDelegate {
+final class IdlePromptWindowController: NSObject, NSWindowDelegate, WorkdayPromptPresenting {
     static let shared = IdlePromptWindowController()
 
     private var panel: NSPanel?
@@ -17,12 +23,7 @@ final class IdlePromptWindowController: NSObject, NSWindowDelegate {
         // Dismiss any existing panel first
         dismiss()
 
-        let promptView = IdlePromptView(
-            idlePeriod: idlePeriod,
-            onDismiss: { [weak self] in
-                self?.dismiss()
-            }
-        )
+        let promptView = IdlePromptView(idlePeriod: idlePeriod)
         .environment(manager)
 
         let hostingView = NSHostingView(rootView: promptView)
@@ -75,12 +76,7 @@ final class IdlePromptWindowController: NSObject, NSWindowDelegate {
         // Dismiss any existing panel first
         dismiss()
 
-        let promptView = MaxHoursPromptView(
-            hours: hours,
-            onDismiss: { [weak self] in
-                self?.dismiss()
-            }
-        )
+        let promptView = MaxHoursPromptView(hours: hours)
         .environment(manager)
 
         let hostingView = NSHostingView(rootView: promptView)

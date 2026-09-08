@@ -4,7 +4,6 @@ struct IdlePromptView: View {
     @Environment(WorkdayManager.self) private var manager
 
     let idlePeriod: IdlePeriod
-    var onDismiss: (() -> Void)?
 
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.xl) {
@@ -16,7 +15,7 @@ struct IdlePromptView: View {
                         ? DesignTokens.Colors.accentOrange
                         : DesignTokens.Colors.accentBlue
                 )
-                .padding(.top, DesignTokens.Spacing.lg)
+                .accessibilityHidden(true)
 
             // Title
             Text(
@@ -26,6 +25,7 @@ struct IdlePromptView: View {
             )
             .font(DesignTokens.Typography.headlineSmall)
             .foregroundStyle(DesignTokens.Colors.onSurface)
+            .multilineTextAlignment(.center)
 
             // Details
             VStack(spacing: DesignTokens.Spacing.sm) {
@@ -47,6 +47,11 @@ struct IdlePromptView: View {
             .background(DesignTokens.Colors.surfaceContainerLow)
             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.sm))
 
+            Text("idle.decisionHelp")
+                .font(DesignTokens.Typography.bodyMedium)
+                .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
+                .multilineTextAlignment(.center)
+
             // Actions
             if idlePeriod.spansMidnight {
                 midnightActions
@@ -55,7 +60,7 @@ struct IdlePromptView: View {
             }
         }
         .padding(DesignTokens.Spacing.xl)
-        .frame(width: 320)
+        .frame(width: DesignTokens.promptWidth)
         .background(DesignTokens.Colors.surface)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(
@@ -75,92 +80,49 @@ struct IdlePromptView: View {
 
     private var sameDayActions: some View {
         VStack(spacing: DesignTokens.Spacing.sm) {
-            Button {
+            ActionButton(
+                title: String(localized: "idle.wasWorkTime"), icon: "person.2.fill",
+                style: .tinted(DesignTokens.Colors.accentGreen),
+                subtitle: String(localized: "idle.work.detail")
+            ) {
                 manager.handleIdleDecision(.work)
-                onDismiss?()
-            } label: {
-                HStack {
-                    Image(systemName: "person.2.fill")
-                    Text("idle.wasWorkTime")
-                }
-                .font(DesignTokens.Typography.labelLarge)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(DesignTokens.Colors.accentGreen.opacity(0.15))
-                .foregroundStyle(DesignTokens.Colors.accentGreen)
-                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             }
-            .buttonStyle(.plain)
 
-            Button {
+            ActionButton(
+                title: String(localized: "idle.wasPause"), icon: "cup.and.saucer.fill",
+                style: .tinted(DesignTokens.Colors.accentOrange),
+                subtitle: String(localized: "idle.pause.detail")
+            ) {
                 manager.handleIdleDecision(.pause)
-                onDismiss?()
-            } label: {
-                HStack {
-                    Image(systemName: "cup.and.saucer.fill")
-                    Text("idle.wasPause")
-                }
-                .font(DesignTokens.Typography.labelLarge)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(DesignTokens.Colors.accentOrange.opacity(0.15))
-                .foregroundStyle(DesignTokens.Colors.accentOrange)
-                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             }
-            .buttonStyle(.plain)
 
-            Button {
+            Text("idle.dayActions")
+                .font(DesignTokens.Typography.labelSmall)
+                .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, DesignTokens.Spacing.sm)
+
+            ActionButton(
+                title: String(
+                    format: String(localized: "idle.endDay.atTime"),
+                    idlePeriod.idleStart.hoursMinutesString),
+                icon: "stop.circle", style: .secondary,
+                subtitle: String(
+                    format: String(localized: "idle.endDay.afterHours"),
+                    netTimeAtIdleStart.hoursMinutesFormatted)
+            ) {
                 manager.handleIdleDecisionAndEndDay()
-                onDismiss?()
-            } label: {
-                VStack(spacing: 2) {
-                    HStack {
-                        Image(systemName: "stop.circle.fill")
-                        Text(
-                            String(
-                                format: String(localized: "idle.endDay.atTime"),
-                                idlePeriod.idleStart.hoursMinutesString))
-                    }
-                    .font(DesignTokens.Typography.labelLarge)
-                    Text(
-                        String(
-                            format: String(localized: "idle.endDay.afterHours"),
-                            netTimeAtIdleStart.hoursMinutesFormatted))
-                    .font(DesignTokens.Typography.labelMicro)
-                    .foregroundStyle(DesignTokens.Colors.accentRed.opacity(0.7))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(DesignTokens.Colors.accentRed.opacity(0.15))
-                .foregroundStyle(DesignTokens.Colors.accentRed)
-                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             }
-            .buttonStyle(.plain)
 
-            Button {
+            ActionButton(
+                title: String(localized: "idle.restart"), icon: "arrow.clockwise.circle",
+                style: .secondary,
+                subtitle: String(
+                    format: String(localized: "idle.restart.detail"),
+                    idlePeriod.idleStart.hoursMinutesString)
+            ) {
                 manager.handleIdleDecisionAndRestart()
-                onDismiss?()
-            } label: {
-                VStack(spacing: 2) {
-                    HStack {
-                        Image(systemName: "arrow.clockwise.circle.fill")
-                        Text("idle.restart")
-                    }
-                    .font(DesignTokens.Typography.labelLarge)
-                    Text(
-                        String(
-                            format: String(localized: "idle.restart.detail"),
-                            idlePeriod.idleStart.hoursMinutesString))
-                    .font(DesignTokens.Typography.labelMicro)
-                    .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(DesignTokens.Colors.surfaceContainerHigh)
-                .foregroundStyle(DesignTokens.Colors.onSurface)
-                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             }
-            .buttonStyle(.plain)
         }
     }
 
@@ -168,41 +130,22 @@ struct IdlePromptView: View {
 
     private var midnightActions: some View {
         VStack(spacing: DesignTokens.Spacing.sm) {
-            Button {
+            ActionButton(
+                title: String(
+                    format: String(localized: "idle.endYesterday"),
+                    idlePeriod.idleStart.hoursMinutesString),
+                icon: "sunrise", style: .primary,
+                subtitle: String(localized: "idle.startToday")
+            ) {
                 manager.handleNewDayFromIdle(endYesterdayAt: idlePeriod.idleStart)
-                onDismiss?()
-            } label: {
-                VStack(spacing: 2) {
-                    Text(
-                        String(
-                            format: String(localized: "idle.endYesterday"),
-                            idlePeriod.idleStart.hoursMinutesString))
-                    Text("idle.startToday")
-                        .font(DesignTokens.Typography.labelMicro)
-                        .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
-                }
-                .font(DesignTokens.Typography.labelLarge)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(DesignTokens.Colors.accentBlue.opacity(0.15))
-                .foregroundStyle(DesignTokens.Colors.accentBlue)
-                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             }
-            .buttonStyle(.plain)
 
-            Button {
+            ActionButton(
+                title: String(localized: "idle.countAsWork"), icon: "person.2",
+                style: .secondary
+            ) {
                 manager.handleIdleDecision(.work)
-                onDismiss?()
-            } label: {
-                Text("idle.countAsWork")
-                    .font(DesignTokens.Typography.labelLarge)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background(DesignTokens.Colors.surfaceContainerHigh)
-                    .foregroundStyle(DesignTokens.Colors.onSurface)
-                    .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.md))
             }
-            .buttonStyle(.plain)
         }
     }
 }
@@ -213,16 +156,14 @@ struct IdlePromptView: View {
 /// Core/Models has no UI-facing concerns.
 private extension IdlePeriod {
     var formattedDuration: String {
-        let minutes = Int(duration) / 60
-        if minutes >= 60 {
-            let hours = minutes / 60
-            let mins = minutes % 60
-            return "\(hours)h \(mins)m"
-        }
-        return "\(minutes) Min"
+        Duration.seconds(duration).formatted(.units(allowed: [.hours, .minutes], width: .wide))
     }
 
     var formattedRange: String {
-        "\(idleStart.hoursMinutesString) – \(idleEnd.hoursMinutesString)"
+        if spansMidnight {
+            return "\(idleStart.formatted(date: .abbreviated, time: .shortened)) – "
+                + idleEnd.formatted(date: .abbreviated, time: .shortened)
+        }
+        return "\(idleStart.hoursMinutesString) – \(idleEnd.hoursMinutesString)"
     }
 }

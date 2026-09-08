@@ -1,0 +1,149 @@
+import XCTest
+
+@testable import OpenWorktimeTracker
+
+final class WidgetSnapshotTests: XCTestCase {
+    private let measuredAt = Date(timeIntervalSince1970: 1_800_000_000)
+    private var defaults: UserDefaults!
+    private var fileURL: URL!
+
+    override func setUp() {
+        super.setUp()
+        let suiteName = "widget-snapshot-tests-\(UUID())"
+        defaults = UserDefaults(suiteName: suiteName)!
+        let suite = defaults!
+        addTeardownBlock { suite.removePersistentDomain(forName: suiteName) }
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("widget-snapshot-tests-\(UUID())", isDirectory: true)
+        fileURL = directory.appendingPathComponent("widget-state.json")
+        addTeardownBlock {
+            if FileManager.default.fileExists(atPath: directory.path) {
+                try FileManager.default.removeItem(at: directory)
+            }
+        }
+    }
+
+    private func snapshot(state: String = "running", netTime: TimeInterval = 3600) -> WidgetSnapshot {
+        WidgetSnapshot(
+            measuredAt: measuredAt, state: state, netTime: netTime, grossTime: 4200,
+            startTime: measuredAt.addingTimeInterval(-4200), workDate: "2027-01-15",
+            targetHours: 7, orangeThreshold: 7.5, redThreshold: 9)
+    }
+
+    func testDefaultsRoundTripReplacesOneCompleteValue() throws {
+        let writer = SharedDefaults(defaults: defaults, fallbackURL: fileURL)
+        let reader = SharedDefaults(defaults: defaults, fallbackURL: fileURL)
+        let first = snapshot()
+        try writer.publish(first)
+        XCTAssertEqual(try reader.readSnapshot(), first)
+
+        let second = WidgetSnapshot(
+            measuredAt: measuredAt.addingTimeInterval(900), state: "ended", netTime: 4500,
+            grossTime: 5100, startTime: first.startTime, workDate: first.workDate,
+            targetHours: 8, orangeThreshold: 8, redThreshold: 9.5)
+        try writer.publish(second)
+
+        XCTAssertEqual(try reader.readSnapshot(), second)
+        XCTAssertEqual(
+            Set(defaults.dictionaryRepresentation().keys.filter { $0.hasPrefix("widget_") }),
+            [SharedDefaults.snapshotKey])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: fileURL.path))
+    }
+
+    func testFileFallbackRoundTripAndReplacement() throws {
+        let writer = SharedDefaults(defaults: nil, fallbackURL: fileURL)
+        let reader = SharedDefaults(defaults: nil, fallbackURL: fileURL)
+        XCTAssertNil(try reader.readSnapshot())
+        XCTAssertFalse(FileManager.default.fileExists(atPath: fileURL.deletingLastPathComponent().path))
+
+        try writer.publish(snapshot())
+        XCTAssertEqual(try reader.readSnapshot(), snapshot())
+        try writer.publish(snapshot(state: "paused"))
+        XCTAssertEqual(try reader.readSnapshot(), snapshot(state: "paused"))
+    }
+
+    func testLegacyKeysAreNotCombinedIntoAnUnmeasuredSnapshot() throws {
+        defaults.set("running", forKey: "widget_state")
+        defaults.set(3600, forKey: "widget_netTime")
+        let store = SharedDefaults(defaults: defaults, fallbackURL: fileURL)
+
+        XCTAssertNil(try store.readSnapshot())
+        try store.publish(snapshot(state: "ended"))
+        XCTAssertEqual(try store.readSnapshot(), snapshot(state: "ended"))
+    }
+
+    func testCorruptDefaultsReportsFailureRatherThanReadingLegacyFields() {
+        defaults.set(Data("broken".utf8), forKey: SharedDefaults.snapshotKey)
+        defaults.set("running", forKey: "widget_state")
+        let store = SharedDefaults(defaults: defaults, fallbackURL: fileURL)
+
+        XCTAssertThrowsError(try store.readSnapshot())
+        defaults.set("wrong type", forKey: SharedDefaults.snapshotKey)
+        XCTAssertThrowsError(try store.readSnapshot())
+    }
+
+    func testCorruptFileReportsFailure() throws {
+        let store = SharedDefaults(defaults: nil, fallbackURL: fileURL)
+        try store.publish(snapshot())
+        try Data("broken".utf8).write(to: fileURL)
+
+        XCTAssertThrowsError(try store.readSnapshot())
+    }
+
+    func testFailedFilePublicationIsReported() throws {
+        try FileManager.default.createDirectory(at: fileURL, withIntermediateDirectories: true)
+        let store = SharedDefaults(defaults: nil, fallbackURL: fileURL)
+
+        XCTAssertThrowsError(try store.publish(snapshot()))
+    }
+
+    func testInvalidPublicationPreservesPreviousSnapshot() throws {
+        let store = SharedDefaults(defaults: defaults, fallbackURL: fileURL)
+        try store.publish(snapshot())
+        for value in [TimeInterval.nan, .infinity, -1] {
+            XCTAssertThrowsError(try store.publish(snapshot(netTime: value)))
+            XCTAssertEqual(try store.readSnapshot(), snapshot())
+        }
+        XCTAssertThrowsError(try store.publish(snapshot(state: "unknown")))
+    }
+
+    func testInvalidDecodedSnapshotIsRejected() throws {
+        let encoded = try JSONEncoder().encode(snapshot(netTime: -1))
+        defaults.set(encoded, forKey: SharedDefaults.snapshotKey)
+
+        XCTAssertThrowsError(try SharedDefaults(defaults: defaults).readSnapshot())
+    }
+
+    func testDelayedReadKeepsRunningTimerAnchoredToMeasurement() {
+        let value = snapshot()
+        let readAt = measuredAt.addingTimeInterval(900)
+
+        XCTAssertEqual(value.liveNetStart, measuredAt.addingTimeInterval(-3600))
+        XCTAssertEqual(value.netTime(at: readAt), 4500)
+        XCTAssertEqual(readAt.timeIntervalSince(value.liveNetStart), value.netTime(at: readAt))
+        XCTAssertEqual(value.netTime(at: readAt.addingTimeInterval(300)), 4800)
+    }
+
+    func testPausedEndedAndNotStartedSnapshotsDoNotAccumulateTime() {
+        for state in ["paused", "ended", "notStarted"] {
+            let value = snapshot(state: state)
+            XCTAssertFalse(value.isRunning)
+            XCTAssertEqual(value.netTime(at: measuredAt.addingTimeInterval(86_400)), value.netTime)
+        }
+    }
+
+    func testProjectionDoesNotSubtractTimeBeforeMeasurement() {
+        XCTAssertEqual(snapshot().netTime(at: measuredAt.addingTimeInterval(-600)), 3600)
+    }
+
+    func testDelayedThresholdUsesSameElapsedTimeAsTimer() {
+        let value = snapshot(netTime: 7 * 3600)
+
+        XCTAssertEqual(value.thresholdLevel(at: measuredAt), .normal)
+        XCTAssertEqual(value.thresholdLevel(at: measuredAt.addingTimeInterval(1800)), .elevated)
+        XCTAssertEqual(value.thresholdLevel(at: measuredAt.addingTimeInterval(7200)), .critical)
+        XCTAssertEqual(
+            snapshot(state: "paused", netTime: 7 * 3600)
+                .thresholdLevel(at: measuredAt.addingTimeInterval(7200)), .normal)
+    }
+}

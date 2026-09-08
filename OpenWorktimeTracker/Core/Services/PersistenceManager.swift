@@ -110,19 +110,31 @@ final class PersistenceManager {
     func save(_ entry: TimeEntry) {
         ensureDirectoryExists()
         let fileURL = logDirectory.appendingPathComponent("\(entry.date).json")
-        let encoder = self.encoder
         saveQueue.async {
-            do {
-                let data = try encoder.encode(entry)
-                try data.write(to: fileURL, options: .atomic)
-                CloudSyncManager.shared.uploadEntry(at: fileURL)
-            } catch {
-                logger.error("Failed to save entry \(entry.date): \(error.localizedDescription)")
-            }
+            self.write(entry, to: fileURL)
         }
     }
 
-    /// Blocks until all pending saves complete. For testing only.
+    func saveAndWait(_ entry: TimeEntry) -> Bool {
+        ensureDirectoryExists()
+        let fileURL = logDirectory.appendingPathComponent("\(entry.date).json")
+        return saveQueue.sync { write(entry, to: fileURL) }
+    }
+
+    @discardableResult
+    private func write(_ entry: TimeEntry, to fileURL: URL) -> Bool {
+        do {
+            let data = try encoder.encode(entry)
+            try data.write(to: fileURL, options: .atomic)
+            CloudSyncManager.shared.uploadEntry(at: fileURL)
+            return true
+        } catch {
+            logger.error("Failed to save entry \(entry.date): \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Blocks until all pending local saves complete.
     func flush() {
         saveQueue.sync {}
     }
@@ -139,12 +151,23 @@ final class PersistenceManager {
         load(for: TimeEntry.dateString(from: Date()))
     }
 
-    func delete(for dateString: String) {
+    @discardableResult
+    func delete(for dateString: String) -> Bool {
         let fileURL = logDirectory.appendingPathComponent("\(dateString).json")
-        try? fileManager.removeItem(at: fileURL)
+        return saveQueue.sync {
+            guard fileManager.fileExists(atPath: fileURL.path) else { return true }
+            do {
+                try fileManager.removeItem(at: fileURL)
+                return true
+            } catch {
+                logger.error("Failed to delete entry \(dateString): \(error.localizedDescription)")
+                return false
+            }
+        }
     }
 
     func loadMostRecentEntry() -> TimeEntry? {
+        saveQueue.sync {}
         ensureDirectoryExists()
         let dir = logDirectory
         guard
@@ -170,6 +193,7 @@ final class PersistenceManager {
     }
 
     func loadAll() -> [TimeEntry] {
+        saveQueue.sync {}
         ensureDirectoryExists()
         let dir = logDirectory
         guard
@@ -191,6 +215,7 @@ final class PersistenceManager {
     }
 
     func loadLastDays(_ count: Int) -> [TimeEntry] {
+        saveQueue.sync {}
         ensureDirectoryExists()
         let dir = logDirectory
         guard
