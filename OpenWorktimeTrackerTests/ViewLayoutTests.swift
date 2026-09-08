@@ -14,9 +14,10 @@ final class ViewLayoutTests: XCTestCase {
         for appearance in [NSAppearance.Name.aqua, .darkAqua] {
             button.appearance = NSAppearance(named: appearance)
             XCTAssertNil(button.contentTintColor, "Let the status bar choose its contrasting foreground")
-            XCTAssertNil(
-                button.attributedTitle.attribute(.foregroundColor, at: 0, effectiveRange: nil),
-                "An explicit label color overrides the menu bar's wallpaper-aware text color")
+            XCTAssertEqual(
+                button.attributedTitle.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? NSColor,
+                .controlTextColor,
+                "Use the native title's foreground rather than an explicit label or threshold color")
             XCTAssertTrue(try XCTUnwrap(button.image).isTemplate)
             XCTAssertEqual(button.title, manager.menuBarTitle)
         }
@@ -39,18 +40,43 @@ final class ViewLayoutTests: XCTestCase {
             manager.updateStartTime(clock.now.addingTimeInterval(-hours * 3600))
             try await Task.sleep(for: .milliseconds(100))
             XCTAssertEqual(manager.thresholdLevel, level)
-            let expected: NSColor? = level == .normal ? nil : NSColor(level.accent)
-            XCTAssertEqual(button.contentTintColor, expected)
-            XCTAssertEqual(
-                button.attributedTitle.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? NSColor,
-                expected)
-            XCTAssertEqual(button.title, manager.menuBarTitle)
+            XCTAssertNil(button.contentTintColor)
+            let image = try XCTUnwrap(button.image)
+            if level == .normal {
+                XCTAssertTrue(image.isTemplate)
+                XCTAssertEqual(button.title, manager.menuBarTitle)
+            } else {
+                XCTAssertFalse(image.isTemplate)
+                XCTAssertEqual(button.title, "")
+                XCTAssertTrue(button.accessibilityLabel()?.contains(manager.menuBarTitle) == true)
+                try assertThresholdPixels(in: image)
+            }
         }
         manager.endDay()
         try await Task.sleep(for: .milliseconds(100))
         XCTAssertNil(button.contentTintColor)
-        XCTAssertNil(button.attributedTitle.attribute(.foregroundColor, at: 0, effectiveRange: nil))
+        XCTAssertEqual(
+            button.attributedTitle.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? NSColor,
+            .controlTextColor)
         XCTAssertTrue(try XCTUnwrap(button.image).isTemplate)
+    }
+
+    private func assertThresholdPixels(in image: NSImage) throws {
+        let bitmap = try XCTUnwrap(NSBitmapImageRep(data: XCTUnwrap(image.tiffRepresentation)))
+        var iconPixels = 0
+        var textPixels = 0
+        let iconWidth = Int(20 * CGFloat(bitmap.pixelsWide) / image.size.width)
+        for y in 0..<bitmap.pixelsHigh {
+            for x in 0..<bitmap.pixelsWide {
+                let color = try XCTUnwrap(bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB))
+                if color.alphaComponent > 0.5 && color.redComponent > color.greenComponent * 1.1
+                    && color.redComponent > color.blueComponent * 1.1 {
+                    if x < iconWidth { iconPixels += 1 } else { textPixels += 1 }
+                }
+            }
+        }
+        XCTAssertGreaterThan(iconPixels, 20, "The icon must render in its threshold color, not black")
+        XCTAssertGreaterThan(textPixels, 20, "The time must render in its threshold color, not black")
     }
 
     @MainActor

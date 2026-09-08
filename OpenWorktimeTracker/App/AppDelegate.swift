@@ -131,6 +131,7 @@ final class MenuBarController: NSObject {
     let popover = NSPopover()
     private let manager: WorkdayManager
     private var settingsWindow: NSWindow?
+    private var appearanceObservation: NSKeyValueObservation?
 
     init(manager: WorkdayManager) {
         self.manager = manager
@@ -148,7 +149,10 @@ final class MenuBarController: NSObject {
             button.action = #selector(togglePopover)
             button.sendAction(on: .leftMouseUp)
             button.imagePosition = .imageLeading
-            button.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+            button.font = DesignTokens.Typography.menuBar
+        }
+        appearanceObservation = NSApp.observe(\.effectiveAppearance) { [weak self] _, _ in
+            self?.updateStatus()
         }
         updateStatus()
     }
@@ -182,18 +186,42 @@ final class MenuBarController: NSObject {
             }
             button?.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil)
             button?.image?.isTemplate = true
-            // Native status-bar foregrounds follow the wallpaper, not the app's appearance.
-            let color: NSColor? = manager.thresholdLevel == .normal
-                ? nil : NSColor(manager.thresholdLevel.accent)
-            button?.contentTintColor = color
-            button?.attributedTitle = NSAttributedString(
-                string: manager.menuBarTitle,
-                attributes: color.map { [.foregroundColor: $0] } ?? [:])
+            var environment = EnvironmentValues()
+            environment.colorScheme = NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+                ? .dark : .light
+            let resolved = manager.thresholdLevel.accent.resolve(in: environment)
+            let color: NSColor? = manager.thresholdLevel == .normal ? nil : NSColor(
+                srgbRed: CGFloat(resolved.red), green: CGFloat(resolved.green),
+                blue: CGFloat(resolved.blue), alpha: CGFloat(resolved.opacity))
+            button?.contentTintColor = nil
+            if let color {
+                // A non-template image preserves threshold colors through menu-bar compositing.
+                button?.title = ""
+                button?.image = Self.statusImage(title: manager.menuBarTitle, icon: icon, color: color)
+            } else {
+                // Leave normal text and template icons to the wallpaper-aware native renderer.
+                button?.title = manager.menuBarTitle
+            }
             button?.toolTip = String(localized: "timer.accessibility.netWorkTime")
                 + ": " + manager.menuBarTitle + " - " + manager.state.localizedLabel
             button?.setAccessibilityLabel(button?.toolTip)
         } onChange: { [weak self] in
             DispatchQueue.main.async { [weak self] in self?.updateStatus() }
+        }
+    }
+
+    private static func statusImage(title: String, icon: String, color: NSColor) -> NSImage {
+        let text = NSAttributedString(string: title, attributes: [
+            .font: DesignTokens.Typography.menuBar,
+            .foregroundColor: color
+        ])
+        let size = NSSize(width: 20 + ceil(text.size().width), height: 18)
+        return NSImage(size: size, flipped: false) { _ in
+            let symbol = NSImage(systemSymbolName: icon, accessibilityDescription: nil)?
+                .withSymbolConfiguration(.init(paletteColors: [color]))
+            symbol?.draw(in: NSRect(x: 0, y: 1, width: 16, height: 16))
+            text.draw(at: NSPoint(x: 20, y: (size.height - text.size().height) / 2))
+            return true
         }
     }
 

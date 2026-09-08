@@ -34,7 +34,7 @@ Changes collected on 2026-09-08.
 
 ### Fixed
 
-- Restored native, wallpaper-aware menu-bar text and icon contrast instead of forcing the app's label color; orange/red threshold colors remain intact and clear again below the thresholds.
+- Restored native, wallpaper-aware menu-bar contrast below the thresholds. Orange/red states now render as non-template images so macOS menu-bar compositing no longer turns their icon and time black; colors update with system appearance and reset below the thresholds.
 - Fixed cramped numeric settings columns in General and Notifications by hiding duplicate field labels while preserving their accessibility names; German and English rows now remain readable in light and dark appearances.
 - Menu-bar clicks failed in the tested multi-display setup even with a native button inside the SwiftUI app lifecycle; the native AppKit startup path now receives real clicks and opens the dashboard.
 - Tracking now starts at application launch without requiring the dashboard to open, and completed-day totals freeze immediately at the recorded end.

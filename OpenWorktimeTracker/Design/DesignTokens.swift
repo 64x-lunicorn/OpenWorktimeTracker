@@ -41,6 +41,7 @@ enum DesignTokens {
     // MARK: - Typography
 
     enum Typography {
+        static let menuBar = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
         static let displayLarge = Font.system(size: 48, weight: .light, design: .rounded)
         static let displayMedium = Font.system(size: 36, weight: .light, design: .rounded)
         static let displaySmall = Font.system(size: 28, weight: .medium, design: .rounded)
