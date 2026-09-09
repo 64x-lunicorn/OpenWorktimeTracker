@@ -6,9 +6,7 @@ description: All notable changes to OpenWorktimeTracker.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-Changes collected on 2026-09-08.
+## [0.7.0] - 2026-09-08
 
 ### Added
 
@@ -20,6 +18,7 @@ Changes collected on 2026-09-08.
 
 ### Changed
 
+- Relicensed the project from AGPL-3.0 to GPL-3.0.
 - Replaced the SwiftUI application/`MenuBarExtra` lifecycle with an AppKit application, native `NSStatusItem`, and `NSPopover` hosting the existing SwiftUI dashboard; settings and standard editing shortcuts remain available.
 - Improved readability with larger typography, stronger light-mode contrast, and a wider, shorter dashboard with permanently visible action buttons.
 - Made Pause/Resume the primary action, clarified secondary day actions, and added accessible labels and native button styles.

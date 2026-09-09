@@ -25,7 +25,7 @@ Test the app for a few days and observe the following:
 - [x] `SUFeedURL` in Info.plist set to GitHub Pages URL
 - [x] GitHub repo URL in README.md (64x-lunicorn)
 - [x] Generate Sparkle EdDSA keys and set `SUPublicEDKey`
-- [x] License: AGPL-3.0
+- [x] License: GPL-3.0
 - [x] Last 7 days overview in popover
 - [x] Show manual pause duration in popover
 - [x] Estimated end time for 8h target

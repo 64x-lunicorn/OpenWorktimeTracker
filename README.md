@@ -13,7 +13,7 @@
   <a href="https://github.com/64x-lunicorn/OpenWorktimeTracker/releases/latest"><img src="https://img.shields.io/badge/download-latest_release-007AFF?style=flat-square" alt="Download the latest release"></a>
   <img src="https://img.shields.io/badge/macOS-14%2B-20232A?style=flat-square&amp;logo=apple" alt="Requires macOS 14 or later">
   <a href="https://github.com/64x-lunicorn/OpenWorktimeTracker/actions/workflows/build.yml"><img src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=flat-square" alt="View the build workflow"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-5856D6?style=flat-square" alt="AGPL-3.0 license"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-5856D6?style=flat-square" alt="GPL-3.0 license"></a>
 </p>
 
 <p align="center">
@@ -189,5 +189,5 @@ If the app is useful to you, a GitHub star helps other Mac users discover it.
 
 <p align="center">
   <strong>Less admin. A clearer workday.</strong><br>
-  Free and open source under <a href="LICENSE">AGPL-3.0</a>.
+  Free and open source under <a href="LICENSE">GPL-3.0</a>.
 </p>

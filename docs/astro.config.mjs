@@ -8,7 +8,6 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "OpenWorktimeTracker",
-      tagline: "Automatic worktime tracking for macOS",
       logo: {
         src: "./src/assets/logo.svg",
         alt: "OpenWorktimeTracker Logo",
