@@ -4,7 +4,14 @@ import os.log
 
 private let logger = Logger(subsystem: "com.openworktimetracker.app", category: "Notifications")
 
-final class NotificationManager {
+/// Sends the system notifications a Workday raises: Notification Thresholds
+/// and the new-day notice. NotificationManager is the production adapter.
+protocol WorkdayNotificationSending {
+    func sendThresholdNotification(type: NotificationManager.ThresholdType)
+    func sendNewDayNotification()
+}
+
+final class NotificationManager: WorkdayNotificationSending {
 
     static let shared = NotificationManager()
     private let center = UNUserNotificationCenter.current()

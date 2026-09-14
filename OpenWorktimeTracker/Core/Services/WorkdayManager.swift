@@ -46,7 +46,7 @@ final class WorkdayManager {
 
     let persistence = PersistenceManager()
     let idleDetector: IdleDetector
-    private let notifications = NotificationManager.shared
+    private let notifications: WorkdayNotificationSending
     private let defaults: UserDefaults
     private let clock: Clock
     private let store: DailyLogStore
@@ -59,6 +59,7 @@ final class WorkdayManager {
         store: DailyLogStore? = nil,
         idleDetector: IdleDetector? = nil,
         prompts: WorkdayPromptPresenting = IdlePromptWindowController.shared,
+        notifications: WorkdayNotificationSending = NotificationManager.shared,
         widgetStore: SharedDefaults = .shared
     ) {
         self.defaults = defaults
@@ -66,6 +67,7 @@ final class WorkdayManager {
         self.store = store ?? persistence
         self.idleDetector = idleDetector ?? IdleDetector(clock: clock)
         self.prompts = prompts
+        self.notifications = notifications
         self.widgetStore = widgetStore
         self.notificationThresholds = .resolved(from: defaults)
         self.newDayStartHour = Self.resolvedNewDayStartHour(from: defaults)
