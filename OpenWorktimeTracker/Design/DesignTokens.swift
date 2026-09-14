@@ -12,11 +12,11 @@ enum DesignTokens {
         static let tertiary = Color("tertiary", bundle: nil)
         static let error = Color("error", bundle: nil)
 
-        // Adaptive fallbacks using system colors
-        static let accentBlue = Color(light: .init(hex: 0x0058BC), dark: .init(hex: 0x007AFF))
-        static let accentGreen = Color(light: .init(hex: 0x006B27), dark: .init(hex: 0x34C759))
-        static let accentOrange = Color(light: .init(hex: 0x995000), dark: .init(hex: 0xFF9500))
-        static let accentRed = Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
+        // Accents come from the palette shared with the widget
+        static let accentBlue = PaletteColor.blue.color
+        static let accentGreen = PaletteColor.green.color
+        static let accentOrange = PaletteColor.orange.color
+        static let accentRed = PaletteColor.red.color
 
         static let surface = Color(light: .init(hex: 0xF9F9FE), dark: .init(hex: 0x1A1C1F))
         static let surfaceContainerLow = Color(
@@ -29,7 +29,7 @@ enum DesignTokens {
 
         static let onSurface = Color(light: .init(hex: 0x1A1C1F), dark: .init(hex: 0xE2E2E7))
         static let onAccent = Color.white
-        static let onSurfaceVariant = Color(light: .init(hex: 0x414755), dark: .init(hex: 0xC1C6D7))
+        static let onSurfaceVariant = PaletteColor.secondary.color
         static let outlineVariant = Color(light: .init(hex: 0xC1C6D7), dark: .init(hex: 0x44474E))
 
         // Glass effect

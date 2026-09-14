@@ -25,13 +25,6 @@ extension Date {
 }
 
 extension TimeInterval {
-    var hoursMinutesFormatted: String {
-        let totalMinutes = Int(self) / 60
-        let hours = totalMinutes / 60
-        let minutes = totalMinutes % 60
-        return String(format: "%02d:%02d", hours, minutes)
-    }
-
     var hoursComponent: Int {
         Int(self) / 3600
     }

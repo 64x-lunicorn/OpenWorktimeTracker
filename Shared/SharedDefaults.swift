@@ -23,6 +23,10 @@ struct WidgetSnapshot: Codable, Equatable {
         thresholds.level(for: netTime(at: date))
     }
 
+    func appearance(at date: Date) -> WorkdayAppearance {
+        WorkdayAppearance(state: state, level: thresholdLevel(at: date))
+    }
+
     /// The state is checked by decoding; a snapshot published by an earlier
     /// version, with colour-named threshold fields, fails to decode and reads as
     /// unavailable until the app publishes again.
