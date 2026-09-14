@@ -222,27 +222,65 @@ final class WorkdayManagerNotificationThresholdTests: XCTestCase {
         XCTAssertTrue(notifications.thresholds.isEmpty)
     }
 
-    func testJumpingStraightPastCriticalNotifiesCriticalFirst() {
-        // Intentional (confirmed 2026-09-14): when Net Work Time is already past
-        // critical, critical is notified instead of normal.
+    func testJumpingStraightPastCriticalNotifiesOnlyCritical() {
+        // Decided 2026-09-14: only the highest crossed Threshold is reported;
+        // normal is recorded as notified and never follows, even after a reload.
         startWorkday()
 
         tick(atHours: 9)
-
         XCTAssertEqual(notifications.thresholdIdentifiers, ["critical"])
+
+        tick(atHours: 9 + 1.0 / 3600)
+        tick(atHours: 9.5)
+        XCTAssertEqual(notifications.thresholdIdentifiers, ["critical"])
+
+        manager = makeManager()
+        manager.evaluateWorkday()
+        tick(atHours: 9.75)
+        XCTAssertTrue(notifications.thresholds.isEmpty)
     }
 
-    func testJumpingStraightPastTheMilestoneNotifiesCriticalOnTheNextTick() {
-        // Intentional (confirmed 2026-09-14): the milestone tick returns before
-        // critical is checked, so critical follows one tick later while the
-        // end-of-day prompt is open.
+    func testJumpingStraightPastTheMilestoneNotifiesOnlyTheMilestone() {
+        // Decided 2026-09-14: only the highest crossed Threshold is reported;
+        // critical and normal are recorded as notified and never follow, even
+        // after a reload.
         startWorkday()
 
         tick(atHours: 10)
         XCTAssertEqual(notifications.thresholdIdentifiers, ["milestone"])
 
-        tick(atHours: 10 + 1 / 3600)
-        XCTAssertEqual(notifications.thresholdIdentifiers, ["milestone", "critical"])
+        tick(atHours: 10 + 1.0 / 3600)
+        tick(atHours: 11)
+        drainMainQueue()
+        XCTAssertEqual(notifications.thresholdIdentifiers, ["milestone"])
+        XCTAssertEqual(prompts.maxHoursPrompts, [10])
+
+        manager = makeManager()
+        manager.evaluateWorkday()
+        tick(atHours: 11.5)
+        drainMainQueue()
+        XCTAssertTrue(notifications.thresholds.isEmpty)
+        XCTAssertTrue(prompts.maxHoursPrompts.isEmpty)
+    }
+
+    func testJumpingPastTheMilestoneWithNotificationsDisabledStillRecordsTheLowerThresholds() {
+        // Decided 2026-09-14: the milestone marks critical and normal as notified
+        // even when nothing is sent, so enabling notifications later sends neither.
+        defaults.set(false, forKey: AppSettingsKey.notificationsEnabled)
+        startWorkday()
+        tick(atHours: 10)
+        drainMainQueue()
+        XCTAssertTrue(notifications.thresholds.isEmpty)
+        XCTAssertEqual(prompts.maxHoursPrompts, [10])
+
+        defaults.set(true, forKey: AppSettingsKey.notificationsEnabled)
+        manager = makeManager()
+        manager.evaluateWorkday()
+        tick(atHours: 11)
+        drainMainQueue()
+
+        XCTAssertTrue(notifications.thresholds.isEmpty)
+        XCTAssertTrue(prompts.maxHoursPrompts.isEmpty)
     }
 
     func testNotifiedThresholdsSurviveAReloadFromTheSameStore() {

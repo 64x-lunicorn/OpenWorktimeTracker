@@ -489,10 +489,23 @@ extension WorkdayManager {
         let notified = current.payload.notifiedThresholds
         let thresholds = notificationThresholds
 
+        // Only the highest crossed Threshold is reported. Lower ones crossed in
+        // the same jump are recorded as notified so they never follow later.
+        func markingCrossedBelow(_ workday: Workday, _ threshold: NotificationThreshold) -> Workday {
+            var marked = workday.markingNotified(threshold)
+            if threshold == .milestone && hours >= thresholds.criticalHours {
+                marked = marked.markingNotified(.critical)
+            }
+            if hours >= thresholds.normalHours {
+                marked = marked.markingNotified(.normal)
+            }
+            return marked
+        }
+
         // The 10h milestone popup is a legal safeguard (ArbZG) and must appear
         // regardless of whether notifications are enabled.
         if hours >= thresholds.milestoneHours && !notified.contains(.milestone) {
-            let updated = current.markingNotified(.milestone)
+            let updated = markingCrossedBelow(current, .milestone)
             currentWorkday = updated
             store.save(updated.payload)
             if thresholds.enabled {
@@ -512,7 +525,7 @@ extension WorkdayManager {
 
         if hours >= thresholds.criticalHours && !notified.contains(.critical) {
             notifications.sendThresholdNotification(type: .critical(hours: hours))
-            let updated = current.markingNotified(.critical)
+            let updated = markingCrossedBelow(current, .critical)
             currentWorkday = updated
             store.save(updated.payload)
         } else if hours >= thresholds.normalHours && !notified.contains(.normal) {
