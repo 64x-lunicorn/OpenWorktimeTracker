@@ -76,6 +76,7 @@
 		F9CEAFEDD47DBEF79E904301 /* PersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F26F3D087AB990B78FB7094 /* PersistenceManager.swift */; };
 		FAA1B14DC80293F0B721C180 /* DailyLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9C8B5661F461CF5F7351190 /* DailyLogStore.swift */; };
 		FD9C3BA959F3FA91E9956165 /* MetricCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95771E351BA49672B02C68D /* MetricCardsView.swift */; };
+		FE94C604420335FED4ACB672 /* WorkdayManagerNotificationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A2357BB2FA13AEF4F2D412 /* WorkdayManagerNotificationTestCase.swift */; };
 		FEBEC5FF73CDE0307ABF6FB6 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66D750410EAFCCE00D0FB84 /* Date+Extensions.swift */; };
 /* End PBXBuildFile section */
 
@@ -143,6 +144,7 @@
 		7C0158B151E8021863597395 /* TimeEntryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeEntryTests.swift; sourceTree = "<group>"; };
 		8316E37B0FE467EDC5CE6E6D /* GlobalShortcutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcutManager.swift; sourceTree = "<group>"; };
 		84E375BDF0FBA1A9FC5F9F28 /* WorkdayManagerNotificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayManagerNotificationTests.swift; sourceTree = "<group>"; };
+		85A2357BB2FA13AEF4F2D412 /* WorkdayManagerNotificationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkdayManagerNotificationTestCase.swift; sourceTree = "<group>"; };
 		86E9F0E6F30AAE618BE4982D /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncManager.swift; sourceTree = "<group>"; };
 		889ACF5AC45EDAC1DD0F8BF8 /* Clock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clock.swift; sourceTree = "<group>"; };
 		8BB9FC7AA9A4FDD8B540808B /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -305,6 +307,7 @@
 				47E5CA659F0918F09E3A2B2E /* WorkdayManagerClockAndStoreTests.swift */,
 				5692F3320868828C600D08B4 /* WorkdayManagerIdleHandlingTests.swift */,
 				63FDA92C95403622A35BE0F3 /* WorkdayManagerLifecycleAndMutationTests.swift */,
+				85A2357BB2FA13AEF4F2D412 /* WorkdayManagerNotificationTestCase.swift */,
 				84E375BDF0FBA1A9FC5F9F28 /* WorkdayManagerNotificationTests.swift */,
 				45F2ACA48F78D1F82D64377D /* WorkdayManagerNotificationThresholdTests.swift */,
 				99AEB2B7772C3768CB0B7B4B /* WorkdayManagerSettingsTests.swift */,
@@ -533,6 +536,7 @@
 				474C7362331605093E10F5D8 /* WorkdayManagerClockAndStoreTests.swift in Sources */,
 				BA8452319FEBD0BB5443C7D1 /* WorkdayManagerIdleHandlingTests.swift in Sources */,
 				BF6602F8D9B236C3229F2DF8 /* WorkdayManagerLifecycleAndMutationTests.swift in Sources */,
+				FE94C604420335FED4ACB672 /* WorkdayManagerNotificationTestCase.swift in Sources */,
 				5F0F01A2DD2D8315F7EC60D7 /* WorkdayManagerNotificationTests.swift in Sources */,
 				515DC1B69C2BDB10210F82F9 /* WorkdayManagerNotificationThresholdTests.swift in Sources */,
 				4352E3077EFA1D9BDA71E053 /* WorkdayManagerSettingsTests.swift in Sources */,

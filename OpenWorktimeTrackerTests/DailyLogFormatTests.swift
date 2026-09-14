@@ -32,9 +32,13 @@ final class DailyLogFormatTests: XCTestCase {
         """
 
     private func decodeFixture() throws -> TimeEntry {
+        try decode(fixture)
+    }
+
+    private func decode(_ json: String) throws -> TimeEntry {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(TimeEntry.self, from: Data(fixture.utf8))
+        return try decoder.decode(TimeEntry.self, from: Data(json.utf8))
     }
 
     func testAShippedDailyLogStillDecodes() throws {
@@ -110,12 +114,9 @@ final class DailyLogFormatTests: XCTestCase {
     }
 
     private func decodeFixture(notifiedThresholds: String) throws -> TimeEntry {
-        let edited = fixture.replacingOccurrences(
+        try decode(fixture.replacingOccurrences(
             of: #""notifiedThresholds": ["normal"]"#,
-            with: #""notifiedThresholds": \#(notifiedThresholds)"#)
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(TimeEntry.self, from: Data(edited.utf8))
+            with: #""notifiedThresholds": \#(notifiedThresholds)"#))
     }
 
     private func encodedNotifiedThresholds(of entry: TimeEntry) throws -> [String] {

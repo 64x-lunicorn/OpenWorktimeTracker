@@ -7,14 +7,12 @@ import Foundation
 /// been delivered without touching UserNotifications.
 final class RecordingWorkdayNotifications: WorkdayNotificationSending {
 
-    private(set) var thresholds: [NotificationManager.ThresholdType] = []
+    /// The Notification Thresholds sent, in order.
+    private(set) var thresholds: [NotifiedThreshold] = []
     private(set) var newDayCount = 0
 
-    /// The kinds of Notification Thresholds sent, in order.
-    var thresholdIdentifiers: [String] { thresholds.map(\.identifier) }
-
-    func sendThresholdNotification(type: NotificationManager.ThresholdType) {
-        thresholds.append(type)
+    func sendThresholdNotification(_ threshold: NotifiedThreshold, hours: Double) {
+        thresholds.append(threshold)
     }
 
     func sendNewDayNotification() {
