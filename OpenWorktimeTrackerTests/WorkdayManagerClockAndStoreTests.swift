@@ -93,7 +93,7 @@ final class WorkdayManagerClockAndStoreTests: XCTestCase {
 
         let snapshot = try XCTUnwrap(widgetStore.readSnapshot())
         XCTAssertEqual(snapshot.targetHours, 7)
-        XCTAssertEqual(snapshot.thresholds, ThresholdLadder(elevatedHours: 7.5, criticalHours: 8.5))
+        XCTAssertEqual(snapshot.thresholdLadder, ThresholdLadder(elevatedHours: 7.5, criticalHours: 8.5))
     }
 
     func testDeletingCurrentLogPublishesEmptySnapshotWithoutStaleStartTime() throws {

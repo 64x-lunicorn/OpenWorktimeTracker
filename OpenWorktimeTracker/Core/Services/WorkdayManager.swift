@@ -456,7 +456,7 @@ extension WorkdayManager {
             startTime: currentWorkday?.startTime,
             workDate: currentWorkday?.date ?? "",
             targetHours: notificationThresholds.normalHours,
-            thresholds: thresholds
+            thresholdLadder: thresholds
         )
         do {
             try widgetStore.publish(snapshot)

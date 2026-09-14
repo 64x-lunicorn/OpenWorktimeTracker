@@ -25,12 +25,12 @@ final class WidgetSnapshotTests: XCTestCase {
 
     private func snapshot(
         state: WorkdayState = .running, netTime: TimeInterval = 3600,
-        thresholds: ThresholdLadder = ThresholdLadder(elevatedHours: 7.5, criticalHours: 9)
+        thresholdLadder: ThresholdLadder = ThresholdLadder(elevatedHours: 7.5, criticalHours: 9)
     ) -> WidgetSnapshot {
         WidgetSnapshot(
             measuredAt: measuredAt, state: state, netTime: netTime, grossTime: 4200,
             startTime: measuredAt.addingTimeInterval(-4200), workDate: "2027-01-15",
-            targetHours: 7, thresholds: thresholds)
+            targetHours: 7, thresholdLadder: thresholdLadder)
     }
 
     func testDefaultsRoundTripReplacesOneCompleteValue() throws {
@@ -43,7 +43,7 @@ final class WidgetSnapshotTests: XCTestCase {
         let second = WidgetSnapshot(
             measuredAt: measuredAt.addingTimeInterval(900), state: .ended, netTime: 4500,
             grossTime: 5100, startTime: first.startTime, workDate: first.workDate,
-            targetHours: 8, thresholds: ThresholdLadder(elevatedHours: 8, criticalHours: 9.5))
+            targetHours: 8, thresholdLadder: ThresholdLadder(elevatedHours: 8, criticalHours: 9.5))
         try writer.publish(second)
 
         XCTAssertEqual(try reader.readSnapshot(), second)
@@ -111,7 +111,7 @@ final class WidgetSnapshotTests: XCTestCase {
             ThresholdLadder(elevatedHours: .nan, criticalHours: 9),
             ThresholdLadder(elevatedHours: 8, criticalHours: -1)
         ] {
-            XCTAssertThrowsError(try store.publish(snapshot(thresholds: ladder)))
+            XCTAssertThrowsError(try store.publish(snapshot(thresholdLadder: ladder)))
             XCTAssertEqual(try store.readSnapshot(), snapshot())
         }
     }
@@ -145,20 +145,22 @@ final class WidgetSnapshotTests: XCTestCase {
         let redThreshold: Double
     }
 
-    /// Chosen behaviour: a snapshot from the previous version is reported
-    /// unavailable rather than migrated. The widget shows its "no current data"
-    /// state until the updated app publishes, which it does on launch and every tick.
+    /// Chosen behaviour: a snapshot left under the previous version's key is
+    /// ignored rather than migrated, without reporting a read failure. The widget
+    /// shows its "no current data" state until the updated app publishes, which
+    /// it does on launch and every tick, and publishing removes the stale value.
     func testPreviousVersionSnapshotIsUnavailableUntilNextPublish() throws {
         let previous = PreviousVersionSnapshot(
             measuredAt: measuredAt, state: "running", netTime: 3600, grossTime: 4200,
             startTime: measuredAt.addingTimeInterval(-4200), workDate: "2027-01-15",
             targetHours: 7, orangeThreshold: 7.5, redThreshold: 9)
-        defaults.set(try JSONEncoder().encode(previous), forKey: SharedDefaults.snapshotKey)
+        defaults.set(try JSONEncoder().encode(previous), forKey: "widget_snapshot_v1")
         let store = SharedDefaults(defaults: defaults, fallbackURL: fileURL)
 
-        XCTAssertThrowsError(try store.readSnapshot())
+        XCTAssertNil(try store.readSnapshot())
         try store.publish(snapshot())
         XCTAssertEqual(try store.readSnapshot(), snapshot())
+        XCTAssertNil(defaults.object(forKey: "widget_snapshot_v1"))
     }
 
     func testDelayedReadKeepsRunningTimerAnchoredToMeasurement() {

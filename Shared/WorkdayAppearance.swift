@@ -2,8 +2,9 @@ import SwiftUI
 
 // MARK: - Palette
 
-/// A colour of the palette the app and the widget paint a Workday with, named by
-/// role. The one place its light and dark values live.
+/// The accent colours the app and the widget paint a Workday with, plus the
+/// muted `secondary` for text and a Workday not yet started. The one place their
+/// light and dark values live.
 enum PaletteColor: CaseIterable {
     case blue
     case green
@@ -100,17 +101,5 @@ struct WorkdayAppearance: Equatable {
     /// Progress toward the daily goal stays green until the Threshold Ladder is reached.
     var progress: PaletteColor {
         level == .normal ? .green : indicator
-    }
-}
-
-// MARK: - Duration
-
-extension TimeInterval {
-    /// Hours always take two digits: `08:05`.
-    var hoursMinutesFormatted: String {
-        let totalMinutes = Int(self) / 60
-        let hours = totalMinutes / 60
-        let minutes = totalMinutes % 60
-        return String(format: "%02d:%02d", hours, minutes)
     }
 }

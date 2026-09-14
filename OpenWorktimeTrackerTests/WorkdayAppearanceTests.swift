@@ -1,8 +1,35 @@
+import AppKit
 import XCTest
 
 @testable import OpenWorktimeTracker
 
 final class WorkdayAppearanceTests: XCTestCase {
+
+    /// Pins the app's look: these values are what both targets paint with.
+    func testPaletteKeepsTheAppsLightAndDarkValues() throws {
+        let expected: [PaletteColor: (light: UInt, dark: UInt)] = [
+            .blue: (0x0058BC, 0x007AFF),
+            .green: (0x006B27, 0x34C759),
+            .orange: (0x995000, 0xFF9500),
+            .red: (0xBA1A1A, 0xFF453A),
+            .secondary: (0x414755, 0xC1C6D7)
+        ]
+        XCTAssertEqual(Set(expected.keys), Set(PaletteColor.allCases))
+        for (paletteColor, values) in expected {
+            for (name, hex) in [(NSAppearance.Name.aqua, values.light), (.darkAqua, values.dark)] {
+                var resolved: NSColor?
+                try XCTUnwrap(NSAppearance(named: name)).performAsCurrentDrawingAppearance {
+                    resolved = NSColor(paletteColor.color).usingColorSpace(.sRGB)
+                }
+                let color = try XCTUnwrap(resolved)
+                let actual = UInt((color.redComponent * 255).rounded()) << 16
+                    | UInt((color.greenComponent * 255).rounded()) << 8
+                    | UInt((color.blueComponent * 255).rounded())
+                XCTAssertEqual(
+                    String(actual, radix: 16), String(hex, radix: 16), "\(paletteColor) \(name.rawValue)")
+            }
+        }
+    }
 
     func testIndicatorFollowsStateAtNormalLevelAndThresholdLevelAbove() {
         let expected: [WorkdayState: PaletteColor] = [
@@ -86,7 +113,7 @@ final class WorkdayAppearanceTests: XCTestCase {
         let snapshot = WidgetSnapshot(
             measuredAt: measuredAt, state: .running, netTime: 7.5 * 3600, grossTime: 8 * 3600,
             startTime: nil, workDate: "2027-01-15", targetHours: 8,
-            thresholds: ThresholdLadder(elevatedHours: 8, criticalHours: 9.5))
+            thresholdLadder: ThresholdLadder(elevatedHours: 8, criticalHours: 9.5))
 
         XCTAssertEqual(snapshot.appearance(at: measuredAt), WorkdayAppearance(state: .running, level: .normal))
         XCTAssertEqual(

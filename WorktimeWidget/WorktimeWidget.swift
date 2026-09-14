@@ -24,7 +24,7 @@ struct WorktimeProvider: TimelineProvider {
             startTime: Calendar.current.date(bySettingHour: 8, minute: 30, second: 0, of: now),
             workDate: "2024-01-15",
             targetHours: 8.0,
-            thresholds: ThresholdLadder(elevatedHours: 8.0, criticalHours: 9.5)
+            thresholdLadder: ThresholdLadder(elevatedHours: 8.0, criticalHours: 9.5)
         ))
     }
 
