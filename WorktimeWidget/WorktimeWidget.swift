@@ -18,14 +18,13 @@ struct WorktimeProvider: TimelineProvider {
         let now = Date()
         return WorktimeEntry(date: now, snapshot: WidgetSnapshot(
             measuredAt: now,
-            state: "running",
+            state: .running,
             netTime: 5 * 3600 + 23 * 60,
             grossTime: 6 * 3600,
             startTime: Calendar.current.date(bySettingHour: 8, minute: 30, second: 0, of: now),
             workDate: "2024-01-15",
             targetHours: 8.0,
-            orangeThreshold: 8.0,
-            redThreshold: 9.5
+            thresholds: ThresholdLadder(elevatedHours: 8.0, criticalHours: 9.5)
         ))
     }
 
@@ -110,20 +109,20 @@ struct WorktimeWidgetSmallView: View {
         case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
         case .normal:
             switch snapshot.state {
-            case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
-            case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-            case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
-            default: return .secondary
+            case .running: return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
+            case .paused: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+            case .ended: return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
+            case .notStarted: return .secondary
             }
         }
     }
 
     private var stateLabel: String {
         switch snapshot.state {
-        case "running": return String(localized: "widget.state.running")
-        case "paused": return String(localized: "widget.state.paused")
-        case "ended": return String(localized: "widget.state.ended")
-        default: return String(localized: "widget.state.idle")
+        case .running: return String(localized: "widget.state.running")
+        case .paused: return String(localized: "widget.state.paused")
+        case .ended: return String(localized: "widget.state.ended")
+        case .notStarted: return String(localized: "widget.state.idle")
         }
     }
 }
@@ -216,20 +215,20 @@ struct WorktimeWidgetMediumView: View {
         case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
         case .normal:
             switch snapshot.state {
-            case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
-            case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-            case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
-            default: return .secondary
+            case .running: return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
+            case .paused: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
+            case .ended: return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
+            case .notStarted: return .secondary
             }
         }
     }
 
     private var stateLabel: String {
         switch snapshot.state {
-        case "running": return String(localized: "widget.state.running")
-        case "paused": return String(localized: "widget.state.paused")
-        case "ended": return String(localized: "widget.state.ended")
-        default: return String(localized: "widget.state.idle")
+        case .running: return String(localized: "widget.state.running")
+        case .paused: return String(localized: "widget.state.paused")
+        case .ended: return String(localized: "widget.state.ended")
+        case .notStarted: return String(localized: "widget.state.idle")
         }
     }
 

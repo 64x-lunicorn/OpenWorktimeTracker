@@ -2,16 +2,15 @@ import Foundation
 
 struct WidgetSnapshot: Codable, Equatable {
     let measuredAt: Date
-    let state: String
+    let state: WorkdayState
     let netTime: TimeInterval
     let grossTime: TimeInterval
     let startTime: Date?
     let workDate: String
     let targetHours: Double
-    let orangeThreshold: Double
-    let redThreshold: Double
+    let thresholds: ThresholdLadder
 
-    var isRunning: Bool { state == "running" }
+    var isRunning: Bool { state == .running }
 
     /// Anchored to the measurement, never to the widget's later read time.
     var liveNetStart: Date { measuredAt.addingTimeInterval(-netTime) }
@@ -21,18 +20,19 @@ struct WidgetSnapshot: Codable, Equatable {
     }
 
     func thresholdLevel(at date: Date) -> ThresholdLevel {
-        ThresholdLadder(elevatedHours: orangeThreshold, criticalHours: redThreshold)
-            .level(for: netTime(at: date))
+        thresholds.level(for: netTime(at: date))
     }
 
+    /// The state is checked by decoding; a snapshot published by an earlier
+    /// version, with colour-named threshold fields, fails to decode and reads as
+    /// unavailable until the app publishes again.
     fileprivate func validate() throws {
-        guard ["notStarted", "running", "paused", "ended"].contains(state),
-            measuredAt.timeIntervalSince1970.isFinite,
+        guard measuredAt.timeIntervalSince1970.isFinite,
             startTime?.timeIntervalSince1970.isFinite ?? true,
             netTime.isFinite, netTime >= 0, grossTime.isFinite, grossTime >= 0,
             targetHours.isFinite, targetHours > 0,
-            orangeThreshold.isFinite, orangeThreshold >= 0,
-            redThreshold.isFinite, redThreshold >= 0 else {
+            thresholds.elevatedHours.isFinite, thresholds.elevatedHours >= 0,
+            thresholds.criticalHours.isFinite, thresholds.criticalHours >= 0 else {
             throw CocoaError(.coderInvalidValue)
         }
     }

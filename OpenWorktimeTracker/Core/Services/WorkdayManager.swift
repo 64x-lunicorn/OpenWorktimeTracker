@@ -11,14 +11,7 @@ final class WorkdayManager {
 
     // MARK: - State
 
-    enum State: String {
-        case notStarted
-        case running
-        case paused
-        case ended
-    }
-
-    private(set) var state: State = .notStarted
+    private(set) var state: WorkdayState = .notStarted
     private(set) var currentWorkday: Workday?
     private(set) var displayTime: TimeInterval = 0
     private(set) var grossTime: TimeInterval = 0
@@ -461,14 +454,13 @@ extension WorkdayManager {
         let thresholds = currentWorkday?.thresholds ?? .resolved(from: defaults)
         let snapshot = WidgetSnapshot(
             measuredAt: instant,
-            state: state.rawValue,
+            state: state,
             netTime: netTime,
             grossTime: grossTime,
             startTime: currentWorkday?.startTime,
             workDate: currentWorkday?.date ?? "",
             targetHours: notificationThresholds.normalHours,
-            orangeThreshold: thresholds.elevatedHours,
-            redThreshold: thresholds.criticalHours
+            thresholds: thresholds
         )
         do {
             try widgetStore.publish(snapshot)
@@ -752,7 +744,7 @@ extension WorkdayManager {
 
 // MARK: - State Localization
 
-extension WorkdayManager.State {
+extension WorkdayState {
     var localizedLabel: String {
         switch self {
         case .notStarted: return String(localized: "state.notStarted")
