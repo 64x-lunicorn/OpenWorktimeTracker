@@ -107,7 +107,7 @@ private struct DayRow: View {
     }
 
     private var barColor: Color {
-        workday.thresholdLevel.accent
+        workday.thresholdLevel.accent.color
     }
 
     private var weekdayAbbr: String {

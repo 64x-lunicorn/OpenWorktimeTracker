@@ -11,14 +11,7 @@ final class WorkdayManager {
 
     // MARK: - State
 
-    enum State: String {
-        case notStarted
-        case running
-        case paused
-        case ended
-    }
-
-    private(set) var state: State = .notStarted
+    private(set) var state: WorkdayState = .notStarted
     private(set) var currentWorkday: Workday?
     private(set) var displayTime: TimeInterval = 0
     private(set) var grossTime: TimeInterval = 0
@@ -252,11 +245,7 @@ final class WorkdayManager {
 
     private func activate(_ workday: Workday) {
         currentWorkday = workday
-        switch workday.status {
-        case .running: state = .running
-        case .paused: state = .paused
-        case .ended: state = .ended
-        }
+        state = WorkdayState(workday.status)
         startTimer()
         if state == .running {
             idleDetector.startMonitoring()
@@ -461,14 +450,13 @@ extension WorkdayManager {
         let thresholds = currentWorkday?.thresholds ?? .resolved(from: defaults)
         let snapshot = WidgetSnapshot(
             measuredAt: instant,
-            state: state.rawValue,
+            state: state,
             netTime: netTime,
             grossTime: grossTime,
             startTime: currentWorkday?.startTime,
             workDate: currentWorkday?.date ?? "",
             targetHours: notificationThresholds.normalHours,
-            orangeThreshold: thresholds.elevatedHours,
-            redThreshold: thresholds.criticalHours
+            thresholdLadder: thresholds
         )
         do {
             try widgetStore.publish(snapshot)
@@ -747,18 +735,5 @@ extension WorkdayManager {
         }
         finish(at: endYesterdayAt)
         startDay(at: max(detector.startOfEffectiveDay(for: clock.now), period.idleEnd))
-    }
-}
-
-// MARK: - State Localization
-
-extension WorkdayManager.State {
-    var localizedLabel: String {
-        switch self {
-        case .notStarted: return String(localized: "state.notStarted")
-        case .running: return String(localized: "state.running")
-        case .paused: return String(localized: "state.paused")
-        case .ended: return String(localized: "state.ended")
-        }
     }
 }

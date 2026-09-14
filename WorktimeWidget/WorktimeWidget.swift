@@ -18,14 +18,13 @@ struct WorktimeProvider: TimelineProvider {
         let now = Date()
         return WorktimeEntry(date: now, snapshot: WidgetSnapshot(
             measuredAt: now,
-            state: "running",
+            state: .running,
             netTime: 5 * 3600 + 23 * 60,
             grossTime: 6 * 3600,
             startTime: Calendar.current.date(bySettingHour: 8, minute: 30, second: 0, of: now),
             workDate: "2024-01-15",
             targetHours: 8.0,
-            orangeThreshold: 8.0,
-            redThreshold: 9.5
+            thresholdLadder: ThresholdLadder(elevatedHours: 8.0, criticalHours: 9.5)
         ))
     }
 
@@ -69,9 +68,9 @@ struct WorktimeWidgetSmallView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 4) {
                 Circle()
-                    .fill(stateColor)
+                    .fill(appearance.indicator.color)
                     .frame(width: 6, height: 6)
-                Text(stateLabel)
+                Text(appearance.state.widgetLabel)
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
@@ -83,7 +82,7 @@ struct WorktimeWidgetSmallView: View {
                 if snapshot.isRunning {
                     Text(timerInterval: snapshot.liveNetStart...Date.distantFuture, countsDown: false)
                 } else {
-                    Text(formatTime(snapshot.netTime))
+                    Text(snapshot.netTime.hoursMinutesFormatted)
                 }
             }
             .font(.system(size: 28, weight: .medium, design: .rounded))
@@ -104,28 +103,7 @@ struct WorktimeWidgetSmallView: View {
         .containerBackground(.fill.tertiary, for: .widget)
     }
 
-    private var stateColor: Color {
-        switch snapshot.thresholdLevel(at: date) {
-        case .critical: return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
-        case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        case .normal:
-            switch snapshot.state {
-            case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
-            case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-            case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
-            default: return .secondary
-            }
-        }
-    }
-
-    private var stateLabel: String {
-        switch snapshot.state {
-        case "running": return String(localized: "widget.state.running")
-        case "paused": return String(localized: "widget.state.paused")
-        case "ended": return String(localized: "widget.state.ended")
-        default: return String(localized: "widget.state.idle")
-        }
-    }
+    private var appearance: WorkdayAppearance { snapshot.appearance(at: date) }
 }
 
 // MARK: - Medium Widget View
@@ -141,9 +119,9 @@ struct WorktimeWidgetMediumView: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 4) {
                     Circle()
-                        .fill(stateColor)
+                        .fill(appearance.indicator.color)
                         .frame(width: 6, height: 6)
-                    Text(stateLabel)
+                    Text(appearance.state.widgetLabel)
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(.secondary)
                         .textCase(.uppercase)
@@ -157,7 +135,7 @@ struct WorktimeWidgetMediumView: View {
                             timerInterval: snapshot.liveNetStart...Date.distantFuture,
                             countsDown: false)
                     } else {
-                        Text(formatTime(snapshot.netTime))
+                        Text(snapshot.netTime.hoursMinutesFormatted)
                     }
                 }
                 .font(.system(size: 32, weight: .medium, design: .rounded))
@@ -185,7 +163,7 @@ struct WorktimeWidgetMediumView: View {
                         .trim(
                             from: 0, to: min(1.0, netTimeSeconds / (snapshot.targetHours * 3600))
                         )
-                        .stroke(progressColor, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                        .stroke(appearance.progress.color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                     Text(
                         String(
@@ -200,7 +178,7 @@ struct WorktimeWidgetMediumView: View {
                 Text(
                     String(
                         format: String(localized: "widget.target"),
-                        formatTime(snapshot.targetHours * 3600))
+                        (snapshot.targetHours * 3600).hoursMinutesFormatted)
                 )
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
@@ -210,45 +188,10 @@ struct WorktimeWidgetMediumView: View {
         .containerBackground(.fill.tertiary, for: .widget)
     }
 
-    private var stateColor: Color {
-        switch snapshot.thresholdLevel(at: date) {
-        case .critical: return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
-        case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        case .normal:
-            switch snapshot.state {
-            case "running": return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
-            case "paused": return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-            case "ended": return Color(light: .init(hex: 0x0055D4), dark: .init(hex: 0x0A84FF))
-            default: return .secondary
-            }
-        }
-    }
-
-    private var stateLabel: String {
-        switch snapshot.state {
-        case "running": return String(localized: "widget.state.running")
-        case "paused": return String(localized: "widget.state.paused")
-        case "ended": return String(localized: "widget.state.ended")
-        default: return String(localized: "widget.state.idle")
-        }
-    }
-
-    private var progressColor: Color {
-        switch snapshot.thresholdLevel(at: date) {
-        case .critical: return Color(light: .init(hex: 0xBA1A1A), dark: .init(hex: 0xFF453A))
-        case .elevated: return Color(light: .init(hex: 0xE67700), dark: .init(hex: 0xFF9500))
-        case .normal: return Color(light: .init(hex: 0x1B7A2B), dark: .init(hex: 0x30D158))
-        }
-    }
+    private var appearance: WorkdayAppearance { snapshot.appearance(at: date) }
 }
 
 // MARK: - Helpers
-
-private func formatTime(_ seconds: TimeInterval) -> String {
-    let h = Int(seconds) / 3600
-    let m = (Int(seconds) % 3600) / 60
-    return String(format: "%d:%02d", h, m)
-}
 
 private let hourMinuteFormatter: DateFormatter = {
     let formatter = DateFormatter()

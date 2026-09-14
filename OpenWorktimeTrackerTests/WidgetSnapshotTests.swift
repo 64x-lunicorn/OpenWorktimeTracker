@@ -23,11 +23,14 @@ final class WidgetSnapshotTests: XCTestCase {
         }
     }
 
-    private func snapshot(state: String = "running", netTime: TimeInterval = 3600) -> WidgetSnapshot {
+    private func snapshot(
+        state: WorkdayState = .running, netTime: TimeInterval = 3600,
+        thresholdLadder: ThresholdLadder = ThresholdLadder(elevatedHours: 7.5, criticalHours: 9)
+    ) -> WidgetSnapshot {
         WidgetSnapshot(
             measuredAt: measuredAt, state: state, netTime: netTime, grossTime: 4200,
             startTime: measuredAt.addingTimeInterval(-4200), workDate: "2027-01-15",
-            targetHours: 7, orangeThreshold: 7.5, redThreshold: 9)
+            targetHours: 7, thresholdLadder: thresholdLadder)
     }
 
     func testDefaultsRoundTripReplacesOneCompleteValue() throws {
@@ -38,9 +41,9 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(try reader.readSnapshot(), first)
 
         let second = WidgetSnapshot(
-            measuredAt: measuredAt.addingTimeInterval(900), state: "ended", netTime: 4500,
+            measuredAt: measuredAt.addingTimeInterval(900), state: .ended, netTime: 4500,
             grossTime: 5100, startTime: first.startTime, workDate: first.workDate,
-            targetHours: 8, orangeThreshold: 8, redThreshold: 9.5)
+            targetHours: 8, thresholdLadder: ThresholdLadder(elevatedHours: 8, criticalHours: 9.5))
         try writer.publish(second)
 
         XCTAssertEqual(try reader.readSnapshot(), second)
@@ -58,8 +61,8 @@ final class WidgetSnapshotTests: XCTestCase {
 
         try writer.publish(snapshot())
         XCTAssertEqual(try reader.readSnapshot(), snapshot())
-        try writer.publish(snapshot(state: "paused"))
-        XCTAssertEqual(try reader.readSnapshot(), snapshot(state: "paused"))
+        try writer.publish(snapshot(state: .paused))
+        XCTAssertEqual(try reader.readSnapshot(), snapshot(state: .paused))
     }
 
     func testLegacyKeysAreNotCombinedIntoAnUnmeasuredSnapshot() throws {
@@ -68,8 +71,8 @@ final class WidgetSnapshotTests: XCTestCase {
         let store = SharedDefaults(defaults: defaults, fallbackURL: fileURL)
 
         XCTAssertNil(try store.readSnapshot())
-        try store.publish(snapshot(state: "ended"))
-        XCTAssertEqual(try store.readSnapshot(), snapshot(state: "ended"))
+        try store.publish(snapshot(state: .ended))
+        XCTAssertEqual(try store.readSnapshot(), snapshot(state: .ended))
     }
 
     func testCorruptDefaultsReportsFailureRatherThanReadingLegacyFields() {
@@ -104,7 +107,13 @@ final class WidgetSnapshotTests: XCTestCase {
             XCTAssertThrowsError(try store.publish(snapshot(netTime: value)))
             XCTAssertEqual(try store.readSnapshot(), snapshot())
         }
-        XCTAssertThrowsError(try store.publish(snapshot(state: "unknown")))
+        for ladder in [
+            ThresholdLadder(elevatedHours: .nan, criticalHours: 9),
+            ThresholdLadder(elevatedHours: 8, criticalHours: -1)
+        ] {
+            XCTAssertThrowsError(try store.publish(snapshot(thresholdLadder: ladder)))
+            XCTAssertEqual(try store.readSnapshot(), snapshot())
+        }
     }
 
     func testInvalidDecodedSnapshotIsRejected() throws {
@@ -112,6 +121,46 @@ final class WidgetSnapshotTests: XCTestCase {
         defaults.set(encoded, forKey: SharedDefaults.snapshotKey)
 
         XCTAssertThrowsError(try SharedDefaults(defaults: defaults).readSnapshot())
+    }
+
+    func testUnknownDecodedStateIsRejected() throws {
+        var object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(snapshot())) as? [String: Any])
+        object["state"] = "unknown"
+        defaults.set(try JSONSerialization.data(withJSONObject: object), forKey: SharedDefaults.snapshotKey)
+
+        XCTAssertThrowsError(try SharedDefaults(defaults: defaults).readSnapshot())
+    }
+
+    /// The layout published by v0.7.0 and earlier, with colour-named thresholds.
+    private struct PreviousVersionSnapshot: Encodable {
+        let measuredAt: Date
+        let state: String
+        let netTime: TimeInterval
+        let grossTime: TimeInterval
+        let startTime: Date?
+        let workDate: String
+        let targetHours: Double
+        let orangeThreshold: Double
+        let redThreshold: Double
+    }
+
+    /// Chosen behaviour: a snapshot left under the previous version's key is
+    /// ignored rather than migrated, without reporting a read failure. The widget
+    /// shows its "no current data" state until the updated app publishes, which
+    /// it does on launch and every tick, and publishing removes the stale value.
+    func testPreviousVersionSnapshotIsUnavailableUntilNextPublish() throws {
+        let previous = PreviousVersionSnapshot(
+            measuredAt: measuredAt, state: "running", netTime: 3600, grossTime: 4200,
+            startTime: measuredAt.addingTimeInterval(-4200), workDate: "2027-01-15",
+            targetHours: 7, orangeThreshold: 7.5, redThreshold: 9)
+        defaults.set(try JSONEncoder().encode(previous), forKey: "widget_snapshot_v1")
+        let store = SharedDefaults(defaults: defaults, fallbackURL: fileURL)
+
+        XCTAssertNil(try store.readSnapshot())
+        try store.publish(snapshot())
+        XCTAssertEqual(try store.readSnapshot(), snapshot())
+        XCTAssertNil(defaults.object(forKey: "widget_snapshot_v1"))
     }
 
     func testDelayedReadKeepsRunningTimerAnchoredToMeasurement() {
@@ -125,7 +174,7 @@ final class WidgetSnapshotTests: XCTestCase {
     }
 
     func testPausedEndedAndNotStartedSnapshotsDoNotAccumulateTime() {
-        for state in ["paused", "ended", "notStarted"] {
+        for state in [WorkdayState.paused, .ended, .notStarted] {
             let value = snapshot(state: state)
             XCTAssertFalse(value.isRunning)
             XCTAssertEqual(value.netTime(at: measuredAt.addingTimeInterval(86_400)), value.netTime)
@@ -143,7 +192,7 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(value.thresholdLevel(at: measuredAt.addingTimeInterval(1800)), .elevated)
         XCTAssertEqual(value.thresholdLevel(at: measuredAt.addingTimeInterval(7200)), .critical)
         XCTAssertEqual(
-            snapshot(state: "paused", netTime: 7 * 3600)
+            snapshot(state: .paused, netTime: 7 * 3600)
                 .thresholdLevel(at: measuredAt.addingTimeInterval(7200)), .normal)
     }
 }

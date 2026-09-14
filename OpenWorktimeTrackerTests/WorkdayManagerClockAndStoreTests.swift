@@ -50,7 +50,7 @@ final class WorkdayManagerClockAndStoreTests: XCTestCase {
         manager.startNewDay()
         let start = clock.now
         var snapshot = try XCTUnwrap(widgetStore.readSnapshot())
-        XCTAssertEqual(snapshot.state, "running")
+        XCTAssertEqual(snapshot.state, .running)
         XCTAssertEqual(snapshot.measuredAt, start)
         XCTAssertEqual(snapshot.startTime, start)
         XCTAssertEqual(snapshot.workDate, manager.currentEntry?.date)
@@ -59,7 +59,7 @@ final class WorkdayManagerClockAndStoreTests: XCTestCase {
         clock.now = start.addingTimeInterval(3600)
         manager.pause()
         snapshot = try XCTUnwrap(widgetStore.readSnapshot())
-        XCTAssertEqual(snapshot.state, "paused")
+        XCTAssertEqual(snapshot.state, .paused)
         XCTAssertEqual(snapshot.measuredAt, clock.now)
         XCTAssertEqual(snapshot.netTime, 3600)
         XCTAssertEqual(snapshot.netTime(at: clock.now.addingTimeInterval(600)), 3600)
@@ -67,7 +67,7 @@ final class WorkdayManagerClockAndStoreTests: XCTestCase {
         clock.now = clock.now.addingTimeInterval(600)
         manager.resume()
         snapshot = try XCTUnwrap(widgetStore.readSnapshot())
-        XCTAssertEqual(snapshot.state, "running")
+        XCTAssertEqual(snapshot.state, .running)
         XCTAssertEqual(snapshot.measuredAt, clock.now)
         XCTAssertEqual(snapshot.netTime, 3600)
         XCTAssertEqual(snapshot.grossTime, 4200)
@@ -76,7 +76,7 @@ final class WorkdayManagerClockAndStoreTests: XCTestCase {
         clock.now = clock.now.addingTimeInterval(300)
         manager.endDay()
         snapshot = try XCTUnwrap(widgetStore.readSnapshot())
-        XCTAssertEqual(snapshot.state, "ended")
+        XCTAssertEqual(snapshot.state, .ended)
         XCTAssertEqual(snapshot.measuredAt, clock.now)
         XCTAssertEqual(snapshot.netTime, 3900)
         clock.now = clock.now.addingTimeInterval(900)
@@ -93,8 +93,7 @@ final class WorkdayManagerClockAndStoreTests: XCTestCase {
 
         let snapshot = try XCTUnwrap(widgetStore.readSnapshot())
         XCTAssertEqual(snapshot.targetHours, 7)
-        XCTAssertEqual(snapshot.orangeThreshold, 7.5)
-        XCTAssertEqual(snapshot.redThreshold, 8.5)
+        XCTAssertEqual(snapshot.thresholdLadder, ThresholdLadder(elevatedHours: 7.5, criticalHours: 8.5))
     }
 
     func testDeletingCurrentLogPublishesEmptySnapshotWithoutStaleStartTime() throws {
@@ -102,7 +101,7 @@ final class WorkdayManagerClockAndStoreTests: XCTestCase {
         XCTAssertTrue(manager.deleteLog(manager.currentEntry!))
 
         let snapshot = try XCTUnwrap(widgetStore.readSnapshot())
-        XCTAssertEqual(snapshot.state, "notStarted")
+        XCTAssertEqual(snapshot.state, .notStarted)
         XCTAssertEqual(snapshot.measuredAt, clock.now)
         XCTAssertNil(snapshot.startTime)
         XCTAssertEqual(snapshot.workDate, "")
@@ -119,7 +118,7 @@ final class WorkdayManagerClockAndStoreTests: XCTestCase {
         manager.handleIdleDecisionAndEndDay()
 
         let snapshot = try XCTUnwrap(widgetStore.readSnapshot())
-        XCTAssertEqual(snapshot.state, "ended")
+        XCTAssertEqual(snapshot.state, .ended)
         XCTAssertEqual(snapshot.measuredAt, end)
         XCTAssertEqual(snapshot.netTime, 3600)
         XCTAssertEqual(snapshot.netTime(at: clock.now), 3600)

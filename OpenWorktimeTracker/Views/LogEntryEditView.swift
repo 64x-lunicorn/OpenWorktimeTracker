@@ -102,19 +102,11 @@ struct LogEntryEditView: View {
     }
 
     private var statusLabel: String {
-        switch entry.status {
-        case .running: return String(localized: "state.running")
-        case .paused: return String(localized: "state.paused")
-        case .ended: return String(localized: "state.ended")
-        }
+        WorkdayState(entry.status).localizedLabel
     }
 
     private var statusColor: Color {
-        switch entry.status {
-        case .running: return DesignTokens.Colors.accentGreen
-        case .paused: return DesignTokens.Colors.accentOrange
-        case .ended: return DesignTokens.Colors.accentBlue
-        }
+        WorkdayState(entry.status).accent.color
     }
 
     // MARK: - Time

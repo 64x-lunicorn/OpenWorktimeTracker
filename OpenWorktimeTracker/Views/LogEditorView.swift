@@ -109,6 +109,6 @@ private struct LogEntryRow: View {
     }
 
     private var timeColor: Color {
-        workday.thresholdLevel.accent
+        workday.thresholdLevel.accent.color
     }
 }

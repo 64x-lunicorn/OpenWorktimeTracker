@@ -14,7 +14,7 @@ enum ThresholdLevel: Equatable {
 ///
 /// Distinct from the notification Thresholds, which fire at their own points and
 /// are deliberately allowed to differ.
-struct ThresholdLadder {
+struct ThresholdLadder: Codable, Equatable {
 
     let elevatedHours: Double
     let criticalHours: Double
