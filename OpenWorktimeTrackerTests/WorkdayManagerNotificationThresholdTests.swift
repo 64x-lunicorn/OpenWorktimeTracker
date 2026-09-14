@@ -194,4 +194,73 @@ final class WorkdayManagerNotificationThresholdTests: XCTestCase {
         XCTAssertEqual(count("milestone"), 1)
         XCTAssertEqual(prompts.maxHoursPrompts, [10.5])
     }
+
+    // MARK: - Normal and critical
+
+    func testCrossingNormalThenCriticalNotifiesEachOnce() {
+        startWorkday()
+        tick(atHours: 7.9)
+        XCTAssertTrue(notifications.thresholds.isEmpty)
+
+        tick(atHours: 8)
+        tick(atHours: 8.5)
+        XCTAssertEqual(notifications.thresholdIdentifiers, ["normal"])
+
+        tick(atHours: 9)
+        tick(atHours: 9.5)
+        XCTAssertEqual(notifications.thresholdIdentifiers, ["normal", "critical"])
+    }
+
+    func testNormalAndCriticalAreNotNotifiedWhenNotificationsAreDisabled() {
+        defaults.set(false, forKey: AppSettingsKey.notificationsEnabled)
+        startWorkday()
+
+        tick(atHours: 8)
+        tick(atHours: 9)
+        tick(atHours: 9.5)
+
+        XCTAssertTrue(notifications.thresholds.isEmpty)
+    }
+
+    func testJumpingStraightPastCriticalNotifiesCriticalFirst() {
+        // Intentional (confirmed 2026-09-14): when Net Work Time is already past
+        // critical, critical is notified instead of normal.
+        startWorkday()
+
+        tick(atHours: 9)
+
+        XCTAssertEqual(notifications.thresholdIdentifiers, ["critical"])
+    }
+
+    func testJumpingStraightPastTheMilestoneNotifiesCriticalOnTheNextTick() {
+        // Intentional (confirmed 2026-09-14): the milestone tick returns before
+        // critical is checked, so critical follows one tick later while the
+        // end-of-day prompt is open.
+        startWorkday()
+
+        tick(atHours: 10)
+        XCTAssertEqual(notifications.thresholdIdentifiers, ["milestone"])
+
+        tick(atHours: 10 + 1 / 3600)
+        XCTAssertEqual(notifications.thresholdIdentifiers, ["milestone", "critical"])
+    }
+
+    func testNotifiedThresholdsSurviveAReloadFromTheSameStore() {
+        startWorkday()
+        tick(atHours: 8)
+        XCTAssertEqual(notifications.thresholdIdentifiers, ["normal"])
+
+        manager = makeManager()
+        manager.evaluateWorkday()
+        tick(atHours: 8.5)
+        XCTAssertTrue(notifications.thresholds.isEmpty)
+
+        tick(atHours: 9)
+        XCTAssertEqual(notifications.thresholdIdentifiers, ["critical"])
+
+        manager = makeManager()
+        manager.evaluateWorkday()
+        tick(atHours: 9.5)
+        XCTAssertTrue(notifications.thresholds.isEmpty)
+    }
 }
