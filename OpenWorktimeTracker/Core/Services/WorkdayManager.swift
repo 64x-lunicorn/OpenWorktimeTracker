@@ -245,11 +245,7 @@ final class WorkdayManager {
 
     private func activate(_ workday: Workday) {
         currentWorkday = workday
-        switch workday.status {
-        case .running: state = .running
-        case .paused: state = .paused
-        case .ended: state = .ended
-        }
+        state = WorkdayState(workday.status)
         startTimer()
         if state == .running {
             idleDetector.startMonitoring()
@@ -739,18 +735,5 @@ extension WorkdayManager {
         }
         finish(at: endYesterdayAt)
         startDay(at: max(detector.startOfEffectiveDay(for: clock.now), period.idleEnd))
-    }
-}
-
-// MARK: - State Localization
-
-extension WorkdayState {
-    var localizedLabel: String {
-        switch self {
-        case .notStarted: return String(localized: "state.notStarted")
-        case .running: return String(localized: "state.running")
-        case .paused: return String(localized: "state.paused")
-        case .ended: return String(localized: "state.ended")
-        }
     }
 }

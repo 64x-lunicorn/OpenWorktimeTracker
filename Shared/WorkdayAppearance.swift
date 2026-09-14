@@ -48,6 +48,11 @@ extension WorkdayState {
         "state.\(rawValue)"
     }
 
+    /// Resolves in the app's bundle.
+    var localizedLabel: String {
+        String(localized: String.LocalizationValue(labelKey))
+    }
+
     /// The widget keeps its own, shorter wording under its own keys.
     var widgetLabelKey: String {
         switch self {
@@ -62,6 +67,24 @@ extension WorkdayState {
     }
 }
 
+// MARK: - Threshold Level
+
+extension ThresholdLevel {
+    /// The accent a Workday's Net Work Time is painted with at this level.
+    var accent: PaletteColor {
+        switch self {
+        case .normal: return .blue
+        case .elevated: return .orange
+        case .critical: return .red
+        }
+    }
+
+    /// `nil` leaves the menu bar to its native, wallpaper-aware rendering.
+    var menuBarAccent: PaletteColor? {
+        self == .normal ? nil : accent
+    }
+}
+
 // MARK: - Workday Appearance
 
 /// How a Workday looks for a tracking state at a Threshold Level.
@@ -71,11 +94,7 @@ struct WorkdayAppearance: Equatable {
 
     /// Elevated and critical Threshold Levels take over from the tracking state.
     var indicator: PaletteColor {
-        switch level {
-        case .normal: return state.accent
-        case .elevated: return .orange
-        case .critical: return .red
-        }
+        level == .normal ? state.accent : level.accent
     }
 
     /// Progress toward the daily goal stays green until the Threshold Ladder is reached.

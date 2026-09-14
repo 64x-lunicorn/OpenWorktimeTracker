@@ -38,6 +38,30 @@ final class WorkdayAppearanceTests: XCTestCase {
         }
     }
 
+    func testThresholdLevelAccentIsBlueUntilTheThresholdLadderIsReached() {
+        XCTAssertEqual(ThresholdLevel.normal.accent, .blue)
+        XCTAssertEqual(ThresholdLevel.elevated.accent, .orange)
+        XCTAssertEqual(ThresholdLevel.critical.accent, .red)
+    }
+
+    func testMenuBarIsOnlyPaintedAboveTheNormalLevel() {
+        XCTAssertNil(ThresholdLevel.normal.menuBarAccent)
+        XCTAssertEqual(ThresholdLevel.elevated.menuBarAccent, .orange)
+        XCTAssertEqual(ThresholdLevel.critical.menuBarAccent, .red)
+    }
+
+    func testDailyLogStatusMapsToTheSameTrackingState() {
+        XCTAssertEqual(WorkdayState(TimeEntry.Status.running), .running)
+        XCTAssertEqual(WorkdayState(TimeEntry.Status.paused), .paused)
+        XCTAssertEqual(WorkdayState(TimeEntry.Status.ended), .ended)
+    }
+
+    func testAppLabelsResolveInTheAppBundle() {
+        for state in WorkdayState.allCases {
+            XCTAssertNotEqual(state.localizedLabel, state.labelKey, "\(state)")
+        }
+    }
+
     func testWidgetLabelsExistInEveryWidgetLocalization() throws {
         let widgetDirectory = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent()
