@@ -159,7 +159,7 @@ struct Workday {
         mutating { $0.idleDecisions.append(decision) }
     }
 
-    func markingNotified(_ threshold: String) -> Workday {
+    func markingNotified(_ threshold: NotificationThreshold) -> Workday {
         mutating { $0.notifiedThresholds.insert(threshold) }
     }
 

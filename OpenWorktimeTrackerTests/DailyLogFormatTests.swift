@@ -46,7 +46,7 @@ final class DailyLogFormatTests: XCTestCase {
         XCTAssertEqual(entry.note, "Sprint review")
         XCTAssertEqual(entry.idleDecisions.count, 1)
         XCTAssertEqual(entry.idleDecisions.first?.decision, .pause)
-        XCTAssertTrue(entry.notifiedThresholds.contains("normal"))
+        XCTAssertTrue(entry.notifiedThresholds.contains(.normal))
         XCTAssertNil(entry.pauseStartedAt)
         XCTAssertNil(entry.lastActivityTime)
     }
@@ -107,6 +107,47 @@ final class DailyLogFormatTests: XCTestCase {
                 "idleDecisions", "notifiedThresholds", "note"
             ]
         )
+    }
+
+    private func decodeFixture(notifiedThresholds: String) throws -> TimeEntry {
+        let edited = fixture.replacingOccurrences(
+            of: #""notifiedThresholds": ["normal"]"#,
+            with: #""notifiedThresholds": \#(notifiedThresholds)"#)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(TimeEntry.self, from: Data(edited.utf8))
+    }
+
+    private func encodedNotifiedThresholds(of entry: TimeEntry) throws -> [String] {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoder.encode(entry)) as? [String: Any]
+        )
+        return try XCTUnwrap(object["notifiedThresholds"] as? [String])
+    }
+
+    func testNotifiedThresholdsWrittenByThePreviousVersionDecode() throws {
+        let entry = try decodeFixture(notifiedThresholds: #"["normal", "critical", "milestone"]"#)
+
+        XCTAssertEqual(entry.notifiedThresholds, [.normal, .critical, .milestone])
+    }
+
+    func testNotifiedThresholdsEncodeAsTheShippedStrings() throws {
+        var entry = try decodeFixture()
+        entry.notifiedThresholds = [.normal, .critical, .milestone]
+
+        XCTAssertEqual(
+            Set(try encodedNotifiedThresholds(of: entry)),
+            ["normal", "critical", "milestone"]
+        )
+    }
+
+    func testAnUnknownNotifiedThresholdDoesNotMakeTheDailyLogUnreadable() throws {
+        let entry = try decodeFixture(notifiedThresholds: #"["normal", "weekly"]"#)
+
+        XCTAssertTrue(entry.notifiedThresholds.contains(.normal))
+        XCTAssertEqual(Set(try encodedNotifiedThresholds(of: entry)), ["normal", "weekly"])
     }
 
     func testOptionalLastActivityRoundTripsWithoutChangingOtherFields() throws {

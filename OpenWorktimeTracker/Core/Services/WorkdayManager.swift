@@ -491,8 +491,8 @@ extension WorkdayManager {
 
         // The 10h milestone popup is a legal safeguard (ArbZG) and must appear
         // regardless of whether notifications are enabled.
-        if hours >= thresholds.milestoneHours && !notified.contains("milestone") {
-            let updated = current.markingNotified("milestone")
+        if hours >= thresholds.milestoneHours && !notified.contains(.milestone) {
+            let updated = current.markingNotified(.milestone)
             currentWorkday = updated
             store.save(updated.payload)
             if thresholds.enabled {
@@ -510,14 +510,14 @@ extension WorkdayManager {
         // Normal and critical notifications are only sent when enabled.
         guard thresholds.enabled else { return }
 
-        if hours >= thresholds.criticalHours && !notified.contains("critical") {
+        if hours >= thresholds.criticalHours && !notified.contains(.critical) {
             notifications.sendThresholdNotification(type: .critical(hours: hours))
-            let updated = current.markingNotified("critical")
+            let updated = current.markingNotified(.critical)
             currentWorkday = updated
             store.save(updated.payload)
-        } else if hours >= thresholds.normalHours && !notified.contains("normal") {
+        } else if hours >= thresholds.normalHours && !notified.contains(.normal) {
             notifications.sendThresholdNotification(type: .normal(hours: hours))
-            let updated = current.markingNotified("normal")
+            let updated = current.markingNotified(.normal)
             currentWorkday = updated
             store.save(updated.payload)
         }

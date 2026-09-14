@@ -93,12 +93,14 @@ final class NotificationManager: WorkdayNotificationSending {
         case critical(hours: Double)
         case milestone(hours: Double)
 
-        var identifier: String {
+        var threshold: NotificationThreshold {
             switch self {
-            case .normal: return "normal"
-            case .critical: return "critical"
-            case .milestone: return "milestone"
+            case .normal: return .normal
+            case .critical: return .critical
+            case .milestone: return .milestone
             }
         }
+
+        var identifier: String { threshold.rawValue }
     }
 }

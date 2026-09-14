@@ -66,4 +66,40 @@ final class WorkdayManagerNotificationTests: XCTestCase {
         XCTAssertEqual(notifications.newDayCount, 1)
         XCTAssertEqual(reloaded.state, .running)
     }
+
+    func testThresholdsNotifiedByThePreviousVersionAreNotNotifiedAgain() throws {
+        // A running Daily Log as the previous version wrote it, with every
+        // Notification Threshold already notified.
+        let dailyLog = """
+            {
+              "id": "3F2504E0-4F89-11D3-9A0C-0305E82C3301",
+              "date": "2026-09-14",
+              "startTime": "\(ISO8601DateFormatter().string(from: clock.now))",
+              "status": "running",
+              "manualPauseSeconds": 0,
+              "idleDecisions": [],
+              "notifiedThresholds": ["normal", "critical", "milestone"],
+              "note": ""
+            }
+            """
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        store.save(try decoder.decode(TimeEntry.self, from: Data(dailyLog.utf8)))
+        let prompts = RecordingWorkdayPrompts()
+        let manager = WorkdayManager(
+            defaults: defaults, clock: clock, store: store,
+            idleDetector: IdleDetector(clock: clock, idleTime: { 0 }),
+            prompts: prompts, notifications: notifications)
+        manager.evaluateWorkday()
+        clock.now = clock.now.addingTimeInterval(12 * 3600)
+
+        manager.tick()
+        let drained = expectation(description: "main queue drained")
+        DispatchQueue.main.async { drained.fulfill() }
+        wait(for: [drained], timeout: 1)
+
+        XCTAssertEqual(manager.state, .running)
+        XCTAssertTrue(notifications.thresholds.isEmpty)
+        XCTAssertTrue(prompts.maxHoursPrompts.isEmpty)
+    }
 }

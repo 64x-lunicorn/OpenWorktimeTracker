@@ -117,13 +117,13 @@ final class PersistenceManagerTests: XCTestCase {
 
     func testNotifiedThresholdsRoundTrip() {
         var entry = TimeEntry(date: "2099-01-01", startTime: Date())
-        entry.notifiedThresholds = ["normal", "critical"]
+        entry.notifiedThresholds = [.normal, .critical]
 
         manager.save(entry)
         manager.flush()
 
         let loaded = manager.load(for: "2099-01-01")
-        XCTAssertEqual(loaded?.notifiedThresholds, ["normal", "critical"])
+        XCTAssertEqual(loaded?.notifiedThresholds, [.normal, .critical])
     }
 
     // MARK: - Overwrite

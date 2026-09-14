@@ -134,7 +134,7 @@ final class TimeEntryTests: XCTestCase {
             manualPauseSeconds: 1800,
             note: "Full day"
         )
-        original.notifiedThresholds = ["normal", "critical"]
+        original.notifiedThresholds = [.normal, .critical]
         original.idleDecisions = [
             IdleDecision(
                 idleStart: Date().addingTimeInterval(3600),
@@ -156,7 +156,7 @@ final class TimeEntryTests: XCTestCase {
         XCTAssertEqual(decoded.status, .ended)
         XCTAssertEqual(decoded.manualPauseSeconds, 1800)
         XCTAssertEqual(decoded.note, "Full day")
-        XCTAssertEqual(decoded.notifiedThresholds, ["normal", "critical"])
+        XCTAssertEqual(decoded.notifiedThresholds, [.normal, .critical])
         XCTAssertEqual(decoded.idleDecisions.count, 1)
         XCTAssertEqual(decoded.idleDecisions[0].decision, .pause)
     }
