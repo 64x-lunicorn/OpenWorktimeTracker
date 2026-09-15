@@ -189,10 +189,12 @@ final class MenuBarController: NSObject {
             var environment = EnvironmentValues()
             environment.colorScheme = NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
                 ? .dark : .light
-            let resolved = manager.thresholdLevel.accent.resolve(in: environment)
-            let color: NSColor? = manager.thresholdLevel == .normal ? nil : NSColor(
-                srgbRed: CGFloat(resolved.red), green: CGFloat(resolved.green),
-                blue: CGFloat(resolved.blue), alpha: CGFloat(resolved.opacity))
+            let color = manager.thresholdLevel.menuBarAccent.map { accent in
+                let resolved = accent.color.resolve(in: environment)
+                return NSColor(
+                    srgbRed: CGFloat(resolved.red), green: CGFloat(resolved.green),
+                    blue: CGFloat(resolved.blue), alpha: CGFloat(resolved.opacity))
+            }
             button?.contentTintColor = nil
             if let color {
                 // A non-template image preserves threshold colors through menu-bar compositing.

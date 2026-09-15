@@ -76,6 +76,6 @@ struct TimerDisplayView: View {
     }
 
     private var thresholdColor: Color {
-        manager.thresholdLevel.accent
+        manager.thresholdLevel.accent.color
     }
 }

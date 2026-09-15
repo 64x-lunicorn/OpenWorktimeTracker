@@ -13,6 +13,7 @@ struct TimeEntry: Codable, Identifiable {
     var note: String
     var lastActivityTime: Date?
 
+    /// Maps onto `WorkdayState`, which adds `notStarted` for when no Daily Log exists.
     enum Status: String, Codable {
         case running
         case paused
@@ -126,5 +127,15 @@ struct IdleDecision: Codable, Identifiable {
         self.idleStart = idleStart
         self.idleEnd = idleEnd
         self.decision = decision
+    }
+}
+
+extension WorkdayState {
+    init(_ status: TimeEntry.Status) {
+        switch status {
+        case .running: self = .running
+        case .paused: self = .paused
+        case .ended: self = .ended
+        }
     }
 }

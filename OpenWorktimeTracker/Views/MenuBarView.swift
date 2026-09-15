@@ -207,11 +207,6 @@ struct MenuBarView: View {
     // MARK: - Helpers
 
     private var stateColor: Color {
-        switch manager.state {
-        case .notStarted: return DesignTokens.Colors.onSurfaceVariant
-        case .running: return DesignTokens.Colors.accentGreen
-        case .paused: return DesignTokens.Colors.accentOrange
-        case .ended: return DesignTokens.Colors.accentBlue
-        }
+        manager.state.accent.color
     }
 }

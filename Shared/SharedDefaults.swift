@@ -2,16 +2,15 @@ import Foundation
 
 struct WidgetSnapshot: Codable, Equatable {
     let measuredAt: Date
-    let state: String
+    let state: WorkdayState
     let netTime: TimeInterval
     let grossTime: TimeInterval
     let startTime: Date?
     let workDate: String
     let targetHours: Double
-    let orangeThreshold: Double
-    let redThreshold: Double
+    let thresholdLadder: ThresholdLadder
 
-    var isRunning: Bool { state == "running" }
+    var isRunning: Bool { state == .running }
 
     /// Anchored to the measurement, never to the widget's later read time.
     var liveNetStart: Date { measuredAt.addingTimeInterval(-netTime) }
@@ -21,18 +20,21 @@ struct WidgetSnapshot: Codable, Equatable {
     }
 
     func thresholdLevel(at date: Date) -> ThresholdLevel {
-        ThresholdLadder(elevatedHours: orangeThreshold, criticalHours: redThreshold)
-            .level(for: netTime(at: date))
+        thresholdLadder.level(for: netTime(at: date))
     }
 
+    func appearance(at date: Date) -> WorkdayAppearance {
+        WorkdayAppearance(state: state, level: thresholdLevel(at: date))
+    }
+
+    /// The state is checked by decoding.
     fileprivate func validate() throws {
-        guard ["notStarted", "running", "paused", "ended"].contains(state),
-            measuredAt.timeIntervalSince1970.isFinite,
+        guard measuredAt.timeIntervalSince1970.isFinite,
             startTime?.timeIntervalSince1970.isFinite ?? true,
             netTime.isFinite, netTime >= 0, grossTime.isFinite, grossTime >= 0,
             targetHours.isFinite, targetHours > 0,
-            orangeThreshold.isFinite, orangeThreshold >= 0,
-            redThreshold.isFinite, redThreshold >= 0 else {
+            thresholdLadder.elevatedHours.isFinite, thresholdLadder.elevatedHours >= 0,
+            thresholdLadder.criticalHours.isFinite, thresholdLadder.criticalHours >= 0 else {
             throw CocoaError(.coderInvalidValue)
         }
     }
@@ -41,7 +43,9 @@ struct WidgetSnapshot: Codable, Equatable {
 struct SharedDefaults {
     static let appGroupIdentifier = "group.com.openworktimetracker"
     static let shared = SharedDefaults()
-    static let snapshotKey = "widget_snapshot_v1"
+    /// Versioned with the stored format; a value under an earlier key is ignored.
+    static let snapshotKey = "widget_snapshot_v2"
+    private static let previousSnapshotKey = "widget_snapshot_v1"
 
     // AppSettingsKey/AppDefaults reference these shared setting definitions.
     static let normalHoursSettingKey = "normalNotificationHours"
@@ -76,6 +80,7 @@ struct SharedDefaults {
         if let defaults {
             // One value replaces the entire measurement, including its settings.
             defaults.set(data, forKey: Self.snapshotKey)
+            defaults.removeObject(forKey: Self.previousSnapshotKey)
         } else {
             try FileManager.default.createDirectory(
                 at: fallbackURL.deletingLastPathComponent(), withIntermediateDirectories: true)
