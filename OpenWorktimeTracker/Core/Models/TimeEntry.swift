@@ -9,7 +9,7 @@ struct TimeEntry: Codable, Identifiable {
     var manualPauseSeconds: TimeInterval
     var pauseStartedAt: Date?
     var idleDecisions: [IdleDecision]
-    var notifiedThresholds: Set<String>
+    var notifiedThresholds: Set<NotifiedThreshold>
     var note: String
     var lastActivityTime: Date?
 
@@ -29,7 +29,7 @@ struct TimeEntry: Codable, Identifiable {
         manualPauseSeconds: TimeInterval = 0,
         pauseStartedAt: Date? = nil,
         idleDecisions: [IdleDecision] = [],
-        notifiedThresholds: Set<String> = [],
+        notifiedThresholds: Set<NotifiedThreshold> = [],
         note: String = "",
         lastActivityTime: Date? = nil
     ) {
@@ -91,6 +91,20 @@ struct TimeEntry: Codable, Identifiable {
     static func dateString(from date: Date) -> String {
         dateStringFormatter.string(from: date)
     }
+}
+
+/// A Notification Threshold a Workday has already notified, as recorded in its
+/// Daily Log.
+///
+/// String-backed rather than an enum: it encodes as exactly the shipped
+/// strings, and a value this version doesn't know (a hand edit, a newer
+/// version) is kept instead of making the whole Daily Log unreadable.
+struct NotifiedThreshold: RawRepresentable, Hashable, Codable {
+    let rawValue: String
+
+    static let normal = NotifiedThreshold(rawValue: "normal")
+    static let critical = NotifiedThreshold(rawValue: "critical")
+    static let milestone = NotifiedThreshold(rawValue: "milestone")
 }
 
 struct IdleDecision: Codable, Identifiable {

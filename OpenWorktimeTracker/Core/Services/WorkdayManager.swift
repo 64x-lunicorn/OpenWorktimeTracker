@@ -39,7 +39,7 @@ final class WorkdayManager {
 
     let persistence = PersistenceManager()
     let idleDetector: IdleDetector
-    private let notifications = NotificationManager.shared
+    private let notifications: WorkdayNotificationSending
     private let defaults: UserDefaults
     private let clock: Clock
     private let store: DailyLogStore
@@ -52,6 +52,7 @@ final class WorkdayManager {
         store: DailyLogStore? = nil,
         idleDetector: IdleDetector? = nil,
         prompts: WorkdayPromptPresenting = IdlePromptWindowController.shared,
+        notifications: WorkdayNotificationSending = NotificationManager.shared,
         widgetStore: SharedDefaults = .shared
     ) {
         self.defaults = defaults
@@ -59,6 +60,7 @@ final class WorkdayManager {
         self.store = store ?? persistence
         self.idleDetector = idleDetector ?? IdleDetector(clock: clock)
         self.prompts = prompts
+        self.notifications = notifications
         self.widgetStore = widgetStore
         self.notificationThresholds = .resolved(from: defaults)
         self.newDayStartHour = Self.resolvedNewDayStartHour(from: defaults)
@@ -475,14 +477,27 @@ extension WorkdayManager {
         let notified = current.payload.notifiedThresholds
         let thresholds = notificationThresholds
 
+        // Only the highest crossed Threshold is reported. Lower ones crossed in
+        // the same jump are recorded as notified so they never follow later.
+        func markingCrossedBelow(_ workday: Workday, _ threshold: NotifiedThreshold) -> Workday {
+            var marked = workday.markingNotified(threshold)
+            if threshold == .milestone && hours >= thresholds.criticalHours {
+                marked = marked.markingNotified(.critical)
+            }
+            if hours >= thresholds.normalHours {
+                marked = marked.markingNotified(.normal)
+            }
+            return marked
+        }
+
         // The 10h milestone popup is a legal safeguard (ArbZG) and must appear
         // regardless of whether notifications are enabled.
-        if hours >= thresholds.milestoneHours && !notified.contains("milestone") {
-            let updated = current.markingNotified("milestone")
+        if hours >= thresholds.milestoneHours && !notified.contains(.milestone) {
+            let updated = markingCrossedBelow(current, .milestone)
             currentWorkday = updated
             store.save(updated.payload)
             if thresholds.enabled {
-                notifications.sendThresholdNotification(type: .milestone(hours: hours))
+                notifications.sendThresholdNotification(.milestone, hours: hours)
             }
             // Show popup asking to end the day
             DispatchQueue.main.async { [weak self] in
@@ -496,14 +511,14 @@ extension WorkdayManager {
         // Normal and critical notifications are only sent when enabled.
         guard thresholds.enabled else { return }
 
-        if hours >= thresholds.criticalHours && !notified.contains("critical") {
-            notifications.sendThresholdNotification(type: .critical(hours: hours))
-            let updated = current.markingNotified("critical")
+        if hours >= thresholds.criticalHours && !notified.contains(.critical) {
+            notifications.sendThresholdNotification(.critical, hours: hours)
+            let updated = markingCrossedBelow(current, .critical)
             currentWorkday = updated
             store.save(updated.payload)
-        } else if hours >= thresholds.normalHours && !notified.contains("normal") {
-            notifications.sendThresholdNotification(type: .normal(hours: hours))
-            let updated = current.markingNotified("normal")
+        } else if hours >= thresholds.normalHours && !notified.contains(.normal) {
+            notifications.sendThresholdNotification(.normal, hours: hours)
+            let updated = current.markingNotified(.normal)
             currentWorkday = updated
             store.save(updated.payload)
         }

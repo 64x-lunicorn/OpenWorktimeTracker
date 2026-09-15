@@ -4,7 +4,14 @@ import os.log
 
 private let logger = Logger(subsystem: "com.openworktimetracker.app", category: "Notifications")
 
-final class NotificationManager {
+/// Sends the system notifications a Workday raises: Notification Thresholds
+/// and the new-day notice. NotificationManager is the production adapter.
+protocol WorkdayNotificationSending {
+    func sendThresholdNotification(_ threshold: NotifiedThreshold, hours: Double)
+    func sendNewDayNotification()
+}
+
+final class NotificationManager: WorkdayNotificationSending {
 
     static let shared = NotificationManager()
     private let center = UNUserNotificationCenter.current()
@@ -26,31 +33,33 @@ final class NotificationManager {
 
     // MARK: - Threshold Notifications
 
-    func sendThresholdNotification(type: ThresholdType) {
+    func sendThresholdNotification(_ threshold: NotifiedThreshold, hours: Double) {
         let content = UNMutableNotificationContent()
 
-        switch type {
-        case .normal(let hours):
+        switch threshold {
+        case .normal:
             content.title = String(localized: "notification.normal.title")
             content.body = String(format: String(localized: "notification.normal.body"), hours)
-            content.sound = .default
 
-        case .critical(let hours):
+        case .critical:
             content.title = String(localized: "notification.critical.title")
             content.body = String(
                 format: String(localized: "notification.critical.body"), hours)
-            content.sound = .default
 
-        case .milestone(let hours):
+        case .milestone:
             content.title = String(localized: "notification.milestone.title")
             content.body = String(format: String(localized: "notification.milestone.body"), hours)
-            content.sound = .default
+
+        default:
+            logger.error("No notification for unknown Threshold: \(threshold.rawValue)")
+            return
         }
 
+        content.sound = .default
         content.interruptionLevel = .active
 
         let request = UNNotificationRequest(
-            identifier: "threshold-\(type.identifier)",
+            identifier: "threshold-\(threshold.rawValue)",
             content: content,
             trigger: nil  // Deliver immediately
         )
@@ -77,20 +86,6 @@ final class NotificationManager {
         center.add(request) { error in
             if let error {
                 logger.error("Failed to add notification: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    enum ThresholdType {
-        case normal(hours: Double)
-        case critical(hours: Double)
-        case milestone(hours: Double)
-
-        var identifier: String {
-            switch self {
-            case .normal: return "normal"
-            case .critical: return "critical"
-            case .milestone: return "milestone"
             }
         }
     }

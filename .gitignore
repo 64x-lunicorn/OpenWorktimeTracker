@@ -47,6 +47,9 @@ Local.xcconfig
 *.provisionprofile
 sparkle_private_key
 
+# Local agent tickets and scratch work
+.scratch/
+
 # Docs
 docs/node_modules/
 docs/dist/

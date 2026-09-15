@@ -536,18 +536,3 @@ final class WorkdayManagerClockAndStoreTests: XCTestCase {
     }
 
 }
-
-private final class RecordingWorkdayPrompts: WorkdayPromptPresenting {
-    private(set) var periods: [IdlePeriod] = []
-    private(set) var dismissCount = 0
-
-    func show(idlePeriod: IdlePeriod, manager: WorkdayManager) {
-        periods.append(idlePeriod)
-    }
-
-    func showMaxHoursPrompt(hours: Double, manager: WorkdayManager) {}
-
-    func dismiss() {
-        dismissCount += 1
-    }
-}
